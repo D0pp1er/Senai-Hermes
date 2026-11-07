@@ -57,3 +57,8 @@
 - Added projectprogress/objectives.md, acheivements.md, and current task.md.
 - TDD/refactor check: moved tests first; imports failed before adding the modules.
 - Verification: all eleven tests pass; editable reinstall and both command entry points succeed.
+
+## Requirements plan
+- Added main task.md with required, optional, process, and submission requirements from the PDF.
+- Included verifiable TDD or manual acceptance checks for every task, without copying credentials.
+- Began incremental native Codex compatibility work; one capability per commit.
