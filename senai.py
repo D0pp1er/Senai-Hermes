@@ -12,6 +12,8 @@ def build_prompt(request):
         raise ValueError('Request must not be empty.')
     return (
         'Your task is to write and edit code in the selected project.\n'
+        'All generated files must stay inside this workspace (the outputs/ directory).\n'
+        'Edit existing code here; do not modify files outside this workspace.\n'
         'Read relevant files and project instructions before editing.\n'
         'Make focused changes for the request; preserve unrelated work.\n'
         'Run relevant checks when possible and report changed files and results.\n'
@@ -21,7 +23,7 @@ def build_prompt(request):
 
 
 def run_codex(prompt, project):
-    with tempfile.TemporaryDirectory(prefix='senai-') as temporary:
+    with tempfile.TemporaryDirectory(prefix='.senai-', dir=project) as temporary:
         output = Path(temporary) / 'response.txt'
         command = [
             'codex', 'exec', '--sandbox', 'workspace-write',
@@ -55,7 +57,12 @@ def main(argv=None, stdout=None, stderr=None):
         project = Path(args.project).expanduser().resolve()
         if not project.is_dir():
             raise ValueError('Project must be an existing directory.')
-        response = run_codex(build_prompt(args.request), project)
+        prompt = build_prompt(args.request)
+        workspace = project / 'outputs'
+        if workspace.is_symlink():
+            raise ValueError('outputs must be a real directory, not a symlink.')
+        workspace.mkdir(exist_ok=True)
+        response = run_codex(prompt, workspace)
         print(response, file=stdout)
         return 0
     except (ValueError, RuntimeError, OSError) as exc:

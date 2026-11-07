@@ -28,3 +28,10 @@
   after approved execution outside the outer sandbox. Codex's workspace-write
   option remained enabled.
 - Demo files are ignored so generated code is separate from wrapper source.
+
+## Output workspace
+- Run Codex inside <project>/outputs/ and keep temporary response files there.
+- Validate the request before creating outputs; reject a symlinked output root.
+- TDD red: three output routing/instruction/path tests failed.
+- TDD green: all eleven tests pass.
+- Existing files outside outputs/ are preserved; move code into outputs/ to edit it.
