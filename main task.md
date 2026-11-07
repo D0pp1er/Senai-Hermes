@@ -62,7 +62,7 @@ No credentials are copied into this repository.
 - [x] Image attachments (tests/test_images.py).
 - [x] Web search (tests/test_search.py).
 - [x] Explicit installed-skill selection (tests/test_skills.py).
-- [ ] Session resumption.
+- [x] Session resumption (tests/test_resume.py).
 - [ ] Interactive Codex workflow (native slash commands and tools).
 - [ ] Native command compatibility (review, MCP/plugin management, help, future flags).
 

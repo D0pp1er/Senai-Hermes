@@ -114,3 +114,12 @@ senai --skill YOUR_INSTALLED_SKILL "Write code using this workflow"
 
 Repeat --skill to select more than one. This emits native `$name` mentions without shell expansion. Codex resolves installed repository/user/plugin skills; a missing skill is not installed automatically. Repository skills use native `.agents/skills` discovery.
 Reference: https://learn.chatgpt.com/docs/build-skills
+
+## Continue a session
+
+```bash
+senai --last "Continue the implementation"
+senai --resume SESSION_ID "Fix the previous issue"
+```
+
+Use sessions originally created in this project outputs/ workspace. --last uses native cwd filtering. Session history remains in the normal Codex state location; this is native conversation continuity, not automatic semantic memory.

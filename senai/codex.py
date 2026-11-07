@@ -8,6 +8,8 @@ from .options import CodexOptions
 
 
 def run_codex(prompt, project, *, options=None):
+    options = options or CodexOptions()
+    session_args = options.session_args()
     with tempfile.TemporaryDirectory(prefix='.senai-', dir=project) as temporary:
         output = Path(temporary) / 'response.txt'
         command = [
@@ -15,7 +17,8 @@ def run_codex(prompt, project, *, options=None):
             '--cd', str(project), '--color', 'never',
             '--output-last-message', str(output),
         ]
-        command.extend((options or CodexOptions()).to_args())
+        command.extend(options.to_args())
+        command.extend(session_args)
         command.append('-')
         try:
             result = subprocess.run(

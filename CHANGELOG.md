@@ -84,3 +84,9 @@
 - Validate mention names; do not install or fabricate skills. Codex resolves availability.
 - TDD: three skill tests failed first; all 22 tests now pass.
 - This selects installed skills, not automatic skill learning from experience.
+
+## Session capability
+- Added mutually exclusive --resume SESSION and --last using codex exec resume.
+- Preserve stdin prompt delivery, final-message capture, and outputs/ context.
+- Reject empty/option-like session identifiers. Native Codex retains session history.
+- TDD: five resume tests failed first; all 27 tests now pass.
