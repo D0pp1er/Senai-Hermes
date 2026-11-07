@@ -63,8 +63,8 @@ class Router:
             jobs = self.store.recent(chat['id'])
             response = '\n'.join(f'Request #{job["id"]}: {job["status"]}' for job in jobs) or 'No requests yet.'
         elif command == '/result':
-            jobs = [job for job in self.store.recent(chat['id']) if job['status'] in ('succeeded', 'failed', 'interrupted')]
-            response = result_text(jobs[0]) if jobs else 'No completed result yet. Use /status.'
+            job = self.store.latest_completed(chat['id'])
+            response = result_text(job) if job else 'No completed result yet. Use /status.'
         elif len(prompt) > 8000:
             response = 'Request is too long; use at most 8000 characters.'
         elif command in ('', '/start', '/help', '/run'):

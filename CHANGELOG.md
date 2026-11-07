@@ -164,3 +164,11 @@
 - Added mandatory private-user authorization before execution, help/run/status/result commands, and a bounded queue.
 - Added SQLite cursor/job persistence, duplicate update protection, interrupted-job recovery without automatic re-execution, and durable result-delivery progress.
 - TDD: routing/store tests failed before implementation; no Telegram network calls are made by these tests.
+
+## Telegram execution service
+- Added senai telegram setup/check/polling, a separate single worker, private reply delivery, and a per-bot/project process lock.
+- Requests invoke the existing senai module with literal text, non-interactive approvals, and bot-token variables removed from child environments.
+- Preserve local stdout/stderr job logs; send split results through a durable outbox without re-running jobs on delivery failures.
+- Old Telegram messages are skipped on startup; accepted queued work persists, and previously running work is marked interrupted rather than retried.
+- Added real worker-thread responsiveness and setup tests; a failing /result regression exposed and fixed completed results hidden by newer queued jobs.
+- No live bot connection has been made; the user is creating a bot with BotFather.

@@ -95,6 +95,11 @@ class JobStore:
         with self.connection() as database:
             return [dict(row) for row in database.execute('SELECT * FROM jobs WHERE chat_id=? ORDER BY id DESC LIMIT 3', (chat_id,))]
 
+    def latest_completed(self, chat_id):
+        with self.connection() as database:
+            row = database.execute("SELECT * FROM jobs WHERE chat_id=? AND status IN ('succeeded','failed','interrupted') ORDER BY id DESC LIMIT 1", (chat_id,)).fetchone()
+            return dict(row) if row is not None else None
+
     def pending_results(self):
         with self.connection() as database:
             return [dict(row) for row in database.execute("SELECT * FROM jobs WHERE status IN ('succeeded','failed','interrupted') AND delivered=0 ORDER BY id LIMIT 10")]

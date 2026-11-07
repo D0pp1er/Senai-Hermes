@@ -97,3 +97,12 @@ class TelegramJobTests(unittest.TestCase):
         self.assertNotIn('private result', response[0][1])
         self.assertNotIn('#1', response[0][1])
         self.assertIn('private result', router.handle(update(3, '/result'))[0][1])
+
+    def test_result_finds_completed_request_behind_new_queued_requests(self):
+        self.router.handle(update(1))
+        self.store.claim_next()
+        self.store.finish(1, 'succeeded', 'earlier completed result')
+        for identifier in (2, 3, 4):
+            self.router.handle(update(identifier))
+        response = self.router.handle(update(5, '/result'))
+        self.assertIn('earlier completed result', response[0][1])

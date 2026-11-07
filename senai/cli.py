@@ -15,7 +15,7 @@ from .workspace import prepare_workspace, resolve_output_path
 def build_parser():
     parser = argparse.ArgumentParser(
         description=__doc__, allow_abbrev=False,
-        epilog='Use senai chat for interactive Codex, senai review for code review, or senai codex -- <args> for native commands.',
+        epilog='Use senai chat for interactive Codex, senai review for code review, senai telegram for bot control, or senai codex -- <args> for native commands.',
     )
     parser.add_argument('request', nargs='?', help='Quoted request, or - to read stdin.')
     parser.add_argument('--project', '-C', '--cd', default='.', help='Parent project directory; code goes in its outputs/ folder.')
@@ -38,6 +38,9 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     stderr = stderr if stderr is not None else sys.stderr
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'telegram':
+        from .telegram.cli import telegram_main
+        return telegram_main(argv[1:], stdout, stderr)
     routes = {'review': review_main, 'codex': native_main, 'chat': chat_main}
     if argv and argv[0] in routes:
         return routes[argv[0]](argv[1:], stdout, stderr)
