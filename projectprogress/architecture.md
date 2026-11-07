@@ -1,0 +1,226 @@
+# senai architecture and execution flow
+
+This document describes the current code, not a proposed architecture.
+The authoritative checkout is `/home/rk/SentiensHermes/senai` in Ubuntu WSL.
+For commands and setup, see [features.md](features.md). For hands-on verification,
+see [manualqa.md](../tests/manualqa.md).
+
+## 1. What runs where
+
+senai is a small Python orchestration layer around the installed `codex` executable.
+It does not call a model API directly or implement its own agent/tool loop.
+Codex handles model access, project-file discovery, tool execution, skill loading,
+authentication, and native session history.
+
+```mermaid
+flowchart TD
+    User[WSL terminal] --> Entry[senai console command]
+    Entry --> Main[cli.main]
+    Main --> Route{First argument}
+    Route -->|quoted request / options| Write[Write/edit parser]
+    Route -->|chat| Chat[native.chat_main]
+    Route -->|review| Review[native.review_main]
+    Route -->|codex| Native[native.native_main]
+    Write --> Prompt[prompts.build_prompt]
+    Prompt --> Images[Resolve and validate image paths]
+    Images --> Workspace[workspace.prepare_workspace]
+    Chat --> Workspace
+    Review --> Workspace
+    Native --> Workspace
+    Workspace --> Execute{Execution adapter}
+    Execute -->|write/edit| Capture[codex.run_codex]
+    Execute -->|chat/review/native| Streams[native.run_native]
+    Capture --> Codex[Installed Codex CLI]
+    Streams --> Codex
+    Codex --> Files[Generated code in outputs/]
+    Codex --> Result[Response / tool events / interactive UI]
+    Result --> User
+```
+
+The diagram summarizes the two execution paths; workspace preparation returns to
+the mode that called it. No separate background worker is started by senai.
+
+## 2. Entry points and module boundaries
+
+| File | Responsibility | Main functions/types |
+| --- | --- | --- |
+| [pyproject.toml](../pyproject.toml) | Defines the installable package and `senai` console entry point. | `senai = "senai.cli:main"` |
+| [__main__.py](../senai/__main__.py) | Allows `python3 -m senai`; exits with the main result. | `main()` |
+| [cli.py](../senai/cli.py) | Routes modes; parses convenience flags; validates images; reports results/errors. | `main()` |
+| [prompts.py](../senai/prompts.py) | Validates request/skill names and builds write/edit instructions. | `build_prompt()` |
+| [workspace.py](../senai/workspace.py) | Resolves the parent project and prepares its outputs directory. | `prepare_workspace()` |
+| [options.py](../senai/options.py) | Stores explicit options and translates them into native argument lists. | `CodexOptions`, `to_args()`, `session_args()` |
+| [codex.py](../senai/codex.py) | Executes one non-interactive request and captures its final response. | `run_codex()` |
+| [native.py](../senai/native.py) | Interactive, review, and native forwarding paths; native argument validation. | `chat_main()`, `review_main()`, `native_main()`, `run_native()` |
+
+Routing checks only the first argument. For example, `senai review` chooses review
+mode, whereas `senai -- "review"` submits a literal write/edit request.
+
+## 3. Trace a write/edit request
+
+Example:
+
+```bash
+senai --project /path/to/repo --search "Create hello.py that prints Hello"
+```
+
+1. The installed console script calls `senai.cli.main()`.
+2. No first-argument mode keyword matches, so the write/edit parser reads the
+   request, project, model/profile/config, images, skills, and resume selector.
+3. `build_prompt()` rejects a blank request or invalid skill name. It inserts
+   literal `$skill-name` mentions when selected, write/edit instructions, and
+   the stripped request inside `<user_request>` delimiters.
+4. Image paths are expanded and resolved relative to the caller's directory.
+   Nonexistent/non-file attachments fail before creating the output workspace.
+5. `prepare_workspace()` expands/resolves the parent project, checks it is an
+   existing directory, rejects a symlinked outputs root, and creates outputs/.
+   It does not itself validate that the project is a Git repository; Codex does.
+6. `CodexOptions` stores the explicit settings. `run_codex()` validates the resume
+   selector, then creates a temporary `.senai-<random>/` directory inside outputs/.
+7. The adapter constructs this argument list (shown schematically):
+
+```text
+codex exec
+  --sandbox workspace-write
+  --cd /path/to/repo/outputs
+  --color never
+  --output-last-message /path/to/repo/outputs/.senai-<random>/response.txt
+  <model/profile/config/image arguments>
+  <optional resume SESSION or resume --last>
+  -
+```
+
+8. `subprocess.run()` starts the child with OS cwd also set to outputs/. The
+   complete prompt is sent as UTF-8 stdin; the final `-` tells Codex to read it.
+   Arguments are a Python list, with no shell invocation or shell interpolation.
+9. Codex performs its native work. senai captures stdout/stderr in memory and
+   waits for the child; it does not parse tool events or stream progress here.
+10. A nonzero child status becomes a wrapper execution error. Diagnostics prefer
+    stderr, then stdout, then a fallback message. On status 0, senai reads and
+    strips response.txt; a missing/empty final response is also an error.
+11. A nonempty final response is printed to stdout. The temporary directory is
+    removed on normal completion or Python exception unwinding. Generated code
+    remains in outputs/; forced process termination can leave temporary files.
+
+The wrapper does not verify semantic correctness of generated code. Relevant tests
+and manual inspection are separate checks. It neither retries nor imposes a timeout.
+
+## 4. How each option reaches Codex
+
+| senai input | Implementation | Native behavior |
+| --- | --- | --- |
+| `--model` / `-m` | `CodexOptions.to_args()` | Adds `--model VALUE`; otherwise preserves native defaults. |
+| `--profile` / `-p` | `to_args()` | Adds `--profile VALUE`; Codex resolves the existing profile. |
+| `--config` / `-c` (repeatable) | `to_args()` | Adds each native `--config KEY=VALUE` in supplied order. |
+| `--image` / `-i` (repeatable) | `cli.main()` then `to_args()` | Checks file existence and passes absolute paths as separate arguments. |
+| `--search` | `to_args()` | Appends `--config web_search="live"`, because exec has no direct --search flag. |
+| `--skill` (repeatable) | `build_prompt()` | Adds literal skill mentions to stdin, not a separate CLI flag. |
+| `--resume SESSION` | `session_args()` | Adds `resume SESSION`; rejects empty or option-like identifiers. |
+| `--last` | `session_args()` | Adds `resume --last`; native cwd filtering chooses the latest session. |
+
+`--resume` and `--last` are mutually exclusive. Search's explicit override is
+appended after supplied config overrides, so `--search` takes precedence over
+an earlier `-c web_search=...`. Model/profile/config validity, skill availability,
+and image decoding are checked by Codex, not replicated in the wrapper.
+
+Prompt delimiters express structure; they are not an independent security boundary.
+The wrapper instructs Codex to read project instructions and treat reference text
+as data. It does not load every project file or concatenate file contents itself.
+
+## 5. Interactive and native execution
+
+All three alternative modes prepare outputs/ and call `run_native()`.
+
+| Mode | Native arguments | Default sandbox |
+| --- | --- | --- |
+| `senai chat` | `--no-alt-screen` | `workspace-write` |
+| `senai review` | `review --uncommitted`, or selected `--base` / `--commit` | `read-only` |
+| `senai codex -- ...` | Arguments after the separator, in their original order | `workspace-write` |
+
+Their common command shape is:
+
+```text
+codex --sandbox <mode> --cd <project>/outputs <native arguments>
+```
+
+The child also has outputs/ as its OS cwd. stdin is inherited, and stdout/stderr
+are forwarded to the caller's streams. There is no convenience prompt construction,
+final-response capture, or temporary response file on this path. Codex owns
+interactive input, approvals, `/skills`, and any JSON event stream. Native mode
+can request its own `-o response.txt` final-response file inside outputs/.
+
+`senai chat` requires a real terminal. The review adapter chooses one Git scope
+and a read-only child sandbox; preparing outputs/ can still create the directory
+before the child starts. Git review scope can extend to the parent repository.
+
+`validate_native_args()` runs before spawning the native child. It rejects
+explicit --cd/-C, --add-dir, --worktree, and --remote relocation, and checks known
+output flags (--output-last-message/-o, --out, --output) resolve inside outputs/.
+It handles relative, absolute, and supported attached/equal-sign path forms.
+It stops interpreting tokens after a native `--` literal-argument separator.
+Other native arguments are delegated rather than reimplemented.
+
+## 6. Files, state, and ownership
+
+| Data | Location / owner | Lifetime |
+| --- | --- | --- |
+| Wrapper implementation | senai/ in this repository | Git-tracked source. |
+| Tests and guides | tests/, projectprogress/, root documentation | Git-tracked development records. |
+| Generated product code | `<selected project>/outputs/` | Retained; ignored by this repository's Git settings. |
+| Convenience final response | `outputs/.senai-<random>/response.txt` | Temporary; printed and normally cleaned up. |
+| Native explicit output files | Validated output paths inside outputs/ | Retained as requested. |
+| Model authentication, configuration, installed tools/skills, sessions | Native Codex user/config locations | Managed by Codex, not a custom senai store. |
+| Convenience subprocess diagnostics | Python process memory | Printed on failure; not automatically saved to a log file. |
+
+Selecting outputs/ expresses the intended code workspace. It is not an independent
+filesystem jail. Native configuration, permissions, repository discovery, and external
+tools still apply; senai does not inspect every arbitrary command or config value.
+Native account/configuration management can update normal Codex user state.
+
+The wrapper does not automatically commit generated files or export full chat
+history. Development Git commits and progress documents are maintained separately.
+No custom semantic memory, skill-learning engine, scheduler, or messaging adapter exists.
+
+## 7. Return codes and failures
+
+| Situation | Result |
+| --- | --- |
+| Write/edit child succeeds with a nonempty final message | Print message; return 0. |
+| Write/edit child fails | Print native status/diagnostics to stderr; return 2. |
+| Missing executable, invalid workspace/image/skill/session, or empty final message | Print an actionable wrapper error; return 2. |
+| Invalid parser options / incompatible selectors | argparse reports usage and exits 2 before execution. |
+| Help request | argparse displays help and exits 0. |
+| Chat/review/native child exits normally or fails | Preserve native child exit status and streams. |
+| KeyboardInterrupt reaches the wrapper | Return 130; write/edit also prints an interruption message. |
+
+The wrapper can leave partial generated edits when Codex fails or is interrupted.
+It does not roll back project files. It also does not implement process-group
+termination or a job supervisor; native child/terminal behavior remains relevant.
+
+## 8. Tests that support this design
+
+| Behavior | Tests |
+| --- | --- |
+| Input, prompt context, workspace, and invalid paths | [test_cli.py](../tests/test_cli.py) |
+| Subprocess invocation, final response, failures | [test_codex.py](../tests/test_codex.py) |
+| Model/profile/config transport | [test_options.py](../tests/test_options.py) |
+| Images, search, skill mentions, sessions | [test_images.py](../tests/test_images.py), [test_search.py](../tests/test_search.py), [test_skills.py](../tests/test_skills.py), [test_resume.py](../tests/test_resume.py) |
+| Interactive streams and native argument/output policy | [test_chat.py](../tests/test_chat.py), [test_native.py](../tests/test_native.py) |
+| Review scopes and read-only choice | [test_review.py](../tests/test_review.py) |
+| Installed command through a real, deterministic fake child | [test_installed.py](../tests/test_installed.py) |
+
+The current suite has 40 offline tests. These verify wrapper behavior, not every
+live account/tool/model combination. Live verification evidence is recorded in
+[CHANGELOG.md](../CHANGELOG.md); the manual checklist records user-observed outcomes.
+
+## 9. Maintain this document
+
+Whenever code changes entry points, mode routing, module ownership, command
+construction, workspace policy, storage, streams, or failure behavior:
+
+1. Add a failing behavior test, implement the change, and verify it.
+2. Update the matching section here and the user guide/manual QA steps as needed.
+3. Update the progress records and CHANGELOG.md, then commit the change.
+
+Keep examples aligned with actual source. Label planned components as planned;
+do not draw them as part of the running implementation.

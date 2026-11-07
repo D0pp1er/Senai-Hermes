@@ -287,3 +287,5 @@ not consume model usage. Live model/tool checks do consume usage and need accoun
 
 For a feature-by-feature manual checklist, read [manualqa.md](../tests/manualqa.md).
 For full project requirements and remaining deliverables, read [main task.md](../main%20task.md).
+
+To review how execution works internally, see [architecture.md](architecture.md).

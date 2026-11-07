@@ -1,14 +1,14 @@
 # Current task
 
-Create a self-contained features guide and feature-by-feature manual QA checklist.
+Document the current execution architecture and its maintenance rules.
 
 Status: complete.
 
-Verification: all Bash examples pass bash -n; local guide links and installed help commands checked. Live manual QA cases are for the user to execute and record.
+Verification: execution paths checked against current source; local links, code fences, Bash examples, and git diff whitespace checks pass. No runtime code changed.
 
-Deliverables:
-- features.md: new-user setup, all capabilities, examples, and limits.
-- ../tests/manualqa.md: isolated live checks, expected outcomes, and results table.
+Deliverable: architecture.md covering the two execution paths, all command modes,
+module responsibilities, option translation, output/state ownership, error behavior,
+and verification links.
 
-Previous compatibility implementation and its verification remain recorded in
-acheivements.md, ../CHANGELOG.md, and ../main task.md.
+Maintenance: update architecture.md whenever execution behavior changes.
+Previous feature and manual QA work remains in features.md and ../tests/manualqa.md.

@@ -29,3 +29,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Remaining full-project submission requirements are explicitly tracked in main task.md.
 
 - Added a standalone new-user features guide and a 16-case manual QA checklist covering all implemented capabilities.
+
+- Added architecture.md documenting actual execution paths, modules, state, errors, limits, and the test mapping; added an ongoing maintenance checklist.

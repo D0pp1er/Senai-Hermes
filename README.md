@@ -198,3 +198,6 @@ See main task.md for the complete PDF requirements and remaining deliverables.
 
 - [New-user features guide](projectprogress/features.md)
 - [Manual QA checklist](tests/manualqa.md)
+- [Architecture and execution flow](projectprogress/architecture.md)
+
+When execution behavior changes, update architecture.md together with relevant tests, user examples, and progress records.

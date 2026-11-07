@@ -133,3 +133,9 @@
 - Added tests/manualqa.md with an isolated QA workspace, expected outcomes, error cases, and PASS/FAIL/BLOCKED evidence recording.
 - Linked both guides from README.md; no product behavior changed.
 - Verification: 41 Bash examples pass syntax checks; local links and installed help commands checked. Live manual cases are not marked as executed.
+
+## Architecture documentation
+- Added projectprogress/architecture.md with an execution diagram, source links, write/edit tracing, native modes, options, files/state, errors, limits, and test mapping.
+- Linked architecture from README and the new-user guide, and documented when it must be updated.
+- Documentation only; no runtime behavior changed.
+- Verification: reviewed against current source; local links, code fences, and Bash examples checked.
