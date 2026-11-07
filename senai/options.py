@@ -9,6 +9,7 @@ class CodexOptions:
     profile: str | None = None
     config: tuple[str, ...] = ()
     images: tuple[str, ...] = ()
+    search: bool = False
 
     def to_args(self):
         args = []
@@ -20,4 +21,6 @@ class CodexOptions:
             args.extend(['--config', value])
         for image in self.images:
             args.extend(['--image', image])
+        if self.search:
+            args.extend(['--config', 'web_search="live"'])
         return args

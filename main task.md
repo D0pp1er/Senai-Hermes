@@ -60,7 +60,7 @@ No credentials are copied into this repository.
 - [x] Existing write/edit workflow.
 - [x] Explicit model/configuration selection (tests/test_options.py).
 - [x] Image attachments (tests/test_images.py).
-- [ ] Web search.
+- [x] Web search (tests/test_search.py).
 - [ ] Explicit installed-skill selection.
 - [ ] Session resumption.
 - [ ] Interactive Codex workflow (native slash commands and tools).

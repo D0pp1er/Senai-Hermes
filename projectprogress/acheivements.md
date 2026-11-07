@@ -11,3 +11,4 @@ See CHANGELOG.md for chronological details and verification evidence.
 
 - Added explicit model, profile, and repeated configuration overrides; 14 tests pass.
 - Added repeatable image attachments with file validation; 17 tests pass.
+- Added opt-in live web search; 19 tests pass.

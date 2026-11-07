@@ -73,3 +73,8 @@
 - Missing attachments fail before invoking Codex or creating an output directory.
 - TDD: three image tests failed first; all 17 tests now pass.
 - Image decoding and model vision support remain Codex responsibilities.
+
+## Web search capability
+- Added --search; uses Codex web_search="live" config because exec has no --search flag.
+- Default search behavior remains controlled by existing Codex config.
+- TDD: two search tests failed first; all 19 tests now pass.

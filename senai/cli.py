@@ -20,6 +20,7 @@ def main(argv=None, stdout=None, stderr=None):
     parser.add_argument('-p', '--profile', help='Codex configuration profile.')
     parser.add_argument('-c', '--config', action='append', default=[], metavar='KEY=VALUE', help='Repeatable Codex configuration override.')
     parser.add_argument('-i', '--image', action='append', default=[], metavar='FILE', help='Attach an image (repeatable).')
+    parser.add_argument('--search', action='store_true', help='Enable live Codex web search.')
     args = parser.parse_args(argv)
     try:
         prompt = build_prompt(args.request)
@@ -28,7 +29,7 @@ def main(argv=None, stdout=None, stderr=None):
             if not Path(image).is_file():
                 raise ValueError(f'Image must be an existing file: {image}')
         workspace = prepare_workspace(args.project)
-        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config), images=images)
+        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config), images=images, search=args.search)
         response = run_codex(prompt, workspace, options=options)
         print(response, file=stdout)
         return 0

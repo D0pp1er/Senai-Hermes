@@ -97,3 +97,11 @@ senai -i /path/to/design.png -i /path/to/detail.png "Build this design"
 ```
 
 Image paths are relative to your calling directory. Files are read as context; generated code stays in outputs/.
+
+## Web search
+
+```bash
+senai --search "Use current official documentation to implement this API"
+```
+
+This enables native Codex live search through its configuration.
