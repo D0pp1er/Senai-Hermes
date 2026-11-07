@@ -8,3 +8,5 @@
 - Eleven regression tests cover input, context, execution, and failure handling.
 
 See CHANGELOG.md for chronological details and verification evidence.
+
+- Added explicit model, profile, and repeated configuration overrides; 14 tests pass.

@@ -81,3 +81,11 @@ Keep command handling in cli.py, reusable instructions in prompts.py, and Codex
 process details in codex.py. Add corresponding tests under tests/. Update
 projectprogress/ and CHANGELOG.md when completing a change. Reinstall the editable
 package after changing packaging metadata or entry points.
+
+## Codex configuration
+
+```bash
+senai --model YOUR_MODEL --profile YOUR_PROFILE -c model_reasoning_effort=medium "Write code"
+```
+
+Model/profile availability is determined by your Codex installation and account.

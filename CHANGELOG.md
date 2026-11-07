@@ -62,3 +62,8 @@
 - Added main task.md with required, optional, process, and submission requirements from the PDF.
 - Included verifiable TDD or manual acceptance checks for every task, without copying credentials.
 - Began incremental native Codex compatibility work; one capability per commit.
+
+## Model/configuration capability
+- Added --model/-m, --profile/-p, and repeatable --config/-c without changing defaults.
+- TDD: new option tests failed before implementation; all 14 tests now pass.
+- Arguments are passed as a list, preserving spaces and preventing shell interpolation.

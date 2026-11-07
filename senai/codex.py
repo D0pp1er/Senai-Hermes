@@ -4,15 +4,19 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from .options import CodexOptions
 
-def run_codex(prompt, project):
+
+def run_codex(prompt, project, *, options=None):
     with tempfile.TemporaryDirectory(prefix='.senai-', dir=project) as temporary:
         output = Path(temporary) / 'response.txt'
         command = [
             'codex', 'exec', '--sandbox', 'workspace-write',
             '--cd', str(project), '--color', 'never',
-            '--output-last-message', str(output), '-',
+            '--output-last-message', str(output),
         ]
+        command.extend((options or CodexOptions()).to_args())
+        command.append('-')
         try:
             result = subprocess.run(
                 command, input=prompt, capture_output=True, text=True,

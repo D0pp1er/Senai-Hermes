@@ -58,7 +58,7 @@ No credentials are copied into this repository.
 - Use the installed senai command, tests/, and projectprogress/.
 - Keep short commit messages; one newly achieved Codex capability per commit.
 - [x] Existing write/edit workflow.
-- [ ] Explicit model/configuration selection.
+- [x] Explicit model/configuration selection (tests/test_options.py).
 - [ ] Image attachments.
 - [ ] Web search.
 - [ ] Explicit installed-skill selection.
