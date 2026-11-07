@@ -67,3 +67,9 @@
 - Added --model/-m, --profile/-p, and repeatable --config/-c without changing defaults.
 - TDD: new option tests failed before implementation; all 14 tests now pass.
 - Arguments are passed as a list, preserving spaces and preventing shell interpolation.
+
+## Image capability
+- Added repeatable --image/-i, resolved before changing to outputs/.
+- Missing attachments fail before invoking Codex or creating an output directory.
+- TDD: three image tests failed first; all 17 tests now pass.
+- Image decoding and model vision support remain Codex responsibilities.

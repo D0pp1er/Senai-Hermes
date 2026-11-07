@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from pathlib import Path
 
 from .codex import run_codex
 from .options import CodexOptions
@@ -18,11 +19,16 @@ def main(argv=None, stdout=None, stderr=None):
     parser.add_argument('-m', '--model', help='Codex model override.')
     parser.add_argument('-p', '--profile', help='Codex configuration profile.')
     parser.add_argument('-c', '--config', action='append', default=[], metavar='KEY=VALUE', help='Repeatable Codex configuration override.')
+    parser.add_argument('-i', '--image', action='append', default=[], metavar='FILE', help='Attach an image (repeatable).')
     args = parser.parse_args(argv)
     try:
         prompt = build_prompt(args.request)
+        images = tuple(str(Path(image).expanduser().resolve()) for image in args.image)
+        for image in images:
+            if not Path(image).is_file():
+                raise ValueError(f'Image must be an existing file: {image}')
         workspace = prepare_workspace(args.project)
-        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config))
+        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config), images=images)
         response = run_codex(prompt, workspace, options=options)
         print(response, file=stdout)
         return 0

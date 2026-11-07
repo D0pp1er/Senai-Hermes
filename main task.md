@@ -59,7 +59,7 @@ No credentials are copied into this repository.
 - Keep short commit messages; one newly achieved Codex capability per commit.
 - [x] Existing write/edit workflow.
 - [x] Explicit model/configuration selection (tests/test_options.py).
-- [ ] Image attachments.
+- [x] Image attachments (tests/test_images.py).
 - [ ] Web search.
 - [ ] Explicit installed-skill selection.
 - [ ] Session resumption.

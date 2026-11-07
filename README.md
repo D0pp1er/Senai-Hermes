@@ -89,3 +89,11 @@ senai --model YOUR_MODEL --profile YOUR_PROFILE -c model_reasoning_effort=medium
 ```
 
 Model/profile availability is determined by your Codex installation and account.
+
+## Image context
+
+```bash
+senai -i /path/to/design.png -i /path/to/detail.png "Build this design"
+```
+
+Image paths are relative to your calling directory. Files are read as context; generated code stays in outputs/.
