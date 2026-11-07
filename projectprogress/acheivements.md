@@ -17,3 +17,13 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Added interactive terminal handoff through senai chat; 30 tests pass.
 - Added native command forwarding preserving arguments, streams, and exit codes; 35 tests pass.
 - Added read-only code review for uncommitted/base/commit scopes; 38 tests pass.
+
+## Compatibility verification
+
+- All 40 offline tests pass without skips; installed process tests preserve argument values and exit status.
+- Verified against installed WSL Codex CLI 0.167.0.
+- A live search-enabled request created outputs/compatibility_demo.py; independently checked marker().
+- A live --last invocation recalled senai-compatible from the preceding session.
+- Interactive senai chat opened in outputs/, displayed installed skills through /skills,
+  and exited through /quit with status 0.
+- Remaining full-project submission requirements are explicitly tracked in main task.md.

@@ -34,7 +34,8 @@ The parent project must be an existing Git repository (`git init` first).
 Temporary response files also stay inside outputs/ and are removed after each
 invocation. The final response is printed to your terminal.
 
-Exit codes: 0 success, 2 input/execution failure, 130 interrupted.
+Write/edit exit codes: 0 success, 2 input/execution failure, 130 interrupted.
+Chat/native/review modes preserve Codex exit codes; wrapper validation errors return 2.
 
 ## Verify
 
@@ -51,14 +52,16 @@ Check generated code independently.
 ## Design and limits
 
 - A modular Python package with a `senai` console entry point and no runtime dependencies.
-- One request per invocation; no memory, scheduling, or messaging integrations.
+- Write/edit mode handles one request per invocation; chat and resume use native
+  Codex sessions. No custom semantic memory, scheduler, or messaging adapters.
 - Uses existing Codex authentication and configuration; no separate API key.
-- Runs `codex exec --sandbox workspace-write` in outputs/, with the request on stdin.
+- Write/edit mode runs `codex exec --sandbox workspace-write` in outputs/,
+  with the request on stdin. Chat/native/review modes delegate native workflows.
 - Output scope is enforced by the selected workspace and explicit instructions;
   this is not an independent filesystem jail. Codex configuration, tools, and
   inherited project instructions still apply.
-- No arbitrary Codex argument forwarding. Progress is buffered; only the final
-  response is printed on success. Failures may leave partial edits.
+- Write/edit mode buffers progress and prints the final response. Native/chat/review
+  modes preserve terminal streams and native arguments. Failures may leave partial edits.
 - Development uses unittest with small red/green/refactor steps; see CHANGELOG.md.
 - Reference: https://learn.chatgpt.com/docs/cli/reference
 
@@ -70,6 +73,8 @@ senai/                 Python package
   prompts.py           Write/edit instructions
   codex.py             Codex subprocess adapter
   workspace.py         Output-directory validation
+  options.py           Explicit execution/configuration options
+  native.py            Interactive, review, and native command adapters
   __main__.py          python3 -m senai support
 tests/                 unittest tests grouped by responsibility
 projectprogress/       Objectives, achievements, and current task
@@ -174,3 +179,17 @@ scope (which can include files in the parent repository), not just outputs/.
 Review findings stream to the terminal. The default is --uncommitted.
 
 The installed-command tests use a deterministic fake Codex child process, so the suite stays offline. They are skipped only when senai is not installed. Live model checks are recorded separately in CHANGELOG.md.
+
+## Verified compatibility baseline
+
+Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
+- 40 offline tests pass, including installed-command child-process tests.
+- Installed CLI checks: version, exec/resume/review/MCP/plugin help, feature listing.
+- Live checks: search-enabled code creation, session resume retaining a marker,
+  interactive launch, installed skill picker, and clean /quit exit.
+- Model/profile/image transport is tested; each model, skill, MCP server, plugin,
+  and platform-specific command still requires its own configured environment.
+- Native argument forwarding covers commands not represented by convenience flags.
+  Relocating execution outside outputs/ is intentionally unsupported.
+
+See main task.md for the complete PDF requirements and remaining deliverables.

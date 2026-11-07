@@ -1,11 +1,14 @@
 # Objectives
 
-- [x] Accept a code-writing/editing request through the senai command.
-- [x] Build instructions and pass the request to Codex CLI.
-- [x] Capture the final response and report execution errors.
-- [x] Keep generated code in outputs/.
-- [x] Separate CLI, prompts, execution, and workspace responsibilities.
-- [x] Keep tests in tests/ and verify changes before committing.
-- [x] Document progress with short commits.
+- [x] Accept a request through the installed senai command.
+- [x] Pass input and context to Codex CLI and return the final response.
+- [x] Keep generated product code in outputs/.
+- [x] Keep implementation modular and tests under tests/.
+- [x] Add Codex capabilities incrementally, with failing-first tests and one capability per commit.
+- [x] Support model/configuration, images, search, explicit skill selection, and session resume.
+- [x] Provide native interactive, review, and command-forwarding modes.
+- [x] Record master requirements, verification, limitations, and progress.
 
-Scope remains one write/edit workflow. No additional agent features are planned.
+The current compatibility baseline is complete. Full PDF submission requirements,
+optional Hermes features, and their statuses are tracked in ../main task.md.
+Native accounts, tools, and workspace-relocating flags retain documented limits.

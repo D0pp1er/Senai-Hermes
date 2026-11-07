@@ -117,3 +117,13 @@
 - Red: child process started in the calling directory. Green: direct execution now sets OS cwd to outputs/ as well as Codex --cd.
 - Verified literal prompts/skill mentions, final output, temporary cleanup, native streams, and exit status through the installed command.
 - All 40 tests pass with no skips; integration tests use a deterministic fake CLI, not a live model.
+
+## Compatibility baseline verification
+- Updated README and progress records to match all implemented modes and their exit behavior.
+- All 40 tests pass without skips, including installed-command transport checks.
+- Installed CLI parsing/version checks succeeded for exec/resume/review/MCP/plugin help.
+- Live --search request created outputs/compatibility_demo.py; independently verified marker() returns senai-compatible.
+- Live --last recalled that marker without changing files.
+- Interactive senai chat opened in outputs/, /skills displayed the installed catalog, and /quit exited with code 0.
+- Experiment note: piping native feature output to head triggered an upstream broken-pipe panic; the feature check was rerun with complete capture.
+- No claim of testing every external plugin/account/model; workspace-relocation limitations are documented.
