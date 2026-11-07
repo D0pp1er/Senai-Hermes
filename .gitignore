@@ -6,3 +6,6 @@ outputs/
 *.egg-info/
 build/
 dist/
+.env
+.env.*
+telegram.env

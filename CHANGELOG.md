@@ -154,3 +154,8 @@
 - Live verification: the user's exact non-Git command succeeded, and g++ independently compiled outputs/Testbench/helloworld.cpp; it printed tumi kemon acho.
 - Live --json plus -o produced parseable native event records and retained SENAI_JSON_OK, with no duplicate plain-text output.
 - Updated architecture, features, manual QA, and README to match changed execution behavior.
+
+## Telegram transport
+- Created feature/telegram-bot; user selected one-off requests in /home/rk/SentiensHermes.
+- Added standard-library Bot API polling, plain-text replies, sanitized errors/rate-limit metadata, local credential loading, and Unicode-safe reply splitting.
+- TDD: transport/configuration tests failed before implementation; no live credentials used.

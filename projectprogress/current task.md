@@ -1,19 +1,16 @@
 # Current task
 
-Fix non-Git execution and expose the installed Codex exec options on ordinary senai requests.
+Connect senai to a Telegram bot on feature/telegram-bot.
 
-Status: complete.
+Status: in progress.
 
-Verification: all 60 tests pass; live C++ and JSON checks pass; documentation links and example syntax pass.
+User choices: one-off requests; parent project /home/rk/SentiensHermes.
 
-- --skip-git-repo-check works before or after the prompt.
-- Parser coverage is checked against installed Codex 0.167.0 exec --help.
-- JSON streaming, retained response files, stdin, schema inputs, sandbox/approval,
-  feature/provider options, version, and project aliases are implemented.
-- All 60 tests pass with no skips.
-- The exact reported C++ request succeeded in ~/SentiensHermes; independent compile/run verified its output.
-- Live JSON plus saved-response behavior verified separately.
-- features.md, architecture.md, ../tests/manualqa.md, and README are updated.
+Plan:
+1. Bot API/configuration with token-safe diagnostics and long reply splitting.
+2. Durable job queue, authorized private-message routing, status, and duplicate protection.
+3. Background execution and polling CLI with local setup instructions.
+4. Offline integration tests, architecture/user/manual QA updates, and small commits.
 
-Limits: workspace-relocating flags still conflict with outputs/. Interactive-only
-commands/options use native adapters. No automatic Git-check bypass is enabled.
+Live verification needs a bot created through @BotFather and a locally configured
+token/user allowlist. Do not put credentials in chat or Git.
