@@ -105,3 +105,12 @@ senai --search "Use current official documentation to implement this API"
 ```
 
 This enables native Codex live search through its configuration.
+
+## Installed skills
+
+```bash
+senai --skill YOUR_INSTALLED_SKILL "Write code using this workflow"
+```
+
+Repeat --skill to select more than one. This emits native `$name` mentions without shell expansion. Codex resolves installed repository/user/plugin skills; a missing skill is not installed automatically. Repository skills use native `.agents/skills` discovery.
+Reference: https://learn.chatgpt.com/docs/build-skills

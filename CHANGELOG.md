@@ -78,3 +78,9 @@
 - Added --search; uses Codex web_search="live" config because exec has no --search flag.
 - Default search behavior remains controlled by existing Codex config.
 - TDD: two search tests failed first; all 19 tests now pass.
+
+## Installed-skill capability
+- Added repeatable --skill NAME, transmitted as literal $NAME mentions on stdin.
+- Validate mention names; do not install or fabricate skills. Codex resolves availability.
+- TDD: three skill tests failed first; all 22 tests now pass.
+- This selects installed skills, not automatic skill learning from experience.

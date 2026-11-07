@@ -21,9 +21,10 @@ def main(argv=None, stdout=None, stderr=None):
     parser.add_argument('-c', '--config', action='append', default=[], metavar='KEY=VALUE', help='Repeatable Codex configuration override.')
     parser.add_argument('-i', '--image', action='append', default=[], metavar='FILE', help='Attach an image (repeatable).')
     parser.add_argument('--search', action='store_true', help='Enable live Codex web search.')
+    parser.add_argument('--skill', action='append', default=[], metavar='NAME', help='Mention an installed Codex skill (repeatable).')
     args = parser.parse_args(argv)
     try:
-        prompt = build_prompt(args.request)
+        prompt = build_prompt(args.request, skills=tuple(args.skill))
         images = tuple(str(Path(image).expanduser().resolve()) for image in args.image)
         for image in images:
             if not Path(image).is_file():

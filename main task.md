@@ -61,7 +61,7 @@ No credentials are copied into this repository.
 - [x] Explicit model/configuration selection (tests/test_options.py).
 - [x] Image attachments (tests/test_images.py).
 - [x] Web search (tests/test_search.py).
-- [ ] Explicit installed-skill selection.
+- [x] Explicit installed-skill selection (tests/test_skills.py).
 - [ ] Session resumption.
 - [ ] Interactive Codex workflow (native slash commands and tools).
 - [ ] Native command compatibility (review, MCP/plugin management, help, future flags).
