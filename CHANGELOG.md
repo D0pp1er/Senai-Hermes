@@ -110,3 +110,10 @@
 - Use the native review engine with a read-only sandbox; preserve streams/status.
 - TDD: review routing tests failed first; all 38 tests now pass.
 - Known short output-path validation also handles -o=path syntax.
+
+## Installed command integration
+- Added offline console-script tests with a real fixture child process.
+- Initial non-login WSL PATH omitted ~/.local/bin, causing integration tests to skip; added user-install command discovery.
+- Red: child process started in the calling directory. Green: direct execution now sets OS cwd to outputs/ as well as Codex --cd.
+- Verified literal prompts/skill mentions, final output, temporary cleanup, native streams, and exit status through the installed command.
+- All 40 tests pass with no skips; integration tests use a deterministic fake CLI, not a live model.

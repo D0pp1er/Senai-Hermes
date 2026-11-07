@@ -22,7 +22,7 @@ def run_codex(prompt, project, *, options=None):
         command.append('-')
         try:
             result = subprocess.run(
-                command, input=prompt, capture_output=True, text=True,
+                command, cwd=project, input=prompt, capture_output=True, text=True,
                 encoding='utf-8', errors='replace', check=False,
             )
         except FileNotFoundError as exc:

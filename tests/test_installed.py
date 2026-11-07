@@ -9,7 +9,10 @@ import unittest
 from pathlib import Path
 
 
-@unittest.skipUnless(shutil.which('senai'), 'Install the package before console integration tests.')
+COMMAND = shutil.which('senai') or (str(Path.home() / '.local/bin/senai') if (Path.home() / '.local/bin/senai').is_file() else None)
+
+
+@unittest.skipUnless(COMMAND, 'Install the package before console integration tests.')
 class InstalledCommandTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -36,7 +39,7 @@ else:
 """)
         executable.chmod(0o755)
         self.environment = dict(os.environ, PATH=str(binaries) + os.pathsep + os.environ['PATH'])
-        self.command = shutil.which('senai')
+        self.command = COMMAND
 
     def invoke(self, arguments, **environment):
         return subprocess.run([self.command, *arguments], cwd=self.project, env=dict(self.environment, **environment), text=True, capture_output=True, timeout=15)

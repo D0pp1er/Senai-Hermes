@@ -172,3 +172,5 @@ senai review --commit COMMIT_SHA
 This invokes native Codex review in read-only mode. Review uses Git repository
 scope (which can include files in the parent repository), not just outputs/.
 Review findings stream to the terminal. The default is --uncommitted.
+
+The installed-command tests use a deterministic fake Codex child process, so the suite stays offline. They are skipped only when senai is not installed. Live model checks are recorded separately in CHANGELOG.md.
