@@ -33,3 +33,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Added architecture.md documenting actual execution paths, modules, state, errors, limits, and the test mapping; added an ongoing maintenance checklist.
 
 - Fixed the reported non-Git command; all installed Codex 0.167.0 exec option names are recognized, with 60 passing tests and live C++/JSON verification.
+
+- Implemented Telegram control on feature/telegram-bot with no new runtime dependencies; 100 tests pass, including offline end-to-end message/job/child/result verification. Live credentials are not configured.

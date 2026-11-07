@@ -32,7 +32,7 @@ No credentials are copied into this repository.
 | H1 | Persistent memory across conversations | Optional backlog | Red: saved fact missing after restart. Green: store/retrieve relevant facts, test isolation, deletion, corrupt storage. Native resume is context continuity, not automatic semantic memory. |
 | H2 | Skills created/updated from experience | Optional backlog | Red: successful workflow cannot be reused. Green: versioned skill persistence/retrieval; test failed-run exclusion and revisions. Selecting an existing Codex skill does not implement automatic learning. |
 | H3 | Autonomous execution / scheduling | Optional backlog | Red: due task not run or duplicates after restart. Green: persistent schedule, controlled execution, retries/idempotency tests using a fake clock. |
-| H4 | Multi-channel access (Telegram, Slack, email, etc.) | Optional backlog | Red: incoming event not routed. Green: adapter contract, identity isolation, deduplication, mocked sends; live checks require account setup. |
+| H4 | Multi-channel access (Telegram, Slack, email, etc.) | Telegram text adapter implemented; live setup pending | Red: incoming event not routed. Green: adapter contract, identity isolation, deduplication, mocked sends; live checks require account setup. |
 | H5 | Install/experiment with Hermes | Optional backlog | Optional only; isolate installation and document observations. Do not use supplied account credentials automatically. |
 
 ## Submission deliverables
@@ -72,3 +72,5 @@ its tools or claiming every plugin/account/model is available. Distinguish unit
 transport verification, installed-CLI parser checks, and live model checks.
 
 - [x] Non-Git execution and installed exec option parity: tests/test_git_option.py and tests/test_exec_compat.py; JSON/retained outputs in tests/test_output_options.py.
+
+- [x] Telegram adapter on feature/telegram-bot: authorized one-off private requests, durable queue/status/results, offline tests. Live BotFather token/user-ID setup remains pending.

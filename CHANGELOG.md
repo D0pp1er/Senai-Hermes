@@ -177,3 +177,9 @@
 - Added a full offline authorized-message -> durable queue -> real senai child -> fake Codex -> generated file -> Telegram-result test.
 - Verified unauthorized updates never receive a reply or execute, token variables do not reach Codex, and duplicate updates do not rerun work.
 - A failing rewound-cursor test exposed a possible polling loop on an already-recorded job; duplicate handling now advances that cursor safely.
+
+## Telegram setup and architecture documentation
+- Added projectprogress/telegram.md with BotFather, hidden local token input, ID discovery, startup, commands, state/retry behavior, and explicit v1 limits.
+- Updated architecture, feature guide, README, master requirements, and manual QA (QA-19).
+- All 100 tests pass offline; no live Telegram connection or bot-controlled model call has been made.
+- Documentation verification: local links and 68 Bash examples checked; no live Telegram commands executed.

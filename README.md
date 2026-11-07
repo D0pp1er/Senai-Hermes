@@ -54,7 +54,7 @@ Check generated code independently.
 
 - A modular Python package with a `senai` console entry point and no runtime dependencies.
 - Write/edit mode handles one request per invocation; chat and resume use native
-  Codex sessions. No custom semantic memory, scheduler, or messaging adapters.
+  Codex sessions. No custom semantic memory or scheduler; an authorized Telegram text adapter is available.
 - Uses existing Codex authentication and configuration; no separate API key.
 - Write/edit mode runs `codex exec --sandbox workspace-write` in outputs/,
   with the request on stdin. JSON mode streams native events; other modes delegate native workflows.
@@ -165,7 +165,7 @@ its native error/exit code. Global Codex account/config/session state stays in i
 usual user directories. This is an execution adapter, not a separate filesystem
 jail; configured tools can have effects outside the code workspace.
 
-Wrapper keywords `chat`, `review`, and `codex` are reserved only as the first argument. To
+Wrapper keywords `chat`, `review`, `telegram`, and `codex` are reserved only as the first argument. To
 use those words as a literal write/edit request, put `--` before the request.
 
 ## Code review
@@ -185,7 +185,7 @@ The installed-command tests use a deterministic fake Codex child process, so the
 ## Verified compatibility baseline
 
 Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
-- 60 offline tests pass, including installed-command child-process tests.
+- 100 offline tests pass, including installed-command child-process tests.
 - Installed CLI checks: version, exec/resume/review/MCP/plugin help, feature listing.
 - Live checks: search-enabled code creation, session resume retaining a marker,
   interactive launch, installed skill picker, and clean /quit exit.
@@ -231,3 +231,9 @@ option combinations remain Codex responsibilities.
 uses a unique internal capture first, then saves a successful response, so a stale
 file cannot be mistaken for a new result. Input schema/image paths resolve from
 the calling directory; generated output paths resolve from outputs/.
+
+## Telegram control
+
+Use `senai telegram` for authorized private, one-off requests while WSL stays online.
+Start with the [Telegram setup guide](projectprogress/telegram.md); credentials and
+a numeric user allowlist are required. No live bot connection has been verified yet.

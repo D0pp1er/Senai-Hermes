@@ -18,6 +18,11 @@ flowchart TD
     Entry --> Main[cli.main]
     Main --> Route{First argument}
     Route -->|quoted request / options| Write[Write/edit parser]
+    Route -->|telegram| Bot[Telegram adapter]
+    Bot --> Poll[HTTPS polling and private-user authorization]
+    Poll --> Queue[SQLite queue]
+    Queue --> Worker[Single worker starts a senai child]
+    Worker --> Entry
     Route -->|chat| Chat[native.chat_main]
     Route -->|review| Review[native.review_main]
     Route -->|codex| Native[native.native_main]
@@ -38,7 +43,7 @@ flowchart TD
 ```
 
 The diagram summarizes the two execution paths; workspace preparation returns to
-the mode that called it. No separate background worker is started by senai.
+the mode that called it. Telegram mode adds one in-process worker thread; ordinary write/edit and native modes do not start a senai worker.
 
 ## 2. Entry points and module boundaries
 
@@ -198,7 +203,7 @@ Native account/configuration management can update normal Codex user state.
 
 The wrapper does not automatically commit generated files or export full chat
 history. Development Git commits and progress documents are maintained separately.
-No custom semantic memory, skill-learning engine, scheduler, or messaging adapter exists.
+No custom semantic memory, skill-learning engine, or scheduler exists. Telegram supplies a text-message transport around the existing execution path.
 
 ## 7. Return codes and failures
 
@@ -230,7 +235,7 @@ termination or a job supervisor; native child/terminal behavior remains relevant
 | Review scopes and read-only choice | [test_review.py](../tests/test_review.py) |
 | Installed command through a real, deterministic fake child | [test_installed.py](../tests/test_installed.py) |
 
-The current suite has 60 offline tests. These verify wrapper behavior, not every
+The current suite has 100 offline tests. These verify wrapper behavior, not every
 live account/tool/model combination. Live verification evidence is recorded in
 [CHANGELOG.md](../CHANGELOG.md); the manual checklist records user-observed outcomes.
 
@@ -247,3 +252,66 @@ Keep examples aligned with actual source. Label planned components as planned;
 do not draw them as part of the running implementation.
 
 Compatibility scope: the option coverage test compares build_parser() against installed codex exec --help. Interactive/global subcommands still use native adapters. Workspace-relocating exec flags are recognized but rejected under the outputs policy.
+
+
+## 10. Telegram execution path
+
+The first argument `telegram` lazily loads [telegram/cli.py](../senai/telegram/cli.py).
+It parses local startup settings and credentials before any remote execution.
+--setup reads a random private onboarding phrase and prints a user ID; --check
+checks identity/webhook state. Neither mode executes requests or sends bot replies.
+
+| Module | Role |
+| --- | --- |
+| [telegram/api.py](../senai/telegram/api.py) | HTTPS JSON Bot API transport; sanitized errors/rate-limit metadata. |
+| [telegram/config.py](../senai/telegram/config.py) | Required token and numeric allowlist; optional non-executable local env file. |
+| [telegram/router.py](../senai/telegram/router.py) | Authorize private sender/chat identities, route commands, enqueue literal requests. |
+| [telegram/store.py](../senai/telegram/store.py) | SQLite cursor, bounded jobs, atomic claims, interrupted recovery, and delivery outbox. |
+| [telegram/runner.py](../senai/telegram/runner.py) | Run the existing senai module in a child process, retaining stdout/stderr logs. |
+| [telegram/service.py](../senai/telegram/service.py) | Polling, responsive status/reply delivery, one worker thread, process lock. |
+| [telegram/formatting.py](../senai/telegram/formatting.py) | Split plain-text replies below Telegram limits, preserving Unicode. |
+
+Startup validates bot identity and refuses an existing webhook without deleting it.
+State is outputs/.senai-telegram/<bot-id>/ with a private bot directory, SQLite DB,
+lock, and per-job logs. The local flock prevents a second poller for that bot/project.
+Startup skips pending remote updates, then starts the worker and polling loop.
+Already accepted queued jobs persist; previously running jobs become interrupted
+and are not automatically re-executed.
+
+The polling thread records update consumption and job insertion in one transaction.
+Only allowlisted, non-bot private users can submit requests. It acknowledges queued
+work and answers /status without waiting for the worker. Group/unauthorized/edited
+updates do not execute. Requests and results are scoped to the requesting chat for
+status and delivery, while the configured output workspace is intentionally shared.
+
+The worker claims one queued row atomically, rechecks the current allowlist, and runs:
+
+```text
+<python> -m senai --project <configured project>
+  --ask-for-approval never
+  <optional skip-git/model/profile/search/skill settings>
+  -- <literal Telegram request>
+```
+
+No shell is used. The request cannot inject CLI flags because it follows --.
+TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS are removed from the child environment.
+The child follows the ordinary write/edit execution path documented above, creating
+a fresh native Codex conversation. This is not a second implementation of the agent.
+
+Results are saved durably before delivery. The polling side sends split plain-text
+parts to the authorized requesting chat and records each successful send. A send
+failure never retries code execution. A crash between remote acceptance and local
+marking can duplicate a reply part; exactly-once message delivery is not guaranteed.
+Prompt/output history and full local stdout/stderr logs remain under outputs/.
+Telegram result text is capped at 60,000 characters with a path to the full local log.
+
+Transient API/network failures retry with bounded waits and available retry_after.
+Invalid credentials/access/polling conflicts stop the service. Ctrl+C stops polling
+and waits for an active job; queued work/results persist. There is no remote /cancel,
+no terminal approval bridge, no incoming attachment handling, and no file-download
+transport. Native workspace/config/tool security limits still apply.
+
+The bot needs outbound internet and a running WSL process, not an inbound webserver.
+The current Telegram verification is offline: API fixtures, store/router tests,
+real worker-thread tests, and an end-to-end real senai child with fake Codex.
+Live token/user-ID setup remains a separate manual acceptance step.

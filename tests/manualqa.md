@@ -24,7 +24,7 @@ senai review --help
 senai codex --help
 ```
 
-Expected: commands resolve to WSL installations; 60 tests pass with no skips when
+Expected: commands resolve to WSL installations; 100 tests pass with no skips when
 senai is installed; all help commands exit 0 and show the documented options.
 If senai is missing, follow projectprogress/features.md before continuing.
 
@@ -434,3 +434,41 @@ positional prompt. -C selects the parent project; version requires no prompt.
 The schema file is an input, and its final structured response is retained separately.
 Add QA-17 and QA-18 to your results table. Approval/bypass option transport is
 covered with mocks in test_exec_compat; manual verification does not require disabling protections.
+
+
+## QA-19: Telegram onboarding and authorized remote execution
+
+Follow [telegram.md](../projectprogress/telegram.md) first. Keep credentials local.
+For an isolated live test, select your disposable QA_ROOT instead of the real
+project when starting the bot. Allow only your own numeric Telegram user ID.
+
+1. `senai telegram --check`: correct bot identity, no webhook, no code execution.
+2. `senai telegram --setup`: send the random phrase privately; terminal prints your
+   numeric user ID without executing the phrase or sending a reply.
+3. Export the allowlist and start `senai telegram --project "$QA_ROOT"`.
+4. Wait for ready, then send /start in Telegram. Expect usage text.
+5. Send `/run Create telegram_hello.py that prints Telegram is working`.
+   Expect a request ID, a completion result, and the file under QA_ROOT/outputs/.
+6. Run that local Python file independently and compare the printed text.
+7. During a longer request, send /status. Expect a prompt running/queued status
+   response while code execution continues.
+8. Send /result after completion. Expect the saved result, not another code execution.
+9. Send /unknown. Expect help, not an executed request.
+10. Try a code request from a second, non-allowlisted account and a group chat.
+    Expect no reply or generated file. Do not add that account just to force a pass.
+11. Request a long response. Expect plain-text split replies with intact Unicode.
+12. Stop normally with Ctrl+C. It waits for active work. Restart and verify pending
+    results are delivered without rerunning completed work. Messages sent while
+    offline are skipped; previously accepted queued jobs remain eligible.
+13. Start another poller for the same bot/project. Expect an already-running error.
+14. Inspect outputs/.senai-telegram/<bot-id>/ for job logs and durable state; ensure
+    no real bot token is in Git. Never publish that state directory.
+
+Add PASS/FAIL/BLOCKED and evidence for each subcase to your results record. The live
+Telegram cases are currently unverified until you supply/configure your own bot.
+Offline coverage is in test_telegram_api.py, test_telegram_jobs.py,
+test_telegram_service.py, and test_telegram_integration.py.
+
+No /cancel, attachments, downloads, or remote interactive approvals are implemented;
+do not mark those as working features. A failed Telegram send should retain a
+pending result and must not cause another Codex execution (covered offline).

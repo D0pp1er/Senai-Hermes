@@ -92,6 +92,7 @@ created inside outputs/ and cleaned up. Final responses go to your terminal.
 | One request | `senai "Write or edit some code"` | Builds instructions, calls Codex, prints the final response. |
 | Interactive | `senai chat` | Opens native Codex for back-and-forth work and slash commands. |
 | Code review | `senai review` | Streams native review findings in read-only mode. |
+| Telegram bot | `senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check` | Process private authorized text requests and return results. Requires bot setup. |
 | Native compatibility | `senai codex -- <arguments>` | Forwards native commands/flags and preserves their streams and exit code. |
 
 All modes select outputs/ as the working directory. Put wrapper `--project` before
@@ -269,7 +270,7 @@ Write/edit mode returns 0 on success, 2 on validation/execution failure, and 130
 on interruption. Native/chat/review modes preserve native exit codes; wrapper errors
 return 2. In Bash, `echo $?` immediately after a command shows its exit code.
 
-The first-argument words chat, review, and codex select modes. For a literal
+The first-argument words chat, review, telegram, and codex select modes. For a literal
 request with one of those words, use `senai -- "review"`.
 
 ## 7. Verify your installation
@@ -281,7 +282,7 @@ senai --help
 senai codex -- --version
 ```
 
-The current suite contains 60 offline tests. Installed-command tests use a fake
+The current suite contains 100 offline tests. Installed-command tests use a fake
 Codex child process and skip only if the package is not installed. These tests do
 not consume model usage. Live model/tool checks do consume usage and need account access.
 
@@ -342,3 +343,11 @@ regression check. --worktree and --add-dir are recognized but return a targeted
 outputs-policy error. Interactive-only options and subcommands remain available
 through native mode as documented above; this is not a promise that every future
 Codex flag or every model/feature combination is already supported.
+
+## 9. Telegram control
+
+The [Telegram guide](telegram.md) walks through BotFather, hidden token input,
+user-ID discovery, local startup, /run, /status, /result, and restart behavior.
+Only allowlisted private users can execute; requests are one-off and queued serially.
+The bot must stay running in WSL. Voice, attachments, cancellation, and downloads
+are not implemented. Live connection setup still needs your token and user ID.
