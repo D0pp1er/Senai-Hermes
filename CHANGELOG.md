@@ -42,3 +42,9 @@
 - Before installation: senai --help failed with command not found.
 - After installation: senai --help succeeded from both the checkout and /tmp.
 - Replaced Windows examples with WSL install, run, and verification instructions.
+
+## Packaged live check
+- Ran installed senai to create outputs/package_demo.py through real Codex.
+- Independently verified greeting() returns Hello and no root package_demo.py exists.
+- All eleven tests pass; outputs/ is ignored by Git.
+- Pre-existing untracked hello.py was left untouched.
