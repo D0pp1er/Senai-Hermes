@@ -32,7 +32,7 @@ git log --oneline
 
 Tests mock Codex to verify transport without consuming account usage.
 For a live check, use a disposable Git repo, request a small file, inspect
-`git diff --no-index /dev/null <file>` (or open the new file), then request an
+the new file's contents, then request an
 edit and inspect its contents again. Check any generated code independently.
 
 ## Design and limits

@@ -17,3 +17,14 @@
 - TDD red: four execution tests failed against the placeholder.
 - TDD green: all nine tests pass, including missing CLI and empty output cases.
 - Checked options against installed Codex CLI 0.167.0-alpha.3.2 help.
+
+## Live verification
+- Ran the wrapper against an isolated, ignored .local-demo/ Git repository.
+- Real Codex created calculator.py; independently verified add(2, 3) == 5.
+- A second invocation edited the function to validate numeric arguments.
+- Independently verified integer/float addition and TypeError for either invalid argument.
+- Both invocations returned final responses and exited successfully.
+- Initial sandboxed execution could not access Codex state; live checks succeeded
+  after approved execution outside the outer sandbox. Codex's workspace-write
+  option remained enabled.
+- Demo files are ignored so generated code is separate from wrapper source.
