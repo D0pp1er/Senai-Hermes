@@ -1,31 +1,14 @@
 # Current task
 
-Add a verifiable master plan and expand Codex CLI compatibility one capability per commit.
+Create a self-contained features guide and feature-by-feature manual QA checklist.
 
-Status: completed for the documented compatibility baseline.
+Status: complete.
 
-## Completed
+Verification: all Bash examples pass bash -n; local guide links and installed help commands checked. Live manual QA cases are for the user to execute and record.
 
-- main task.md lists required, optional, process, and submission tasks with verification/TDD criteria.
-- Separate capability commits cover model/configuration, images, web search,
-  skill selection, session resume, interactive Codex, native commands, and code review.
-- 40 offline tests pass with no skips, including real child-process transport tests.
-- Live WSL code creation and context-preserving resume succeeded.
-- Interactive launch, /skills list, and /quit were observed in a real terminal.
+Deliverables:
+- features.md: new-user setup, all capabilities, examples, and limits.
+- ../tests/manualqa.md: isolated live checks, expected outcomes, and results table.
 
-## Verification
-
-```bash
-cd /home/rk/SentiensHermes/senai
-python3 -m unittest discover -s tests -v
-senai --help
-senai codex -- --version
-senai chat
-```
-
-## Limits and next work
-
-- Not a claim that every model/plugin/platform-specific native command was live-tested.
-- Workspace-relocation flags conflict with outputs/ and are rejected.
-- Research comparison, complete chat export, and Google Slides remain pending in main task.md.
-- No additional implementation task is currently assigned.
+Previous compatibility implementation and its verification remain recorded in
+acheivements.md, ../CHANGELOG.md, and ../main task.md.

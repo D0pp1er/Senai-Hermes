@@ -193,3 +193,8 @@ Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
   Relocating execution outside outputs/ is intentionally unsupported.
 
 See main task.md for the complete PDF requirements and remaining deliverables.
+
+## Guides
+
+- [New-user features guide](projectprogress/features.md)
+- [Manual QA checklist](tests/manualqa.md)

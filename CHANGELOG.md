@@ -127,3 +127,9 @@
 - Interactive senai chat opened in outputs/, /skills displayed the installed catalog, and /quit exited with code 0.
 - Experiment note: piping native feature output to head triggered an upstream broken-pipe panic; the feature check was rerun with complete capture.
 - No claim of testing every external plugin/account/model; workspace-relocation limitations are documented.
+
+## User guide and manual QA
+- Added projectprogress/features.md covering installation, first use, every implemented mode/capability, prerequisites, outputs, and limitations.
+- Added tests/manualqa.md with an isolated QA workspace, expected outcomes, error cases, and PASS/FAIL/BLOCKED evidence recording.
+- Linked both guides from README.md; no product behavior changed.
+- Verification: 41 Bash examples pass syntax checks; local links and installed help commands checked. Live manual cases are not marked as executed.

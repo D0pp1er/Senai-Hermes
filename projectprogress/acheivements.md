@@ -27,3 +27,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Interactive senai chat opened in outputs/, displayed installed skills through /skills,
   and exited through /quit with status 0.
 - Remaining full-project submission requirements are explicitly tracked in main task.md.
+
+- Added a standalone new-user features guide and a 16-case manual QA checklist covering all implemented capabilities.
