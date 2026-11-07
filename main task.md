@@ -70,3 +70,5 @@ No credentials are copied into this repository.
 Compatibility means preserving supported installed Codex behavior, not rebuilding
 its tools or claiming every plugin/account/model is available. Distinguish unit
 transport verification, installed-CLI parser checks, and live model checks.
+
+- [x] Non-Git execution and installed exec option parity: tests/test_git_option.py and tests/test_exec_compat.py; JSON/retained outputs in tests/test_output_options.py.

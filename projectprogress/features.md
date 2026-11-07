@@ -61,7 +61,7 @@ Ordinary write/edit mode prints the final response after the request completes.
 - Generated code belongs in `<project>/outputs/`; senai creates that folder.
 - Requests use paths relative to outputs/: ask for `hello.py`, not `outputs/hello.py`.
 - To edit an existing file, put it inside the chosen project's outputs/ directory first.
-- The project must be a Git repository for standard Codex execution. For a new project:
+- Codex normally requires a trusted Git repository. Pass --skip-git-repo-check explicitly for a non-Git folder, or initialize a new project:
 
 ```bash
 mkdir -p /path/to/my-project
@@ -281,7 +281,7 @@ senai --help
 senai codex -- --version
 ```
 
-The current suite contains 40 offline tests. Installed-command tests use a fake
+The current suite contains 60 offline tests. Installed-command tests use a fake
 Codex child process and skip only if the package is not installed. These tests do
 not consume model usage. Live model/tool checks do consume usage and need account access.
 
@@ -289,3 +289,56 @@ For a feature-by-feature manual checklist, read [manualqa.md](../tests/manualqa.
 For full project requirements and remaining deliverables, read [main task.md](../main%20task.md).
 
 To review how execution works internally, see [architecture.md](architecture.md).
+
+## 8. Native Codex options on a normal request
+
+Options can appear before or after the quoted request. Your non-Git example works as:
+
+```bash
+cd /home/rk/SentiensHermes
+senai "make a directory named Testbench and create a helloworldcpp to print tumi kemon acho" --skip-git-repo-check
+```
+
+Expected file: outputs/Testbench/helloworld.cpp. The Git-check flag is explicit;
+senai does not silently disable Codex's normal check for every request.
+
+| Options | Behavior |
+| --- | --- |
+| --skip-git-repo-check | Allow a request outside a Git repository. |
+| -C / --cd | Select the parent project, like --project; generated code still goes into its outputs/. |
+| -s / --sandbox | Select the native sandbox (default workspace-write). |
+| -a / --ask-for-approval | Pass the native global approval policy before exec. |
+| --approve-for-me | Delegate approval review to native Codex; the default sandbox flag is omitted to avoid conflicts. |
+| --enable / --disable | Repeatable native feature switches. |
+| --strict-config | Ask Codex to reject unrecognized configuration. |
+| --oss / --local-provider | Use a locally configured provider; no provider is installed by senai. |
+| --ephemeral | Tell Codex not to persist this session. |
+| --ignore-user-config / --ignore-rules | Native controls over configuration and rule loading. |
+| --thread-source / --cyber-access-program | Native metadata/access options; account access still applies. |
+| --color | Native always/never/auto output setting. |
+| --output-schema | Existing input schema file; Codex checks/uses its contents. |
+| --json | Stream native JSONL events instead of printing a duplicate final response. |
+| -o / --output-last-message | Retain a successful final response inside outputs/. |
+| -V / --version | Print the installed Codex version without needing a request. |
+| --dangerously-bypass-approvals-and-sandbox / --dangerously-bypass-hook-trust | Recognized native options; senai does not enable these by default. |
+
+Examples:
+
+```bash
+senai "Describe the files without editing" --skip-git-repo-check --json -o response.txt
+senai "Return a result matching this schema" --output-schema /path/to/schema.json
+printf '%s\n' 'Create hello.py that prints Hello' | senai --skip-git-repo-check
+printf '%s\n' 'Create hello.py that prints Hello' | senai - --skip-git-repo-check
+senai --version
+```
+
+JSON event records go to stdout as they arrive; stderr carries native diagnostics.
+When -o is supplied, outputs/response.txt keeps the final response. The wrapper
+copies it from a fresh internal capture only after a successful, nonempty result;
+an older saved response is never accepted as proof of a new run.
+
+The parser covers installed Codex 0.167.0 exec option names, with an installed-help
+regression check. --worktree and --add-dir are recognized but return a targeted
+outputs-policy error. Interactive-only options and subcommands remain available
+through native mode as documented above; this is not a promise that every future
+Codex flag or every model/feature combination is already supported.

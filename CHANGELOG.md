@@ -144,3 +144,13 @@
 - Reproduced rejection of --skip-git-repo-check in convenience mode.
 - Added explicit forwarding of the Codex Git-check option before or after the request.
 - TDD: two regression tests failed first; all 42 tests pass. The default Git check remains enabled.
+
+## Codex exec option compatibility
+- Added exec_flags.py and an installed-help regression check: every current Codex 0.167.0 exec option name is recognized.
+- Added native boolean/value/feature switches, sandbox and approval selection, color, schema input, version, and -C/--cd parent-project aliases.
+- Added native JSONL streaming, retained final-response paths, and stdin requests. Fresh internal capture prevents stale retained files from hiding missing responses.
+- Recognize workspace-relocation flags with explicit outputs-policy errors instead of generic parser rejection.
+- TDD: exec compatibility and output-mode tests failed before implementation; 60 tests now pass with no skips.
+- Live verification: the user's exact non-Git command succeeded, and g++ independently compiled outputs/Testbench/helloworld.cpp; it printed tumi kemon acho.
+- Live --json plus -o produced parseable native event records and retained SENAI_JSON_OK, with no duplicate plain-text output.
+- Updated architecture, features, manual QA, and README to match changed execution behavior.

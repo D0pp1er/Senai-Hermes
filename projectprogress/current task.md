@@ -1,14 +1,19 @@
 # Current task
 
-Document the current execution architecture and its maintenance rules.
+Fix non-Git execution and expose the installed Codex exec options on ordinary senai requests.
 
 Status: complete.
 
-Verification: execution paths checked against current source; local links, code fences, Bash examples, and git diff whitespace checks pass. No runtime code changed.
+Verification: all 60 tests pass; live C++ and JSON checks pass; documentation links and example syntax pass.
 
-Deliverable: architecture.md covering the two execution paths, all command modes,
-module responsibilities, option translation, output/state ownership, error behavior,
-and verification links.
+- --skip-git-repo-check works before or after the prompt.
+- Parser coverage is checked against installed Codex 0.167.0 exec --help.
+- JSON streaming, retained response files, stdin, schema inputs, sandbox/approval,
+  feature/provider options, version, and project aliases are implemented.
+- All 60 tests pass with no skips.
+- The exact reported C++ request succeeded in ~/SentiensHermes; independent compile/run verified its output.
+- Live JSON plus saved-response behavior verified separately.
+- features.md, architecture.md, ../tests/manualqa.md, and README are updated.
 
-Maintenance: update architecture.md whenever execution behavior changes.
-Previous feature and manual QA work remains in features.md and ../tests/manualqa.md.
+Limits: workspace-relocating flags still conflict with outputs/. Interactive-only
+commands/options use native adapters. No automatic Git-check bypass is enabled.

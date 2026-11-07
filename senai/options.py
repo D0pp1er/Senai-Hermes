@@ -13,6 +13,12 @@ class CodexOptions:
     resume: str | None = None
     last: bool = False
     skip_git_repo_check: bool = False
+    extra_args: tuple[str, ...] = ()
+    sandbox: str | None = 'workspace-write'
+    color: str = 'never'
+    approval: str | None = None
+    output_last_message: str | None = None
+    json: bool = False
 
     def to_args(self):
         args = []
@@ -28,6 +34,7 @@ class CodexOptions:
             args.extend(['--config', 'web_search="live"'])
         if self.skip_git_repo_check:
             args.append('--skip-git-repo-check')
+        args.extend(self.extra_args)
         return args
 
     def session_args(self):

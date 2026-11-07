@@ -24,7 +24,7 @@ senai review --help
 senai codex --help
 ```
 
-Expected: commands resolve to WSL installations; 40 tests pass with no skips when
+Expected: commands resolve to WSL installations; 60 tests pass with no skips when
 senai is installed; all help commands exit 0 and show the documented options.
 If senai is missing, follow projectprogress/features.md before continuing.
 
@@ -373,3 +373,64 @@ Codex version, Python version, and QA_ROOT. Do not include credentials.
 
 Leave QA artifacts in outputs/ for review. Starting another run with mktemp creates
 a fresh workspace without overwriting your previous run.
+
+
+## QA-17: reproduce non-Git execution and check Codex option coverage
+
+Use a new directory under the outer SentiensHermes outputs/, outside the wrapper's
+Git repository. Keep the original QA_ROOT for the earlier cases.
+
+```bash
+mkdir -p /home/rk/SentiensHermes/outputs
+QA_NONGIT="$(mktemp -d /home/rk/SentiensHermes/outputs/manualqa-nongit.XXXXXX)"
+senai --project "$QA_NONGIT" "Create hello.py that prints Hello"
+echo $?
+senai --project "$QA_NONGIT" "Create hello.py that prints Hello" --skip-git-repo-check
+echo $?
+python3 "$QA_NONGIT/outputs/hello.py"
+python3 -m unittest tests.test_git_option tests.test_exec_compat -v
+```
+
+Expected: first request fails with trusted-directory diagnostics and the supported
+flag hint; second succeeds and prints Hello when executed. The tests verify the
+reported before/after-request syntax, exact option forwarding, sandbox conflicts,
+and coverage against installed Codex exec help without running live model calls.
+If your outer directory has since become a trusted Git repo, mark the first-error
+reproduction BLOCKED and use a genuinely non-Git project directory instead.
+
+## QA-18: direct JSON events, retained responses, stdin, schema, and version
+
+```bash
+senai --project "$QA_ROOT" "Do not edit files. Reply exactly QA_JSON_OK." --json -o qa-response.txt > "$QA_ROOT/outputs/qa-direct-events.jsonl"
+python3 - <<'PY'
+import json, os
+from pathlib import Path
+workspace = Path(os.environ['QA_ROOT']) / 'outputs'
+events = [json.loads(line) for line in (workspace / 'qa-direct-events.jsonl').read_text().splitlines() if line.strip()]
+assert events
+assert (workspace / 'qa-response.txt').read_text().strip() == 'QA_JSON_OK'
+print('PASS: JSONL output and retained final response')
+PY
+printf '%s
+' 'Do not edit files. Reply exactly QA_STDIN_OK.' | senai --project "$QA_ROOT" --skip-git-repo-check
+senai -C "$QA_ROOT" "Do not edit files. Describe the workspace briefly." -s read-only
+senai --version
+cat > "$QA_ROOT/outputs/qa-schema.json" <<'EOF'
+{"type":"object","properties":{"status":{"type":"string"}},"required":["status"],"additionalProperties":false}
+EOF
+senai --project "$QA_ROOT" "Do not edit files. Return status ok using the supplied schema." --output-schema "$QA_ROOT/outputs/qa-schema.json" -o qa-schema-response.json
+python3 - <<'PY'
+import json, os
+from pathlib import Path
+value = json.loads((Path(os.environ['QA_ROOT']) / 'outputs/qa-schema-response.json').read_text())
+assert value['status'] == 'ok'
+print('PASS: schema response')
+PY
+```
+
+Expected: JSON stdout consists of parseable records without appended plain final
+text; the retained response remains in outputs/. Piped input is handled without a
+positional prompt. -C selects the parent project; version requires no prompt.
+The schema file is an input, and its final structured response is retained separately.
+Add QA-17 and QA-18 to your results table. Approval/bypass option transport is
+covered with mocks in test_exec_compat; manual verification does not require disabling protections.

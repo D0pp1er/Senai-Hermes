@@ -1,9 +1,11 @@
 import io
+import subprocess
+from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from senai import cli
+from senai import cli, codex
 from senai.options import CodexOptions
 
 
@@ -19,3 +21,9 @@ class GitOptionTests(unittest.TestCase):
                 self.assertEqual(cli.main(['--project', project, *arguments], io.StringIO(), io.StringIO()), 0)
                 self.assertTrue(run.call_args.kwargs['options'].skip_git_repo_check)
                 self.assertIn(request, run.call_args.args[0])
+
+    def test_trusted_directory_error_explains_supported_fix(self):
+        result = subprocess.CompletedProcess([], 1, '', 'Not inside a trusted directory and --skip-git-repo-check was not specified.')
+        with tempfile.TemporaryDirectory() as workspace, patch('senai.codex.subprocess.run', return_value=result):
+            with self.assertRaisesRegex(RuntimeError, 'Use --skip-git-repo-check'):
+                codex.run_codex('Write code', Path(workspace))

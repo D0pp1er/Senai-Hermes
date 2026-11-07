@@ -30,7 +30,8 @@ All generated code goes into `<project>/outputs/` (current directory by default)
 The wrapper creates this folder and uses it as the Codex workspace. Existing
 code must be inside outputs/ to be edited. Paths in requests are relative to
 outputs/: ask for `hello.py`, not `outputs/hello.py`.
-The parent project must be an existing Git repository (`git init` first).
+The parent project normally must be a trusted Git repository (`git init` first).
+For a folder without Git, explicitly pass `--skip-git-repo-check`.
 Temporary response files also stay inside outputs/ and are removed after each
 invocation. The final response is printed to your terminal.
 
@@ -56,11 +57,11 @@ Check generated code independently.
   Codex sessions. No custom semantic memory, scheduler, or messaging adapters.
 - Uses existing Codex authentication and configuration; no separate API key.
 - Write/edit mode runs `codex exec --sandbox workspace-write` in outputs/,
-  with the request on stdin. Chat/native/review modes delegate native workflows.
+  with the request on stdin. JSON mode streams native events; other modes delegate native workflows.
 - Output scope is enforced by the selected workspace and explicit instructions;
   this is not an independent filesystem jail. Codex configuration, tools, and
   inherited project instructions still apply.
-- Write/edit mode buffers progress and prints the final response. Native/chat/review
+- Write/edit mode normally buffers progress and prints the final response; --json streams events. Native/chat/review
   modes preserve terminal streams and native arguments. Failures may leave partial edits.
 - Development uses unittest with small red/green/refactor steps; see CHANGELOG.md.
 - Reference: https://learn.chatgpt.com/docs/cli/reference
@@ -74,6 +75,7 @@ senai/                 Python package
   codex.py             Codex subprocess adapter
   workspace.py         Output-directory validation
   options.py           Explicit execution/configuration options
+  exec_flags.py        Native exec flag parsing/forwarding
   native.py            Interactive, review, and native command adapters
   __main__.py          python3 -m senai support
 tests/                 unittest tests grouped by responsibility
@@ -183,7 +185,7 @@ The installed-command tests use a deterministic fake Codex child process, so the
 ## Verified compatibility baseline
 
 Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
-- 40 offline tests pass, including installed-command child-process tests.
+- 60 offline tests pass, including installed-command child-process tests.
 - Installed CLI checks: version, exec/resume/review/MCP/plugin help, feature listing.
 - Live checks: search-enabled code creation, session resume retaining a marker,
   interactive launch, installed skill picker, and clean /quit exit.
@@ -201,3 +203,31 @@ See main task.md for the complete PDF requirements and remaining deliverables.
 - [Architecture and execution flow](projectprogress/architecture.md)
 
 When execution behavior changes, update architecture.md together with relevant tests, user examples, and progress records.
+
+## Codex exec options on ordinary requests
+
+```bash
+senai "Create a C++ Hello World program" --skip-git-repo-check
+senai "Describe this workspace without edits" --skip-git-repo-check --json -o response.txt
+printf '%s\n' 'Create hello.py' | senai --skip-git-repo-check
+senai -C /path/to/project "Describe the code without edits" -s read-only
+senai --version
+```
+
+The convenience parser recognizes every option name in installed Codex 0.167.0
+`exec --help`; a regression test detects new unrecognized options. Flags can appear
+before or after the quoted request. --cd/-C chooses the parent project, retaining
+the outputs/ convention. --worktree/--add-dir remain incompatible with that policy.
+Other interactive-only commands/options use `senai chat` or `senai codex -- ...`.
+
+Native --enable/--disable, --strict-config, --oss/--local-provider, --ephemeral,
+--ignore-user-config, --ignore-rules, --thread-source, --cyber-access-program,
+sandbox/approval options, --color, --output-schema, and response/JSON options are
+now available directly. Native authentication, feature availability, and invalid
+option combinations remain Codex responsibilities.
+
+--json streams only native event records to stdout; no final text is appended.
+-o/--output-last-message retains the final response inside outputs/. The wrapper
+uses a unique internal capture first, then saves a successful response, so a stale
+file cannot be mistaken for a new result. Input schema/image paths resolve from
+the calling directory; generated output paths resolve from outputs/.

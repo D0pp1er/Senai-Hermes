@@ -49,6 +49,7 @@ the mode that called it. No separate background worker is started by senai.
 | [cli.py](../senai/cli.py) | Routes modes; parses convenience flags; validates images; reports results/errors. | `main()` |
 | [prompts.py](../senai/prompts.py) | Validates request/skill names and builds write/edit instructions. | `build_prompt()` |
 | [workspace.py](../senai/workspace.py) | Resolves the parent project and prepares its outputs directory. | `prepare_workspace()` |
+| [exec_flags.py](../senai/exec_flags.py) | Registers native exec options and collects forwarded arguments. | `add_exec_flags()`, `collect_exec_args()` |
 | [options.py](../senai/options.py) | Stores explicit options and translates them into native argument lists. | `CodexOptions`, `to_args()`, `session_args()` |
 | [codex.py](../senai/codex.py) | Executes one non-interactive request and captures its final response. | `run_codex()` |
 | [native.py](../senai/native.py) | Interactive, review, and native forwarding paths; native argument validation. | `chat_main()`, `review_main()`, `native_main()`, `run_native()` |
@@ -66,10 +67,14 @@ senai --project /path/to/repo --search "Create hello.py that prints Hello"
 
 1. The installed console script calls `senai.cli.main()`.
 2. No first-argument mode keyword matches, so the write/edit parser reads the
-   request, project, model/profile/config, images, skills, and resume selector.
+   optional request/stdin, project aliases, model/profile/config, images, skills,
+   resume selector, and native exec flags. --version exits without a request or
+   creating outputs/. Workspace-relocation conflicts fail before running Codex.
 3. `build_prompt()` rejects a blank request or invalid skill name. It inserts
    literal `$skill-name` mentions when selected, write/edit instructions, and
-   the stripped request inside `<user_request>` delimiters.
+   the stripped request inside `<user_request>` delimiters. A request of - or
+   omitted request with piped stdin reads its text from stdin. Missing input on
+   an interactive terminal produces a usage error.
 4. Image paths are expanded and resolved relative to the caller's directory.
    Nonexistent/non-file attachments fail before creating the output workspace.
 5. `prepare_workspace()` expands/resolves the parent project, checks it is an
@@ -80,12 +85,13 @@ senai --project /path/to/repo --search "Create hello.py that prints Hello"
 7. The adapter constructs this argument list (shown schematically):
 
 ```text
-codex exec
-  --sandbox workspace-write
+codex <optional --ask-for-approval POLICY> exec
+  <sandbox selection, omitted for native approval/bypass modes>
   --cd /path/to/repo/outputs
-  --color never
+  --color <selected policy, default never>
   --output-last-message /path/to/repo/outputs/.senai-<random>/response.txt
-  <model/profile/config/image arguments>
+  <model/profile/config/image and additional native exec arguments>
+  <optional --json>
   <optional resume SESSION or resume --last>
   -
 ```
@@ -94,11 +100,16 @@ codex exec
    complete prompt is sent as UTF-8 stdin; the final `-` tells Codex to read it.
    Arguments are a Python list, with no shell invocation or shell interpolation.
 9. Codex performs its native work. senai captures stdout/stderr in memory and
-   waits for the child; it does not parse tool events or stream progress here.
+   waits for the child in normal mode. With --json, stdout/stderr are forwarded
+   directly to the caller so native events stream without buffering or parsing.
 10. A nonzero child status becomes a wrapper execution error. Diagnostics prefer
     stderr, then stdout, then a fallback message. On status 0, senai reads and
     strips response.txt; a missing/empty final response is also an error.
-11. A nonempty final response is printed to stdout. The temporary directory is
+11. A nonempty final response is printed to stdout only in normal mode; JSON mode
+    does not append duplicate final text. If -o was requested, the original final
+    content is copied to the validated retained path after success. Capture still
+    uses a fresh temporary file, so stale retained content cannot hide a missing
+    new response. Parent output directories are created when saving. The temporary directory is
     removed on normal completion or Python exception unwinding. Generated code
     remains in outputs/; forced process termination can leave temporary files.
 
@@ -117,6 +128,13 @@ and manual inspection are separate checks. It neither retries nor imposes a time
 | `--skill` (repeatable) | `build_prompt()` | Adds literal skill mentions to stdin, not a separate CLI flag. |
 | `--resume SESSION` | `session_args()` | Adds `resume SESSION`; rejects empty or option-like identifiers. |
 | `--last` | `session_args()` | Adds `resume --last`; native cwd filtering chooses the latest session. |
+| `--skip-git-repo-check` | `to_args()` | Explicitly forwards the native non-Git execution flag. |
+| `--cd` / `-C` | `build_parser()` and workspace preparation | Alias for --project; outputs/ remains the execution root. |
+| Sandbox and approval flags | `cli.main()` and `run_codex()` | Choose the native sandbox, or omit the default for approval/bypass modes; global -a precedes exec. |
+| Other native exec flags | `exec_flags.py` and `extra_args` | Collect supported boolean/value/repeated arguments and forward them as list elements. |
+| `--output-schema` | `cli.main()` | Validate an existing input file and resolve it from the caller directory. |
+| `--json` | `run_codex()` | Inherit/forward output streams and omit duplicate final printing. |
+| `-o` / `--output-last-message` | `resolve_output_path()` and `run_codex()` | Retain fresh final content inside outputs/ after success. |
 
 `--resume` and `--last` are mutually exclusive. Search's explicit override is
 appended after supplied config overrides, so `--search` takes precedence over
@@ -166,11 +184,12 @@ Other native arguments are delegated rather than reimplemented.
 | --- | --- | --- |
 | Wrapper implementation | senai/ in this repository | Git-tracked source. |
 | Tests and guides | tests/, projectprogress/, root documentation | Git-tracked development records. |
+| Retained convenience final response | Explicit validated -o path inside outputs/ | Written after success; survives temporary cleanup. |
 | Generated product code | `<selected project>/outputs/` | Retained; ignored by this repository's Git settings. |
 | Convenience final response | `outputs/.senai-<random>/response.txt` | Temporary; printed and normally cleaned up. |
 | Native explicit output files | Validated output paths inside outputs/ | Retained as requested. |
 | Model authentication, configuration, installed tools/skills, sessions | Native Codex user/config locations | Managed by Codex, not a custom senai store. |
-| Convenience subprocess diagnostics | Python process memory | Printed on failure; not automatically saved to a log file. |
+| Convenience subprocess diagnostics | Python memory normally; forwarded stderr in JSON mode | Printed on failure or streamed; not automatically saved to a log file. |
 
 Selecting outputs/ expresses the intended code workspace. It is not an independent
 filesystem jail. Native configuration, permissions, repository discovery, and external
@@ -203,13 +222,15 @@ termination or a job supervisor; native child/terminal behavior remains relevant
 | --- | --- |
 | Input, prompt context, workspace, and invalid paths | [test_cli.py](../tests/test_cli.py) |
 | Subprocess invocation, final response, failures | [test_codex.py](../tests/test_codex.py) |
+| Native exec option coverage and non-Git regression | [test_exec_compat.py](../tests/test_exec_compat.py), [test_git_option.py](../tests/test_git_option.py) |
+| JSON streaming, retained response paths, stale-output protection | [test_output_options.py](../tests/test_output_options.py) |
 | Model/profile/config transport | [test_options.py](../tests/test_options.py) |
 | Images, search, skill mentions, sessions | [test_images.py](../tests/test_images.py), [test_search.py](../tests/test_search.py), [test_skills.py](../tests/test_skills.py), [test_resume.py](../tests/test_resume.py) |
 | Interactive streams and native argument/output policy | [test_chat.py](../tests/test_chat.py), [test_native.py](../tests/test_native.py) |
 | Review scopes and read-only choice | [test_review.py](../tests/test_review.py) |
 | Installed command through a real, deterministic fake child | [test_installed.py](../tests/test_installed.py) |
 
-The current suite has 40 offline tests. These verify wrapper behavior, not every
+The current suite has 60 offline tests. These verify wrapper behavior, not every
 live account/tool/model combination. Live verification evidence is recorded in
 [CHANGELOG.md](../CHANGELOG.md); the manual checklist records user-observed outcomes.
 
@@ -224,3 +245,5 @@ construction, workspace policy, storage, streams, or failure behavior:
 
 Keep examples aligned with actual source. Label planned components as planned;
 do not draw them as part of the running implementation.
+
+Compatibility scope: the option coverage test compares build_parser() against installed codex exec --help. Interactive/global subcommands still use native adapters. Workspace-relocating exec flags are recognized but rejected under the outputs policy.

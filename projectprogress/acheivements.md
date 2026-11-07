@@ -31,3 +31,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Added a standalone new-user features guide and a 16-case manual QA checklist covering all implemented capabilities.
 
 - Added architecture.md documenting actual execution paths, modules, state, errors, limits, and the test mapping; added an ongoing maintenance checklist.
+
+- Fixed the reported non-Git command; all installed Codex 0.167.0 exec option names are recognized, with 60 passing tests and live C++/JSON verification.
