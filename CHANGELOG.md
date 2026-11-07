@@ -139,3 +139,8 @@
 - Linked architecture from README and the new-user guide, and documented when it must be updated.
 - Documentation only; no runtime behavior changed.
 - Verification: reviewed against current source; local links, code fences, and Bash examples checked.
+
+## Non-Git workspace compatibility
+- Reproduced rejection of --skip-git-repo-check in convenience mode.
+- Added explicit forwarding of the Codex Git-check option before or after the request.
+- TDD: two regression tests failed first; all 42 tests pass. The default Git check remains enabled.

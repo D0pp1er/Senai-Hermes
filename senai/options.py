@@ -12,6 +12,7 @@ class CodexOptions:
     search: bool = False
     resume: str | None = None
     last: bool = False
+    skip_git_repo_check: bool = False
 
     def to_args(self):
         args = []
@@ -25,6 +26,8 @@ class CodexOptions:
             args.extend(['--image', image])
         if self.search:
             args.extend(['--config', 'web_search="live"'])
+        if self.skip_git_repo_check:
+            args.append('--skip-git-repo-check')
         return args
 
     def session_args(self):

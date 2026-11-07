@@ -33,6 +33,7 @@ def main(argv=None, stdout=None, stderr=None):
     sessions = parser.add_mutually_exclusive_group()
     sessions.add_argument('--resume', metavar='SESSION', help='Continue a saved Codex session by id or name.')
     sessions.add_argument('--last', action='store_true', help='Continue the latest Codex session in outputs/.')
+    parser.add_argument('--skip-git-repo-check', action='store_true', help='Allow execution outside a Git repository, as in Codex exec.')
     args = parser.parse_args(argv)
     try:
         prompt = build_prompt(args.request, skills=tuple(args.skill))
@@ -41,7 +42,7 @@ def main(argv=None, stdout=None, stderr=None):
             if not Path(image).is_file():
                 raise ValueError(f'Image must be an existing file: {image}')
         workspace = prepare_workspace(args.project)
-        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config), images=images, search=args.search, resume=args.resume, last=args.last)
+        options = CodexOptions(model=args.model, profile=args.profile, config=tuple(args.config), images=images, search=args.search, resume=args.resume, last=args.last, skip_git_repo_check=args.skip_git_repo_check)
         response = run_codex(prompt, workspace, options=options)
         print(response, file=stdout)
         return 0
