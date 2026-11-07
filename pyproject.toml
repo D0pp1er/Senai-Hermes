@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "senai"
+version = "0.1.0"
+description = "A small Codex CLI wrapper for writing and editing code"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+senai = "senai:main"
+
+[tool.setuptools]
+py-modules = ["senai"]

@@ -35,3 +35,10 @@
 - TDD red: three output routing/instruction/path tests failed.
 - TDD green: all eleven tests pass.
 - Existing files outside outputs/ are preserved; move code into outputs/ to edit it.
+
+## Package command
+- Added pyproject.toml with a setuptools single-module package and senai console entry point.
+- Installed senai 0.1.0 as an editable WSL user package, without runtime dependencies.
+- Before installation: senai --help failed with command not found.
+- After installation: senai --help succeeded from both the checkout and /tmp.
+- Replaced Windows examples with WSL install, run, and verification instructions.

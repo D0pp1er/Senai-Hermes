@@ -1,51 +1,63 @@
 # senai
 
-A small Python CLI wrapper for asking Codex CLI to write or edit code.
-Scope: one request, project context, Codex execution, and the final response.
+A small Codex CLI wrapper for writing and editing code. Requires Python 3.10+
+and an installed, signed-in Codex CLI (`codex login`). No runtime Python dependencies.
 
-Requires Python 3.10+ and Codex CLI installed and signed in (`codex login`).
-No Python dependencies are required.
+## Install in WSL
 
-Development uses unittest and small red/green/refactor steps. See CHANGELOG.md.
+```bash
+cd /home/rk/SentiensHermes/senai
+python3 -m pip install --user --no-build-isolation -e .
+export PATH="$HOME/.local/bin:$PATH"
+senai --help
+```
+
+The editable install uses this checkout, so code changes apply immediately.
+The PATH export is only needed if ~/.local/bin is missing from your shell PATH.
+On distributions that disallow user pip installations, install into a virtual
+environment with `python3 -m venv .venv`, activate it with
+`source .venv/bin/activate`, and run `python3 -m pip install -e .`.
 
 ## Run
 
-From this folder:
-
-```powershell
-python senai.py --project "C:\path\to\your\repo" "Create a function that adds two numbers"
-python senai.py --project "C:\path\to\your\repo" "Edit the function to reject non-numeric arguments"
+```bash
+senai "Create hello.py that prints Hello"
+senai "Edit hello.py to print Hello world"
+senai --project /path/to/repo "Create a function that adds two numbers"
 ```
 
-The target must be an existing Git repository (use `git init` first).
-The request goes through stdin to `codex exec`; Codex reads project files and
-AGENTS.md, makes changes, and the wrapper prints its final response.
+All generated code goes into `<project>/outputs/` (current directory by default).
+The wrapper creates this folder and uses it as the Codex workspace. Existing
+code must be inside outputs/ to be edited. Paths in requests are relative to
+outputs/: ask for `hello.py`, not `outputs/hello.py`.
+The parent project must be an existing Git repository (`git init` first).
+Temporary response files also stay inside outputs/ and are removed after each
+invocation. The final response is printed to your terminal.
+
 Exit codes: 0 success, 2 input/execution failure, 130 interrupted.
 
 ## Verify
 
-```powershell
-python -m unittest -v
-python senai.py --help
+```bash
+python3 -m unittest -v
+senai --help
 git log --oneline
 ```
 
 Tests mock Codex to verify transport without consuming account usage.
-For a live check, use a disposable Git repo, request a small file, inspect
-the new file's contents, then request an
-edit and inspect its contents again. Check any generated code independently.
+For a live check, run the two hello.py examples and inspect outputs/hello.py.
+Check generated code independently.
 
 ## Design and limits
 
-- Python standard library only. No API key is required by the wrapper; it uses
-  the existing Codex CLI authentication and configuration.
-- One request per invocation. No memory, scheduling, integrations, or arbitrary
-  Codex argument forwarding.
-- Write/edit is the offered workflow, guided by instructions; this is not a
-  security filter that can guarantee rejection of every other natural-language task.
-- Codex may run tools to inspect and validate code under its workspace sandbox.
-  Existing Codex configuration and project instructions still apply.
-- Progress is buffered; only the final response is printed on success. No retry
-  or timeout is imposed because writing code can take a variable amount of time.
-- Codex failures can leave partial file edits. Inspect the working tree afterward.
+- A Python package with a `senai` console entry point and no runtime dependencies.
+- One request per invocation; no memory, scheduling, or messaging integrations.
+- Uses existing Codex authentication and configuration; no separate API key.
+- Runs `codex exec --sandbox workspace-write` in outputs/, with the request on stdin.
+- Output scope is enforced by the selected workspace and explicit instructions;
+  this is not an independent filesystem jail. Codex configuration, tools, and
+  inherited project instructions still apply.
+- No arbitrary Codex argument forwarding. Progress is buffered; only the final
+  response is printed on success. Failures may leave partial edits.
+- Development uses unittest with small red/green/refactor steps; see CHANGELOG.md.
 - Reference: https://learn.chatgpt.com/docs/cli/reference
