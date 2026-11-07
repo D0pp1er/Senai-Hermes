@@ -7,9 +7,9 @@ from pathlib import Path
 from .workspace import prepare_workspace
 
 
-def run_native(arguments, workspace, *, stdout=None, stderr=None):
+def run_native(arguments, workspace, *, stdout=None, stderr=None, sandbox='workspace-write'):
     validate_native_args(arguments, workspace)
-    command = ['codex', '--sandbox', 'workspace-write', '--cd', str(workspace), *arguments]
+    command = ['codex', '--sandbox', sandbox, '--cd', str(workspace), *arguments]
     try:
         result = subprocess.run(command, cwd=workspace, stdout=stdout, stderr=stderr, check=False)
     except FileNotFoundError as exc:
@@ -49,7 +49,7 @@ def validate_native_args(arguments, workspace):
         attached_short = token.startswith('-o') and not token.startswith('--') and token != '-o'
         if flag in output_flags or attached_short:
             if attached_short:
-                value = token[2:]
+                value = token[2:].removeprefix('=')
             elif '=' in token:
                 value = token.split('=', 1)[1]
             else:
@@ -73,6 +73,31 @@ def native_main(argv, stdout, stderr):
     try:
         workspace = prepare_workspace(args.project)
         return run_native(arguments, workspace, stdout=stdout, stderr=stderr)
+    except (ValueError, RuntimeError, OSError) as exc:
+        print(f'senai: {exc}', file=stderr)
+        return 2
+    except KeyboardInterrupt:
+        return 130
+
+
+def review_main(argv, stdout, stderr):
+    parser = argparse.ArgumentParser(prog='senai review', description='Review Git changes using native Codex in read-only mode.')
+    parser.add_argument('--project', default='.', help='Parent project directory.')
+    targets = parser.add_mutually_exclusive_group()
+    targets.add_argument('--uncommitted', action='store_true', help='Review staged, unstaged, and untracked changes (default).')
+    targets.add_argument('--base', metavar='BRANCH', help='Review changes against a base branch.')
+    targets.add_argument('--commit', metavar='SHA', help='Review a commit.')
+    args = parser.parse_args(argv)
+    arguments = ['review']
+    if args.base:
+        arguments.extend(['--base', args.base])
+    elif args.commit:
+        arguments.extend(['--commit', args.commit])
+    else:
+        arguments.append('--uncommitted')
+    try:
+        workspace = prepare_workspace(args.project)
+        return run_native(arguments, workspace, stdout=stdout, stderr=stderr, sandbox='read-only')
     except (ValueError, RuntimeError, OSError) as exc:
         print(f'senai: {exc}', file=stderr)
         return 2

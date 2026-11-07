@@ -104,3 +104,9 @@
 - Reject explicit workspace relocation and known output-path flags escaping outputs/.
 - TDD: five native tests failed first; all 35 tests now pass.
 - Native configuration/state still lives in normal Codex locations; not every account/tool/flag combination is live-tested.
+
+## Code review capability
+- Added senai review with exclusive uncommitted/base/commit selectors.
+- Use the native review engine with a read-only sandbox; preserve streams/status.
+- TDD: review routing tests failed first; all 38 tests now pass.
+- Known short output-path validation also handles -o=path syntax.

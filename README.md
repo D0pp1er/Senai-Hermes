@@ -158,5 +158,17 @@ its native error/exit code. Global Codex account/config/session state stays in i
 usual user directories. This is an execution adapter, not a separate filesystem
 jail; configured tools can have effects outside the code workspace.
 
-Wrapper keywords `chat` and `codex` are reserved only as the first argument. To
+Wrapper keywords `chat`, `review`, and `codex` are reserved only as the first argument. To
 use those words as a literal write/edit request, put `--` before the request.
+
+## Code review
+
+```bash
+senai review
+senai review --base main
+senai review --commit COMMIT_SHA
+```
+
+This invokes native Codex review in read-only mode. Review uses Git repository
+scope (which can include files in the parent repository), not just outputs/.
+Review findings stream to the terminal. The default is --uncommitted.

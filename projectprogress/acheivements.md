@@ -16,3 +16,4 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Added native session resume by id/name or latest session; 27 tests pass.
 - Added interactive terminal handoff through senai chat; 30 tests pass.
 - Added native command forwarding preserving arguments, streams, and exit codes; 35 tests pass.
+- Added read-only code review for uncommitted/base/commit scopes; 38 tests pass.
