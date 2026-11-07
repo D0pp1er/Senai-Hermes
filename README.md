@@ -39,7 +39,7 @@ Exit codes: 0 success, 2 input/execution failure, 130 interrupted.
 ## Verify
 
 ```bash
-python3 -m unittest -v
+python3 -m unittest discover -s tests -v
 senai --help
 git log --oneline
 ```
@@ -50,7 +50,7 @@ Check generated code independently.
 
 ## Design and limits
 
-- A Python package with a `senai` console entry point and no runtime dependencies.
+- A modular Python package with a `senai` console entry point and no runtime dependencies.
 - One request per invocation; no memory, scheduling, or messaging integrations.
 - Uses existing Codex authentication and configuration; no separate API key.
 - Runs `codex exec --sandbox workspace-write` in outputs/, with the request on stdin.
@@ -61,3 +61,23 @@ Check generated code independently.
   response is printed on success. Failures may leave partial edits.
 - Development uses unittest with small red/green/refactor steps; see CHANGELOG.md.
 - Reference: https://learn.chatgpt.com/docs/cli/reference
+
+## Project layout
+
+```text
+senai/                 Python package
+  cli.py               Command parsing and request orchestration
+  prompts.py           Write/edit instructions
+  codex.py             Codex subprocess adapter
+  workspace.py         Output-directory validation
+  __main__.py          python3 -m senai support
+tests/                 unittest tests grouped by responsibility
+projectprogress/       Objectives, achievements, and current task
+outputs/               Generated code (ignored by Git)
+pyproject.toml         Package metadata and console entry point
+```
+
+Keep command handling in cli.py, reusable instructions in prompts.py, and Codex
+process details in codex.py. Add corresponding tests under tests/. Update
+projectprogress/ and CHANGELOG.md when completing a change. Reinstall the editable
+package after changing packaging metadata or entry points.

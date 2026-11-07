@@ -48,3 +48,12 @@
 - Independently verified greeting() returns Hello and no root package_demo.py exists.
 - All eleven tests pass; outputs/ is ignored by Git.
 - Pre-existing untracked hello.py was left untouched.
+
+## Modular project layout
+- Replaced the single module with a senai/ package: CLI, prompts, Codex adapter,
+  workspace validation, and module entry point.
+- Moved existing tests into tests/test_cli.py and tests/test_codex.py.
+- Updated package discovery to include only senai, excluding tests and progress files.
+- Added projectprogress/objectives.md, acheivements.md, and current task.md.
+- TDD/refactor check: moved tests first; imports failed before adding the modules.
+- Verification: all eleven tests pass; editable reinstall and both command entry points succeed.
