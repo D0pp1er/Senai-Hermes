@@ -159,3 +159,8 @@
 - Created feature/telegram-bot; user selected one-off requests in /home/rk/SentiensHermes.
 - Added standard-library Bot API polling, plain-text replies, sanitized errors/rate-limit metadata, local credential loading, and Unicode-safe reply splitting.
 - TDD: transport/configuration tests failed before implementation; no live credentials used.
+
+## Telegram job routing
+- Added mandatory private-user authorization before execution, help/run/status/result commands, and a bounded queue.
+- Added SQLite cursor/job persistence, duplicate update protection, interrupted-job recovery without automatic re-execution, and durable result-delivery progress.
+- TDD: routing/store tests failed before implementation; no Telegram network calls are made by these tests.
