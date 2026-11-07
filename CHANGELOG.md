@@ -10,3 +10,10 @@
 - TDD red: unittest failed because senai did not exist.
 - TDD green: four input/context tests pass with execution mocked.
 - Codex execution remains the next step.
+
+## Codex execution
+- Added codex exec with workspace-write, project context, and stdin prompt delivery.
+- Capture the final message separately from process diagnostics; propagate failures.
+- TDD red: four execution tests failed against the placeholder.
+- TDD green: all nine tests pass, including missing CLI and empty output cases.
+- Checked options against installed Codex CLI 0.167.0-alpha.3.2 help.
