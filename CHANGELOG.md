@@ -97,3 +97,10 @@
 - Keep outputs/ as cwd and preserve native exit status; report missing CLI clearly.
 - TDD: three chat tests failed first; all 30 tests now pass.
 - Terminal handoff is unit-tested; interactive UI behavior is a user verification step.
+
+## Native compatibility capability
+- Added senai codex -- <native arguments> for installed commands and future flags.
+- Native streams, interactive input, environment, and status remain native; no shell parsing.
+- Reject explicit workspace relocation and known output-path flags escaping outputs/.
+- TDD: five native tests failed first; all 35 tests now pass.
+- Native configuration/state still lives in normal Codex locations; not every account/tool/flag combination is live-tested.

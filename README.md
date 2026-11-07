@@ -132,3 +132,31 @@ senai chat --project /path/to/repo
 ```
 
 This opens native Codex in outputs/. Use its `/skills`, `/model`, `/permissions`, and other commands as supported by your installed version. It requires an interactive terminal; input/output and approval prompts are not buffered. Exit normally with the native UI.
+
+## Native command compatibility
+
+```bash
+senai codex -- --version
+senai codex -- exec --help
+senai codex -- exec --json "Write a small function"
+senai codex -- mcp list
+senai codex -- plugin --help
+senai codex -- resume --last
+senai codex --project /path/to/repo -- review --uncommitted
+```
+
+The wrapper forwards arguments after `--` to installed Codex unchanged, with
+outputs/ as cwd and workspace-write as the default sandbox. This preserves native
+MCP/plugins, review, configuration, JSON event streams, sessions, and other
+installed commands without rebuilding their implementations. Native image/input
+paths are relative to outputs/, unlike the convenience -i option.
+
+Explicit --cd/-C, --add-dir, --worktree, and --remote are rejected because they
+conflict with the local outputs/ policy. Known output-path flags must stay inside
+outputs/. Other options are interpreted by Codex; an unsupported flag produces
+its native error/exit code. Global Codex account/config/session state stays in its
+usual user directories. This is an execution adapter, not a separate filesystem
+jail; configured tools can have effects outside the code workspace.
+
+Wrapper keywords `chat` and `codex` are reserved only as the first argument. To
+use those words as a literal write/edit request, put `--` before the request.

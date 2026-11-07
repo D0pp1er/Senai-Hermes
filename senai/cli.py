@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .codex import run_codex
 from .options import CodexOptions
-from .native import chat_main
+from .native import chat_main, native_main
 from .prompts import build_prompt
 from .workspace import prepare_workspace
 
@@ -15,9 +15,11 @@ def main(argv=None, stdout=None, stderr=None):
     stdout = stdout if stdout is not None else sys.stdout
     stderr = stderr if stderr is not None else sys.stderr
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'codex':
+        return native_main(argv[1:], stdout, stderr)
     if argv and argv[0] == 'chat':
         return chat_main(argv[1:], stdout, stderr)
-    parser = argparse.ArgumentParser(description=__doc__, epilog='Use senai chat for interactive Codex and native slash commands.')
+    parser = argparse.ArgumentParser(description=__doc__, epilog='Use senai chat for interactive Codex, or senai codex -- <args> for native commands.')
     parser.add_argument('request', help='Code to write or edit (quote the request).')
     parser.add_argument('--project', default='.', help='Target project directory (default: current).')
     parser.add_argument('-m', '--model', help='Codex model override.')
