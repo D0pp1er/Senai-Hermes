@@ -106,3 +106,9 @@ class TelegramJobTests(unittest.TestCase):
             self.router.handle(update(identifier))
         response = self.router.handle(update(5, '/result'))
         self.assertIn('earlier completed result', response[0][1])
+
+    def test_duplicate_job_with_rewound_cursor_still_advances_cursor(self):
+        self.router.handle(update(10))
+        self.store.set_offset(10)
+        self.assertEqual(self.router.handle(update(10)), [])
+        self.assertEqual(self.store.offset(), 11)

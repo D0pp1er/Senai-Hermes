@@ -172,3 +172,8 @@
 - Old Telegram messages are skipped on startup; accepted queued work persists, and previously running work is marked interrupted rather than retried.
 - Added real worker-thread responsiveness and setup tests; a failing /result regression exposed and fixed completed results hidden by newer queued jobs.
 - No live bot connection has been made; the user is creating a bot with BotFather.
+
+## Telegram integration verification
+- Added a full offline authorized-message -> durable queue -> real senai child -> fake Codex -> generated file -> Telegram-result test.
+- Verified unauthorized updates never receive a reply or execute, token variables do not reach Codex, and duplicate updates do not rerun work.
+- A failing rewound-cursor test exposed a possible polling loop on an already-recorded job; duplicate handling now advances that cursor safely.

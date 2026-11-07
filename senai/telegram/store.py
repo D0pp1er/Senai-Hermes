@@ -50,6 +50,7 @@ class JobStore:
             result = 'ignored'
             if job is not None:
                 if database.execute('SELECT 1 FROM jobs WHERE id=?', (identifier,)).fetchone():
+                    database.execute("UPDATE settings SET value=? WHERE key='offset'", (identifier + 1,))
                     return 'duplicate'
                 count = database.execute("SELECT COUNT(*) FROM jobs WHERE status IN ('queued','running')").fetchone()[0]
                 if count >= max_pending:
