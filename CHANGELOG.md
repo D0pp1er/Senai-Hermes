@@ -90,3 +90,10 @@
 - Preserve stdin prompt delivery, final-message capture, and outputs/ context.
 - Reject empty/option-like session identifiers. Native Codex retains session history.
 - TDD: five resume tests failed first; all 27 tests now pass.
+
+## Interactive capability
+- Added senai chat with native terminal streams and slash-command support.
+- Native Codex handles tool use, approvals, /skills, /model, and follow-up interaction.
+- Keep outputs/ as cwd and preserve native exit status; report missing CLI clearly.
+- TDD: three chat tests failed first; all 30 tests now pass.
+- Terminal handoff is unit-tested; interactive UI behavior is a user verification step.

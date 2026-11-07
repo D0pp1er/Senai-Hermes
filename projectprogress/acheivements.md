@@ -14,3 +14,4 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Added opt-in live web search; 19 tests pass.
 - Added explicit installed-skill mentions; 22 tests pass.
 - Added native session resume by id/name or latest session; 27 tests pass.
+- Added interactive terminal handoff through senai chat; 30 tests pass.

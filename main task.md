@@ -63,7 +63,7 @@ No credentials are copied into this repository.
 - [x] Web search (tests/test_search.py).
 - [x] Explicit installed-skill selection (tests/test_skills.py).
 - [x] Session resumption (tests/test_resume.py).
-- [ ] Interactive Codex workflow (native slash commands and tools).
+- [x] Interactive Codex workflow (tests/test_chat.py; terminal handoff, native slash commands/tools).
 - [ ] Native command compatibility (review, MCP/plugin management, help, future flags).
 
 Compatibility means preserving supported installed Codex behavior, not rebuilding

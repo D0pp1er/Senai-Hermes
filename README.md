@@ -123,3 +123,12 @@ senai --resume SESSION_ID "Fix the previous issue"
 ```
 
 Use sessions originally created in this project outputs/ workspace. --last uses native cwd filtering. Session history remains in the normal Codex state location; this is native conversation continuity, not automatic semantic memory.
+
+## Interactive Codex
+
+```bash
+senai chat
+senai chat --project /path/to/repo
+```
+
+This opens native Codex in outputs/. Use its `/skills`, `/model`, `/permissions`, and other commands as supported by your installed version. It requires an interactive terminal; input/output and approval prompts are not buffered. Exit normally with the native UI.
