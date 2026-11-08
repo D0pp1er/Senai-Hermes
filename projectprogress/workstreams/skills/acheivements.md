@@ -12,3 +12,5 @@
 - Learning step 2: eight red-to-green tests cover inactive proposal restart, supporting-file preservation, evidence rejection, wrong-skill links, invalid candidate cleanup, duplicate versions, tamper detection and passed-outcome support.
 
 - Learning step 3: eight red-to-green tests verify persisted checking context, failed results, invalid/empty result rejection, sanitized checker exceptions, tamper checks, unknown IDs and retained revalidation history.
+
+- Learning step 4: eleven red-to-green tests cover activation/reuse after restart, missing/failed/error validation gates, latest-failure rejection, stale siblings, candidate tampering, rollback/history, unaccepted targets, damaged current recovery, damaged target rejection, old version uniqueness and idempotent migration.

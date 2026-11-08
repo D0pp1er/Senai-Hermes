@@ -8,3 +8,6 @@
 
 - 2026-11-09, f6c269f: inactive evidence-linked revisions.
 - 2026-11-09, current validation step: injected regression checks, durable pass/fail/error records, content rechecks, eight red-to-green tests.
+
+- 2026-11-09, 753cba2: persisted candidate regression validation.
+- 2026-11-09, current activation step: eleven red-to-green tests; exact latest-pass activation, accepted-version history, idempotent old-registry backfill, audited rollback and corruption recovery.

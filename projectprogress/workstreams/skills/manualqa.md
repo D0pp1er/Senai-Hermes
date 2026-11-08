@@ -33,3 +33,9 @@ Revision-step full offline suite: PASS, 159 tests. Ownership guard: PASS. Log re
 Run `.venv/bin/python -m unittest tests.skills.test_validation -v`: expected eight passing tests. First red run is retained in outputs/skills-qa/validation-red.log. Feature suite currently passes 31 tests. Fixtures and checking callbacks are offline; no live model, automatic learning trigger or production state used. Every pass leaves the active skill unchanged. Activation/rollback remain pending.
 
 Validation-step complete offline suite: PASS, 167 tests. Scope guard: PASS. Retained log: outputs/skills-qa/validation-suite.log. No live checks performed.
+
+## Activation and rollback step
+
+Run `.venv/bin/python -m unittest tests.skills.test_activation -v`: expected eleven passing tests. Red failure log: outputs/skills-qa/activation-red.log. Feature suite now passes 42 tests. Fixtures/check callbacks are offline and temporary. Checks prove active selection switches only after latest pass, persists after restart, and rollback restores prior bytes while retaining audit/evidence. Live Codex execution and normal CLI/production integration NOT RUN.
+
+Activation-step full offline suite: PASS, 178 tests. Ownership guard: PASS. Log retained at outputs/skills-qa/activation-suite.log. No live/production checks performed.

@@ -7,6 +7,7 @@ import json
 from .outcomes import Check, _decode
 from .revisions import Revision
 from .validation import Validation
+from .activation import Activation
 from hashlib import sha256
 from pathlib import Path
 import re
@@ -144,6 +145,13 @@ class Registry:
 
             db.execute("CREATE TABLE IF NOT EXISTS validations (id TEXT PRIMARY KEY, revision_id TEXT NOT NULL, base_digest TEXT NOT NULL, candidate_digest TEXT NOT NULL, checks TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('passed', 'failed', 'error')), error TEXT NOT NULL, created_at TEXT NOT NULL)")
             db.execute("CREATE INDEX IF NOT EXISTS validations_revision ON validations(revision_id)")
+            db.execute("CREATE TABLE IF NOT EXISTS accepted_versions (name TEXT NOT NULL, version TEXT NOT NULL, description TEXT NOT NULL, source TEXT NOT NULL, digest TEXT NOT NULL, directory TEXT NOT NULL, accepted_at TEXT NOT NULL, PRIMARY KEY(name, digest), UNIQUE(name, version))")
+            db.execute("CREATE TABLE IF NOT EXISTS activation_history (id TEXT PRIMARY KEY, skill_name TEXT NOT NULL, action TEXT NOT NULL CHECK(action IN ('import', 'activate', 'rollback')), from_digest TEXT NOT NULL, to_digest TEXT NOT NULL, revision_id TEXT NOT NULL, validation_id TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL)")
+            # Backfill pre-activation registries without rewriting active packages.
+            for row in db.execute("SELECT name, version, description, source, digest, directory FROM skills").fetchall():
+                if not db.execute("SELECT 1 FROM accepted_versions WHERE name=? AND digest=?", (row[0], row[4])).fetchone():
+                    self._accept(db, row)
+                    self._audit(db, row[0], "import", "", row[4], reason="Preserved existing registry skill")
 
     @contextmanager
     def _connect(self):
@@ -173,7 +181,10 @@ class Registry:
                 if db.execute("SELECT 1 FROM skills WHERE name=?", (metadata["name"],)).fetchone():
                     raise SkillError("Skill name already registered; explicit revisions required")
                 stage.rename(target)
-                db.execute("INSERT INTO skills VALUES (?, ?, ?, ?, ?, ?)", (metadata["name"], metadata["version"], metadata["description"], str(source.resolve()), digest, directory))
+                row = (metadata["name"], metadata["version"], metadata["description"], str(source.resolve()), digest, directory)
+                db.execute("INSERT INTO skills VALUES (?, ?, ?, ?, ?, ?)", row)
+                self._accept(db, row)
+                self._audit(db, row[0], "import", "", digest, reason="Validated local import")
         except BaseException:
             shutil.rmtree(stage, ignore_errors=True)
             shutil.rmtree(target, ignore_errors=True)
@@ -193,14 +204,7 @@ class Registry:
                 row = db.execute("SELECT name, version, description, source, digest, directory FROM skills WHERE name=?", (name,)).fetchone()
                 if row is None:
                     raise SkillError("Skill is not registered: " + name)
-                if not re.fullmatch(r"[0-9a-f]{32}", row[5]):
-                    raise SkillError("Invalid stored package path")
-                path = self.root / row[5]
-                files, digest = _snapshot(path)
-                if digest != row[4]:
-                    raise SkillError("Registered package content changed")
-                _, instructions = _parse(files["SKILL.md"])
-                selected.append(Skill(*row[:5], "passed", path / "SKILL.md", instructions))
+                selected.append(self._skill(row))
         return selected
 
     def execute(self, request, names, *, executor):
@@ -277,7 +281,7 @@ class Registry:
                 active = db.execute("SELECT digest, version FROM skills WHERE name=?", (name,)).fetchone()
                 if active != (skill.digest, skill.version):
                     raise SkillError("Active base changed; recreate proposal")
-                if db.execute("SELECT 1 FROM revisions WHERE skill_name=? AND version=?", (name, metadata["version"])).fetchone():
+                if db.execute("SELECT 1 FROM revisions WHERE skill_name=? AND version=?", (name, metadata["version"])).fetchone() or db.execute("SELECT 1 FROM accepted_versions WHERE name=? AND version=?", (name, metadata["version"])).fetchone():
                     raise SkillError("Revision version already exists")
                 for outcome_id in outcome_ids:
                     row = db.execute("SELECT skill_name, skill_digest, status FROM outcomes WHERE id=?", (outcome_id,)).fetchone()
@@ -289,35 +293,39 @@ class Registry:
             shutil.rmtree(stage, ignore_errors=True)
             shutil.rmtree(target, ignore_errors=True)
             raise
-        return next(revision for revision in self.revisions(name) if revision.id == revision_id)
+        return self._revision(revision_id)
+
+    def _revision_record(self, row):
+        if not re.fullmatch(r"[0-9a-f]{32}", row[8]):
+            raise SkillError("Invalid stored revision path")
+        path = self.root / row[8]
+        files, digest = _snapshot(path)
+        if digest != row[4]:
+            raise SkillError("Revision package content changed")
+        metadata, instructions = _parse(files["SKILL.md"])
+        if metadata["name"] != row[1] or metadata["version"] != row[2]:
+            raise SkillError("Revision metadata does not match recorded identity")
+        with self._connect() as db:
+            active = db.execute("SELECT digest FROM skills WHERE name=?", (row[1],)).fetchone()
+            accepted = db.execute("SELECT 1 FROM accepted_versions WHERE name=? AND digest=?", (row[1], row[4])).fetchone()
+        status = "active" if active == (digest,) else "accepted" if accepted else "proposed"
+        return Revision(*row[:6], tuple(json.loads(row[6])), row[7], status, path / "SKILL.md", instructions, row[9])
 
     def revisions(self, name):
-        """List validated package snapshots for inactive proposals, oldest first."""
+        """List proposal snapshots and their proposed/active/accepted status."""
         self.select([name])
         with self._connect() as db:
             rows = db.execute("SELECT id, skill_name, version, base_digest, digest, source, outcome_ids, reason, directory, created_at FROM revisions WHERE skill_name=? ORDER BY rowid", (name,)).fetchall()
-        revisions = []
-        for row in rows:
-            if not re.fullmatch(r"[0-9a-f]{32}", row[8]):
-                raise SkillError("Invalid stored revision path")
-            path = self.root / row[8]
-            files, digest = _snapshot(path)
-            if digest != row[4]:
-                raise SkillError("Revision package content changed")
-            metadata, instructions = _parse(files["SKILL.md"])
-            if metadata["name"] != name or metadata["version"] != row[2]:
-                raise SkillError("Revision metadata does not match recorded identity")
-            revisions.append(Revision(*row[:6], tuple(json.loads(row[6])), row[7], "proposed", path / "SKILL.md", instructions, row[9]))
-        return revisions
+        return [self._revision_record(row) for row in rows]
 
     def _revision(self, revision_id):
         if not isinstance(revision_id, str) or not re.fullmatch(r"[0-9a-f]{32}", revision_id):
             raise SkillError("Invalid revision ID")
         with self._connect() as db:
-            row = db.execute("SELECT skill_name FROM revisions WHERE id=?", (revision_id,)).fetchone()
+            row = db.execute("SELECT id, skill_name, version, base_digest, digest, source, outcome_ids, reason, directory, created_at FROM revisions WHERE id=?", (revision_id,)).fetchone()
         if row is None:
             raise SkillError("Revision is not registered")
-        return next(revision for revision in self.revisions(row[0]) if revision.id == revision_id)
+        return self._revision_record(row)
 
     def validate_revision(self, revision_id, *, validator):
         """Run an injected checker and retain its result without activating anything.
@@ -367,3 +375,81 @@ class Registry:
         with self._connect() as db:
             rows = db.execute("SELECT id, revision_id, base_digest, candidate_digest, checks, status, error, created_at FROM validations WHERE revision_id=? ORDER BY rowid", (revision_id,)).fetchall()
         return [self._validation(row) for row in rows]
+
+    def _skill(self, row):
+        if not re.fullmatch(r"[0-9a-f]{32}", row[5]):
+            raise SkillError("Invalid stored package path")
+        path = self.root / row[5]
+        files, digest = _snapshot(path)
+        if digest != row[4]:
+            raise SkillError("Registered package content changed")
+        metadata, instructions = _parse(files["SKILL.md"])
+        if (metadata["name"], metadata["version"], metadata["description"]) != row[:3]:
+            raise SkillError("Stored metadata does not match package identity")
+        return Skill(*row[:5], "passed", path / "SKILL.md", instructions)
+
+    @staticmethod
+    def _accept(db, row):
+        db.execute("INSERT OR IGNORE INTO accepted_versions VALUES (?, ?, ?, ?, ?, ?, ?)", (*row, datetime.now(timezone.utc).isoformat()))
+
+    @staticmethod
+    def _audit(db, name, action, from_digest, to_digest, *, revision_id="", validation_id="", reason):
+        db.execute("INSERT INTO activation_history VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (uuid.uuid4().hex, name, action, from_digest, to_digest, revision_id, validation_id, reason, datetime.now(timezone.utc).isoformat()))
+
+    def activate_revision(self, revision_id):
+        """Explicitly activate only the latest passing, exact-base validation."""
+        candidate = self._revision(revision_id)
+        base = self.select([candidate.skill_name])[0]
+        metadata, _ = _parse(candidate.path.read_bytes())
+        row = (candidate.skill_name, candidate.version, metadata["description"], candidate.source, candidate.digest, candidate.path.parent.name)
+        skill = self._skill(row)
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            active = db.execute("SELECT digest FROM skills WHERE name=?", (candidate.skill_name,)).fetchone()
+            if active != (candidate.base_digest,) or base.digest != candidate.base_digest:
+                raise SkillError("Proposal base is stale")
+            latest = db.execute("SELECT id, base_digest, candidate_digest, status FROM validations WHERE revision_id=? ORDER BY rowid DESC LIMIT 1", (revision_id,)).fetchone()
+            if latest is None or latest[1:] != (base.digest, candidate.digest, "passed"):
+                raise SkillError("Latest validation must pass for this exact base and candidate")
+            self._accept(db, row)
+            db.execute("UPDATE skills SET version=?, description=?, source=?, digest=?, directory=? WHERE name=?", (*row[1:], row[0]))
+            self._audit(db, row[0], "activate", base.digest, candidate.digest, revision_id=revision_id, validation_id=latest[0], reason=candidate.reason)
+        return skill
+
+    def rollback(self, name, *, digest, reason):
+        """Restore only a previously accepted, intact package; preserve all evidence."""
+        _name(name)
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise SkillError("Invalid rollback digest")
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 16000:
+            raise SkillError("Rollback requires a bounded nonempty reason")
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT name, version, description, source, digest, directory FROM accepted_versions WHERE name=? AND digest=?", (name, digest)).fetchone()
+            active = db.execute("SELECT digest FROM skills WHERE name=?", (name,)).fetchone()
+            if row is None or active is None:
+                raise SkillError("Rollback target was never accepted for this skill")
+            if active == (digest,):
+                raise SkillError("Requested version is already active")
+            skill = self._skill(row)
+            db.execute("UPDATE skills SET version=?, description=?, source=?, digest=?, directory=? WHERE name=?", (*row[1:], name))
+            self._audit(db, name, "rollback", active[0], digest, reason=reason)
+        return skill
+
+    def versions(self, name):
+        """List accepted versions in first-acceptance order, excluding proposals."""
+        _name(name)
+        with self._connect() as db:
+            rows = db.execute("SELECT name, version, description, source, digest, directory FROM accepted_versions WHERE name=? ORDER BY rowid", (name,)).fetchall()
+        if not rows:
+            raise SkillError("Skill is not registered: " + name)
+        return [self._skill(row) for row in rows]
+
+    def history(self, name):
+        """Return import/activation/rollback audit events without loading packages."""
+        _name(name)
+        with self._connect() as db:
+            if not db.execute("SELECT 1 FROM skills WHERE name=?", (name,)).fetchone():
+                raise SkillError("Skill is not registered: " + name)
+            rows = db.execute("SELECT id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at FROM activation_history WHERE skill_name=? ORDER BY rowid", (name,)).fetchall()
+        return [Activation(*row) for row in rows]

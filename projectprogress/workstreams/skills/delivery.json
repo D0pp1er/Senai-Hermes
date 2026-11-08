@@ -20,7 +20,12 @@
     "Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)",
     "Registry.validate_revision(revision_id, *, validator) -> Validation",
     "Registry.validations(revision_id) -> list[Validation]",
-    "Validation(id, revision_id, base_digest, candidate_digest, checks, status, error, created_at)"
+    "Validation(id, revision_id, base_digest, candidate_digest, checks, status, error, created_at)",
+    "Registry.activate_revision(revision_id) -> Skill",
+    "Registry.rollback(name, *, digest, reason) -> Skill",
+    "Registry.versions(name) -> list[Skill]",
+    "Registry.history(name) -> list[Activation]",
+    "Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at)"
   ],
   "commands": [],
   "executor_contract": {
@@ -39,8 +44,8 @@
   },
   "storage": {
     "namespace": "<explicit project>/outputs/skills/",
-    "schema_version": 4,
-    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved."
+    "schema_version": 5,
+    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved. Additive accepted_versions/activation_history; idempotent backfill of existing active skills as accepted import baselines."
   },
   "verification": {
     "offline_commands": [
@@ -48,8 +53,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 167 offline tests on validation-step working tree, including 31 feature tests. Scope guard passed. Log outputs/skills-qa/validation-suite.log; exact post-commit verification pending. Delivery draft.",
-    "offline_test_count": 167,
+    "offline_result": "PASS: 178 offline tests on activation-step working tree, including 42 feature tests. Scope guard passed. Log outputs/skills-qa/activation-suite.log. Exact post-commit verification pending; final delivery remains draft.",
+    "offline_test_count": 178,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -60,7 +65,7 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: activation/rollback, automatic Codex review, CLI/demo and public imports pending. Regression checking is injected, not an OS sandbox.",
+    "Draft partial delivery: feature-local CLI/demo, automatic Codex review, broader/public imports and normal CLI/production wiring pending. Checking uses injected callbacks.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Restricted frontmatter; not full Hermes compatibility.",
     "No live model checks.",

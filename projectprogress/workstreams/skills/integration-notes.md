@@ -19,3 +19,11 @@ Additive local migration: create revisions table on Registry initialization, pre
 Registry.validate_revision(revision_id, *, validator) -> Validation. Callback validator(base: Skill, candidate: Revision, outcomes: tuple[Outcome, ...]) -> Iterable[Check]. Registry.validations(revision_id) -> list[Validation] (oldest first). No execution or activation hook applied to shared code. Checker isolation, trusted observed results and selection of regression cases belong to the injecting adapter.
 
 Additive validations table/index; no dependency change or shared-state migration. Latest attempt must gate future activation; candidates have no activation API yet. Raw checker exception text is not persisted. Passing tests can establish acceptance only for the supplied cases.
+
+## Activation and rollback APIs
+
+Registry.activate_revision(revision_id) -> Skill; Registry.rollback(name, *, digest, reason) -> Skill; Registry.versions(name) -> list[Skill]; Registry.history(name) -> list[Activation]. Activation record fields: id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at. Revision.status expands to proposed/active/accepted; signatures remain compatible.
+
+Migration: additive accepted_versions and activation_history tables; idempotent backfill of prior active rows as import baselines. Initial imports record acceptance/audit in the same transaction. No existing outcome/revision/validation records modified. All state stays in the explicit per-project registry. Standard library only. No sibling dependencies.
+
+Remaining production gates: feature-local CLI/demo, injected reviewer, broader import compatibility/public adapters, coordinator wiring and isolated end-to-end/live checks. Normal senai --skill continues its native installed-skill behavior. Do not interpret this module-only feature as production integration.

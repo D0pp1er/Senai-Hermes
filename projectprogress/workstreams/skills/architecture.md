@@ -41,3 +41,17 @@ The additive validations table retains ID, revision ID, base/candidate digests, 
 Hashes are checked before and after the callback; changing candidate/base bytes prevents saving a pass. Active base is rechecked transactionally before result insertion. This is content identity verification, not OS sandboxing. The injected checker runs in the caller process and must supply its own isolated evaluation; no imported script is executed automatically. All proposals remain inactive, including passing ones. Shared Check validation is reused for outcomes and regression checks.
 
 Public frozen Validation fields: id, revision_id, base_digest, candidate_digest, checks, status, error, created_at. Initialization creates the local validations table/index idempotently, leaving existing tables and records intact.
+
+## Implemented activation and rollback step
+
+activate_revision(revision_id) -> Skill explicitly moves the current skills row to the proposed package only if its base is still current and its latest validation attempt passed for the exact base and candidate digests. Full-package hashes and metadata are checked. Accepted-version insertion, active-row update and audit event commit atomically. A new failure/error after an earlier pass blocks activation. A sibling proposal becomes stale after another revision activates.
+
+accepted_versions stores immutable accepted package references (name, version, description, source, digest, directory, accepted_at), unique per skill/version and skill/digest. Initial local imports are accepted baselines; syntax validation does not establish behavior. Existing registry active rows are backfilled idempotently on construction without losing previous outcomes/proposals/results. New proposals cannot reuse any accepted version identifier.
+
+activation_history retains Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at). Actions are import, activate and rollback. history(name) reads audits even if current content is damaged. versions(name) lists accepted packages in first-acceptance order and verifies their contents; proposals are excluded.
+
+rollback(name, *, digest, reason) restores an intact accepted package for the same skill, with a required rationale. Never-accepted candidates and current-version no-ops are rejected. It verifies only the destination bytes so that a damaged current package can be recovered. Rollback changes no file bytes and deletes no outcome/validation/history records. It can return to any previously accepted version (including a newer accepted version); this is restoration, not a new validation claim.
+
+Revision.status now reports proposed, active or accepted according to recorded acceptance and current selection. Individual revision lookup validates only the requested package, allowing intact revisions/rollback to work despite unrelated damaged proposals. Registry select/execute retain their signatures and supply the currently active package.
+
+No sandbox is introduced: registry directories remain trusted against hostile concurrent filesystem replacement. SQLite guards active-state updates but cannot provide an OS boundary around callbacks/files. No global Codex skills installed or shared execution/CLI code edited.
