@@ -1,76 +1,74 @@
 # Integrations architecture
 
-senai.integrations.contract defines immutable IncomingRequest and structural
-TransportAdapter: normalize, authorize, handle, delivery_parts and send_text.
-Normalization preserves original text, including commands. It does not grant
-permission or enqueue work; Telegram Router remains responsible for command
-parsing, pairing, authorization, queue bounds and atomic duplicate consumption.
+## Transport and execution
 
-Request identity is (platform, verified bot account, canonical parent project,
-event ID). Delivery target and sender are distinct fields even though Telegram
-currently accepts only matching private chat/user IDs. Session scope is
-(platform, account, project, session name). Telegram uses telegram-shared,
-shared intentionally among authorized users, matching existing durable storage.
-Future transports must use a distinct platform scope; no implicit cross-platform
-history sharing is authorized by this contract. Native UUIDs remain in JobStore;
-scope metadata does not create, replace or select native sessions.
+IncomingRequest is immutable and distinguishes platform, bot account, canonical
+parent project, event, sender, delivery target and session scope. TelegramAdapter
+normalizes private messages and delegates authorization/pairing/commands to Router.
+Request identity: (platform, account, project, event). Session scope: (platform,
+account, project, telegram-shared). All authorized Telegram users intentionally share
+one exact native Codex UUID per configured bot/project. No implicit cross-platform
+sharing. Existing queue/executor and shared-session machinery are retained.
 
-TelegramAdapter delegates to the existing Router and shares its validated private
-message parser. Telegram CLI constructs it after bot identity verification.
-BotService receives the adapter as its router and optional delivery transport.
-Existing worker, CommandRunner, SQLite cursor, delivery part cursor and retry
-behavior remain in place. The optional transport preserves old service callers.
-Delivery redacts before Unicode-aware splitting and propagates errors for outbox
-retry. A crash after a successful remote send but before saving its part cursor
-can still duplicate that part; exactly-once remote delivery is not claimed.
+## Conversational replies
 
-Adapters/stores are bound to one configured bot/project; normalized identity is
-metadata, not a new multi-platform database. Do not point two transport workers
-at the same legacy store. No schema migration or external dependency required.
+CLI opts into the five approved random acknowledgements; direct Router callers keep
+legacy defaults. Success responses omit status headers; failures remain explicit.
+Saved delivery_snapshots freeze text chunks across retries/upgrades. Chat style is
+applied each turn, including resumed sessions: concise plain text, Telegram-viewer
+context, accessible content rather than host-only links, no false delivery claims.
+The media-enabled variant describes actual photo delivery. Existing code/literal
+user requests are never stripped of Markdown characters.
 
-## Telegram conversational presentation
+## Images
 
-chat.py holds five approved random acknowledgement options and a per-turn response
-style preamble. Telegram CLI opts into Router acknowledgement injection and
-CommandRunner(chat_style=True). Style instructions apply even when resuming old
-shared history; saved requests remain verbatim. Default direct constructor callers
-keep legacy acknowledgements/literal requests. Successful replies and /result omit
-request/status headers; failures remain explicit. The API already sends plain text
-without parse_mode. We prefer plain text through instructions rather than stripping
-Markdown characters and damaging code. Ordinary replies target 1-3 short sentences;
-necessary detail and explicitly requested code remain allowed.
+CommandRunner receives MediaOutbox by injection. Its per-job attachments.json is an
+explicit selection manifest: {"images":["relative/path.png"]}. The model may create
+new images using installed Codex image generation, or select requested existing
+workspace images. It must save/copy new images into outputs/. The adapter does not
+implement its own image model/API. Generation availability is a runtime capability;
+offline tests use fake Codex output and image fixtures.
 
-## Merge review: pending delivery compatibility
+MediaOutbox snapshots only selected PNG/JPEG files, at most four and 10 MiB each.
+Reject absolute/outside/parent/hidden/private-state paths and symlinks, including
+snapshot parent symlinks. Copy bytes before job completion and hash snapshots.
+No blind directory scanning. BotAPI uses multipart sendPhoto with generic filenames
+so upload metadata does not expose host paths. Permanent 400/413 rejection yields
+an in-chat fallback; transient failures retain the upload cursor.
 
-Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
+## Voice
 
-## Remote viewer context
+/voice QUESTION queues one voice-enabled answer; bare /voice reads the latest
+successful answer in that same private chat without a new model call. Ordinary
+messages stay text; there is no global toggle or inbound voice transcription.
+Missing speech configuration gives a short direct reply without enqueuing work.
 
-chat_request states the user reads only Telegram, cannot open host files, and needs
-inline content or a genuinely accessible link. File paths are not erased blindly;
-explicit troubleshooting paths remain possible when labeled server-only. Capability
-instructions are text-only until actual media delivery is implemented. They prohibit
-claiming that media was delivered without confirmation. These are model preferences,
-not a guarantee against all model-generated local-path references. Long-response and
-empty-response runner fallbacks also avoid inaccessible host log links in chat mode.
+Router records intent in media.sqlite3 before enqueue, bound to job ID, user, chat
+and SHA-256 of the exact prompt. No command marker is embedded in prompt text; /run
+with a literal /voice prefix retains its meaning. Orphan metadata from busy/duplicate
+updates cannot match an unrelated prompt/identity. Native session mappings are not
+changed by reading an existing answer aloud.
 
-Media roadmap (not implemented): explicit authorized artifact selection inside the
-configured outputs workspace, photo/file upload, and an outbound voice path with an
-injected speech generator. Image generation and speech synthesis are distinct from
-Telegram transport; neither is supplied by this patch. No inbound transcription is
-requested. Retain text replies and short status messages alongside future media.
+OpenAISpeech(text) returns bounded MP3 bytes from the official OpenAI speech API.
+It is injected into CommandRunner; optional startup configuration reads local
+OPENAI_API_KEY, SENAI_TTS_MODEL (default gpt-4o-mini-tts), SENAI_TTS_VOICE (coral).
+No credential lookup/network work occurs on import. Speech is requested only for
+/voice jobs; maximum 4000 text characters and 10 MiB audio, timeout 90 seconds.
+Speech failure preserves text. BotAPI sendVoice includes an AI-generated caption.
+Generated audio is snapshotted before job completion; delivery retries do not call
+Codex or speech generation again. OPENAI_API_KEY is removed from child environment.
 
-## Image delivery
+## Storage and delivery
 
-MediaOutbox(workspace, state_dir) owns separate media.sqlite3 with an uploads table:
-job_id primary key, immutable JSON items, and sent cursor. No Telegram jobs schema
-change. Runner writes per-job attachment-manifest instructions; Codex selects existing
-or newly generated PNG/JPEG files via {"images":["relative/path.png"]}. The runner
-validates and snapshots selected bytes before marking success. PNG/JPEG signatures,
-10 MiB/image, four images, visible relative paths only; no symlinks, private state,
-URLs, parent traversal or outside files. Media credentials stay outside the model.
-BotService sends its saved text snapshot first, then pending media, then marks delivery.
-Revocation is checked before each upload. Retry resumes media without rerunning the
-job or already-sent text. Permanent 400/413 rejection becomes a brief chat fallback.
-Snapshot hashes detect modification. Crash after remote send before local commit may
-still duplicate an attachment; exactly-once remote delivery is not claimed.
+Existing Telegram jobs DB unchanged by media: prior compatibility migrations and
+delivery_snapshots remain intact. New independent media.sqlite3 schema v1 has:
+- uploads(job_id PRIMARY KEY, items JSON, sent INTEGER)
+- voice_requests(job_id PRIMARY KEY, user_id, chat_id, prompt_hash, mode)
+
+State belongs to this configured bot/project under outputs/; artifacts remain local.
+BotService delivers saved text chunks, pending media, then marks the job delivered.
+Authorization is rechecked before each media upload. Snapshot hashes prevent sending
+modified content. Revoked users receive no pending text/media. Missing/corrupt media
+gets a brief fallback rather than blocking the outbox. A crash after successful
+remote send but before cursor persistence may duplicate that item; exactly-once
+remote delivery is not claimed. Interrupted execution is not silently rerun.

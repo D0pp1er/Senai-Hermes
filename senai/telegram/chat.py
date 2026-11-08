@@ -35,7 +35,7 @@ def acknowledgement():
     return random.choice(ACKNOWLEDGEMENTS)
 
 
-def chat_request(request, *, attachment_manifest=None):
+def chat_request(request, *, attachment_manifest=None, voice_reply=False):
     # Apply on every turn, including an exact-ID resume of an older session.
     # Keep stored requests untouched and preserve code/Markdown in user input.
     style = CHAT_STYLE
@@ -55,4 +55,6 @@ def chat_request(request, *, attachment_manifest=None):
             "in your reply. The service will upload these files after your text answer. "
             "Describe the result briefly without claiming upload already succeeded. "
         ) + style[end:]
+    if voice_reply:
+        style += " This answer will also be spoken as an AI-generated voice note in Telegram. Keep it brief and natural to hear; avoid code and tables unless essential."
     return style + "\n\nUser message:\n" + request

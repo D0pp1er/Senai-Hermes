@@ -7,6 +7,9 @@ from pathlib import Path
 import sqlite3
 
 from .api import TelegramError
+from .speech import is_mp3, MAX_AUDIO_BYTES
+
+__all__ = ['MediaOutbox']
 
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_IMAGES = 4
@@ -26,6 +29,7 @@ class MediaOutbox:
             raise ValueError('Media database cannot be symlinked.')
         with self._db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS uploads (job_id INTEGER PRIMARY KEY, items TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0)')
+            db.execute('CREATE TABLE IF NOT EXISTS voice_requests (job_id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, chat_id INTEGER NOT NULL, prompt_hash TEXT NOT NULL, mode TEXT NOT NULL)')
         self.path.chmod(0o600)
 
     @contextmanager
@@ -40,6 +44,25 @@ class MediaOutbox:
     def _existing(self, job_id):
         with self._db() as db:
             return db.execute('SELECT items,sent FROM uploads WHERE job_id=?', (job_id,)).fetchone()
+
+    def record_voice_request(self, job_id, job, *, reuse=False):
+        # Record before enqueue so the worker cannot race ahead of its reply mode.
+        # Binding to sender, target and exact prompt prevents stale/orphan metadata reuse.
+        digest = hashlib.sha256(job['prompt'].encode('utf-8')).hexdigest()
+        with self._db() as db:
+            db.execute('INSERT OR IGNORE INTO voice_requests VALUES (?,?,?,?,?)',
+                       (job_id, job['user_id'], job['chat_id'], digest, 'reuse' if reuse else 'question'))
+
+    def voice_mode(self, job):
+        with self._db() as db:
+            row = db.execute('SELECT user_id,chat_id,prompt_hash,mode FROM voice_requests WHERE job_id=?',
+                             (job['id'],)).fetchone()
+        if row is None:
+            return None
+        digest = hashlib.sha256(job['prompt'].encode('utf-8')).hexdigest()
+        if (job.get('user_id'), job.get('chat_id'), digest) != row[:3]:
+            return None
+        return row[3]
 
     def _image(self, relative):
         if not isinstance(relative, str) or not relative or '\\' in relative or ':' in relative:
@@ -70,8 +93,22 @@ class MediaOutbox:
             raise ValueError('File is not a PNG or JPEG image.')
         return content, suffix
 
+    def _state_path(self, relative):
+        relative = Path(relative)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('Invalid media snapshot path.')
+        path = self.state / relative
+        for parent in (path, *path.parents):
+            if parent == self.state:
+                break
+            if parent.is_symlink():
+                raise ValueError('Media snapshot directories cannot be symlinked.')
+        if not path.resolve().is_relative_to(self.state):
+            raise ValueError('Media snapshot must stay inside its state directory.')
+        return path
+
     def _save(self, job_id, assets):
-        directory = self.state / 'media' / str(job_id)
+        directory = self._state_path(Path('media') / str(job_id))
         directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         items = []
         for index, (kind, content, suffix) in enumerate(assets):
@@ -108,6 +145,28 @@ class MediaOutbox:
         assets = [('photo', *self._image(value)) for value in dict.fromkeys(data['images'])]
         self._save(job_id, assets)
 
+    def add_voice(self, job_id, content):
+        if not is_mp3(content) or len(content) > MAX_AUDIO_BYTES:
+            raise ValueError('Unsupported voice audio.')
+        record = self._existing(job_id)
+        if record is None:
+            self._save(job_id, [])
+            record = self._existing(job_id)
+        items, sent = json.loads(record[0]), record[1]
+        if any(item['kind'] == 'voice' for item in items):
+            return
+        if sent:
+            raise ValueError('Cannot add voice after delivery has started.')
+        path = self._state_path(Path('media') / str(job_id) / 'voice.mp3')
+        if path.is_symlink():
+            raise ValueError('Voice snapshot cannot be symlinked.')
+        path.write_bytes(content)
+        path.chmod(0o600)
+        items.append({'kind': 'voice', 'path': str(path.relative_to(self.state)),
+                      'sha256': hashlib.sha256(content).hexdigest()})
+        with self._db() as db:
+            db.execute('UPDATE uploads SET items=? WHERE job_id=? AND sent=0', (json.dumps(items), job_id))
+
     def deliver(self, job, api, *, authorized):
         record = self._existing(job['id'])
         if record is None:
@@ -116,8 +175,8 @@ class MediaOutbox:
         for index, item in enumerate(items[sent:], sent):
             if not authorized():
                 return
-            path = self.state / item['path']
             try:
+                path = self._state_path(item['path'])
                 if path.is_symlink() or not path.resolve().is_relative_to(self.state):
                     raise ValueError('Invalid media snapshot.')
                 with path.open('rb') as stream:
@@ -128,10 +187,15 @@ class MediaOutbox:
                 api.send_message(job['chat_id'], 'An attachment is no longer available. Please request it again.')
             else:
                 try:
-                    api.send_photo(job['chat_id'], path)
+                    if item['kind'] == 'voice':
+                        api.send_voice(job['chat_id'], path)
+                    else:
+                        api.send_photo(job['chat_id'], path)
                 except TelegramError as error:
                     if error.status != 400 and error.status != 413:
                         raise
-                    api.send_message(job['chat_id'], 'Telegram could not display an image. Please request a smaller PNG or JPEG.')
+                    message = ('Telegram could not play the voice reply. The text answer is above.'
+                               if item['kind'] == 'voice' else 'Telegram could not display an image. Please request a smaller PNG or JPEG.')
+                    api.send_message(job['chat_id'], message)
             with self._db() as db:
                 db.execute('UPDATE uploads SET sent=? WHERE job_id=?', (index + 1, job['id']))

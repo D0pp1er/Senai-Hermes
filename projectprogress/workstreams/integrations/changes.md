@@ -39,3 +39,19 @@ media.sqlite3 snapshots/cursors. Runner asks built-in Codex image generation to
 save new artifacts inside outputs/ and select up to four PNG/JPEG files for delivery.
 Existing images can be selected in natural language. No folder scanning or automatic
 attachment of unrelated images. 11 media tests pass; full suite: 164 tests.
+
+## 2026-11-09: /voice replies
+
+- Image milestone commit: cebfe57.
+- /voice QUESTION: one text + voice answer; /voice: read latest successful answer
+  from this chat without another model turn. Normal messages remain text.
+- Optional injected OpenAI MP3 speech with local config, bounded text/audio and
+  generic errors; missing config and synthesis failures preserve normal text use.
+- Persist voice intent separately, bound to prompt/sender/chat, preserving literal
+  /run input. Durable audio retry does not regenerate or repeat completed text.
+- Added AI-generated voice caption, queued restart/revocation/isolation regressions,
+  snapshot corruption and parent-symlink checks.
+- TDD evidence: missing speech module, literal-mode and snapshot-boundary failures
+  reproduced before their implementations. Final: 183 tests, 30 media/voice tests.
+- Logs under outputs/qa-integrations/: voice-red.log, voice-green.log,
+  voice-literal-red.log, media-boundary-red.log, media-voice.log, regression.log.

@@ -86,6 +86,31 @@ class MediaTests(unittest.TestCase):
         self.outbox.deliver(self.job, self.api, authorized=lambda: True)
         self.api.send_photo.assert_called_once()
 
+    def test_revocation_between_multiple_photos_stops_next_upload(self):
+        (self.workspace / "second.png").write_bytes(PNG)
+        self.manifest.write_text(json.dumps({"images": ["picture.png", "second.png"]}))
+        self.outbox.prepare(1, self.manifest)
+        authorized = Mock(side_effect=[True, False])
+        self.outbox.deliver(self.job, self.api, authorized=authorized)
+        self.api.send_photo.assert_called_once()
+
+    def test_corrupt_snapshot_never_uploads_modified_content(self):
+        self.outbox.prepare(1, self.manifest)
+        (self.state / "media/1/0.png").write_bytes(b"changed")
+        self.outbox.deliver(self.job, self.api, authorized=lambda: True)
+        self.api.send_photo.assert_not_called()
+        self.api.send_message.assert_called_once()
+
+
+    def test_symlinked_snapshot_directory_is_rejected_before_writing(self):
+        outside = self.workspace.parent / "outside"
+        outside.mkdir()
+        (self.state / "media").symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            self.outbox.prepare(1, self.manifest)
+        self.assertEqual(list(outside.iterdir()), [])
+
+
 
 class UploadTests(unittest.TestCase):
     def test_photo_upload_contains_bytes_and_no_host_path_or_parse_mode(self):

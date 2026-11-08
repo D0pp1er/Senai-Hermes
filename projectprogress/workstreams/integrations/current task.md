@@ -1,3 +1,12 @@
 # Current task
 
-Image delivery implementation complete offline (164 tests). Next: implement /voice question, injectable OpenAI speech generation, voice upload and retry/fallback tests. Keep all changes unmerged for combined user review.
+Branch: feature/integrations
+Worktree: /home/rk/SentiensHermes/senai-integrations
+
+Image and /voice implementations complete offline. 183 full-suite tests pass,
+including 30 media/voice tests; ownership and whitespace checks pass.
+Next: coordinator reviews the combined media milestone, merges if accepted and
+arranges one controlled restart/live acceptance. This chat has not merged, pushed,
+started a poller, accessed production state or requested secrets.
+Voice needs local OpenAI speech API configuration; without it normal text/images
+remain available and /voice explains unavailability. Discord stays deferred.

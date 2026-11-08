@@ -1,53 +1,63 @@
-# Integration requirements
+# Integration notes: Telegram media milestone
 
-## Shared patches
-None needed for the Telegram chat improvement. All edits are feature-owned.
-Coordinator merges feature/integrations; do not copy changes into production manually.
+## Integration
 
-## Interfaces and compatibility
-Router(store, allowed_users, username, *, max_pending=4, acknowledge=None)
-accepts an optional zero-argument acknowledgement callback. Default retains legacy
-queue acknowledgements. Normal Telegram CLI injects the approved random chooser.
+No coordinator-owned code patches, sibling imports or packaging dependencies needed.
+Merge feature/integrations through the coordinator only; do not auto-merge/push.
+Image milestone: cebfe57. Voice milestone commit is recorded in changes.md/history.
+Existing Telegram CLI constructs injected media/speech components; top-level CLI is
+unchanged. Discord remains a separate deferred workstream target.
+
+## Interfaces
+
+Router(store, allowed_users, username, *, max_pending=4, acknowledge=None,
+voice_enabled=False, media=None). Voice disabled unless configured at startup.
 CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False,
-model=None, profile=None, search=False, skills=(), chat_style=False)
-keeps literal input by default. Telegram CLI enables chat_style on every turn.
-result_text(job) now returns only result for succeeded jobs; errors/interrupted
-results retain request/status context. This is the requested presentation change.
+model=None, profile=None, search=False, skills=(), chat_style=False, media=None,
+speech=None). Its __call__(job) still returns (status, text).
+BotService(api, store, router, runner, *, poll_timeout=10, transport=None, media=None).
+MediaOutbox(workspace, state_dir): prepare(job_id, manifest), add_voice(job_id, content),
+record_voice_request(job_id, job, *, reuse=False), voice_mode(job),
+deliver(job, api, *, authorized).
+OpenAISpeech(key, *, model='gpt-4o-mini-tts', voice='coral', opener=None):
+__call__(text) -> bytes (MP3), raises sanitized SpeechError on failure.
+BotAPI.send_photo(chat_id, path) and send_voice(chat_id, path) -> Telegram result.
+New kwargs are optional; existing direct callers retain old behavior.
 
-## Dependencies, storage and migration
-Standard library only; no new dependency; additive delivery snapshot table. Stored user prompts,
-shared native session UUID, authorization and result delivery cursor are unchanged.
-No sibling-feature imports or shared core/packaging edits.
+## Configuration and external services
 
-## Limits
-Short/plain-text responses are model instructions, not destructive Markdown
-stripping or a strict length cap. User-requested code/detail is allowed. No live
-Telegram/model verification performed, and no running bot was restarted.
-Acknowledgements use random choice; consecutive repeats are possible. Direct
-commands return their own response. Acknowledgement send failures retain existing
-queue behavior; acknowledgements are not a separately durable outbox.
-Discord remains pending outside this ready Telegram milestone.
+Standard library only; no pip/global installations. Image generation delegates to
+installed Codex built-in tools; image_generation flag is enabled here, but a real
+model/image invocation was not performed. Availability/account support may vary.
+/voice uses the OpenAI Speech API, which needs a local API key and API billing;
+ChatGPT/Codex sign-in alone is not used as speech authorization. No live API call
+was made. Set OPENAI_API_KEY in the bot process environment only; do not put it in
+chat, tracked files, Telegram credential env files (which accept only Telegram keys),
+or command arguments. OPENAI_API_KEY is omitted from Codex child environments:
+coordinator must check this if using API-key-based Codex login rather than native login.
+Optional SENAI_TTS_MODEL and SENAI_TTS_VOICE customize the speech client.
 
-## Merge review: pending delivery compatibility
+## Migration and rollback
 
-Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
+Media creates its own bot/project media.sqlite3 plus media/<job>/ snapshots; no
+Telegram jobs/session/user schema edits. CREATE TABLE IF NOT EXISTS is additive.
+Do not delete old jobs, native UUID mappings, text snapshots or media state. Rollback
+to a text-only release cannot deliver pending media; retain its DB/files for a later
+compatible restart. Back up both stores together when the service is stopped.
+No automatic cleanup of historical artifacts is introduced.
 
-## Viewer-context update and next media scope
+## Verified and unverified
 
-No additional shared hooks, runtime dependencies or migrations for this change.
-Media remains unimplemented. User wants newly generated/existing images delivered
-in Telegram and outbound voice replies; inbound voice transcription is not requested.
-Official API references: https://core.telegram.org/bots/api#sendphoto and
-https://core.telegram.org/bots/api#sendvoice. Transport upload and model media generation
-must be wired separately with offline injectable tests and live acceptance later.
+183 deterministic offline tests pass, including 30 media/voice tests. Fake network,
+fake model/speech and temporary fixtures only. Live Telegram photo/voice playback,
+image generation, actual TTS authorization/quality and production restart NOT RUN.
+Model response formatting/image manifest compliance remains runtime-dependent.
+Limits: PNG/JPEG only, 4 images, 10 MiB/image; speech 4000 chars, 10 MiB; text remains
+available; /result resends text only; /voice requests latest audio explicitly.
 
-## Image milestone
+## Primary documentation
 
-No shared-file changes/dependencies. Added BotService(..., media=None) and
-CommandRunner(..., media=None), both backwards compatible. CLI opts into MediaOutbox.
-Separate media.sqlite3 schema v1 is created in configured bot/project state; existing
-Telegram tables untouched. Native Codex image_generation is enabled on this host,
-but availability/account access and live generation are not verified by offline tests.
-Reference: https://core.telegram.org/bots/api#sendphoto and
-https://learn.chatgpt.com/docs/image-generation . No API image key is required by
-this adapter; it delegates generation to installed Codex tools when available.
+https://core.telegram.org/bots/api#sendphoto
+https://core.telegram.org/bots/api#sendvoice
+https://developers.openai.com/api/docs/guides/text-to-speech
+https://learn.chatgpt.com/docs/image-generation

@@ -13,3 +13,6 @@
 - [ ] Generate and deliver voice replies (outbound only, as selected by user).
 
 - [x] Workspace image selection, native generation instructions and durable photo delivery.
+
+- [x] /voice question and latest-answer voice requests, optional speech client and durable upload.
+- [ ] Live image generation/photo delivery and AI voice playback acceptance after integration.

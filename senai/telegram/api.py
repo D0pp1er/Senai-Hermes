@@ -72,7 +72,7 @@ class BotAPI:
         })
 
 
-    def _upload(self, method, field, chat_id, path, *, limit, filename, content_type):
+    def _upload(self, method, field, chat_id, path, *, limit, filename, content_type, caption=None):
         with Path(path).open('rb') as stream:
             content = stream.read(limit + 1)
         if not content or len(content) > limit:
@@ -83,6 +83,8 @@ class BotAPI:
             f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{filename}"\r\nContent-Type: {content_type}\r\n\r\n'.encode(),
             content, f'\r\n--{boundary}--\r\n'.encode(),
         ]
+        if caption is not None:
+            chunks.insert(1, f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n{caption}\r\n'.encode('utf-8'))
         request = Request(f'https://api.telegram.org/bot{self._token}/{method}',
                           data=b''.join(chunks), method='POST',
                           headers={'Content-Type': f'multipart/form-data; boundary={boundary}'})
@@ -93,3 +95,9 @@ class BotAPI:
         return self._upload('sendPhoto', 'photo', chat_id, path, limit=10 * 1024 * 1024,
                             filename='image.png' if png else 'image.jpg',
                             content_type='image/png' if png else 'image/jpeg')
+
+
+    def send_voice(self, chat_id, path):
+        return self._upload('sendVoice', 'voice', chat_id, path, limit=10 * 1024 * 1024,
+                            filename='voice.mp3', content_type='audio/mpeg',
+                            caption='AI-generated voice reply')

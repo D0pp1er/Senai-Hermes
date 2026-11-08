@@ -13,6 +13,7 @@ from ..integrations.telegram import TelegramAdapter
 from .pairing import PairingManager
 from .runner import CommandRunner
 from .media import MediaOutbox
+from .speech import speech_from_environment
 from .service import BotService, instance_lock
 from .store import JobStore
 
@@ -89,12 +90,13 @@ def telegram_main(argv, stdout, stderr):
             return 0
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
+            media = MediaOutbox(Path(args.project).expanduser().resolve() / 'outputs', state)
+            speech = speech_from_environment()
             router = TelegramAdapter(
-                Router(store, users, identity['username'], max_pending=args.max_pending, acknowledge=acknowledgement),
+                Router(store, users, identity['username'], max_pending=args.max_pending, acknowledge=acknowledgement, voice_enabled=speech is not None, media=media),
                 api, project=args.project, account=str(identity['id']),
             )
-            media = MediaOutbox(Path(args.project).expanduser().resolve() / 'outputs', state)
-            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media)
+            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media, speech=speech)
             runner.recover_session()
             store.recover_interrupted()
             service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media)
