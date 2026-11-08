@@ -5,6 +5,7 @@ from ..integrations.telegram import parse_private_update
 
 HELP = (
     'Send a code request as text, or /run your request.\n'
+    '/voice QUESTION - get a text and AI-generated voice reply; /voice reads your latest answer\n'
     '/status - latest requests and their states\n'
     '/result - resend your latest completed result\n'
     '/session - show the shared Codex session\n'
@@ -22,12 +23,14 @@ def result_text(job):
 
 
 class Router:
-    def __init__(self, store, allowed_users, username, *, max_pending=4, acknowledge=None):
+    def __init__(self, store, allowed_users, username, *, max_pending=4, acknowledge=None, voice_enabled=False, media=None):
         self.store = store
         self.allowed_users = allowed_users
         self.username = username.lower()
         self.max_pending = max_pending
         self.acknowledge = acknowledge
+        self.voice_enabled = voice_enabled
+        self.media = media
 
     def is_authorized(self, user_id):
         status = self.store.user_status(user_id)
@@ -62,9 +65,23 @@ class Router:
         if not self.is_authorized(sender['id']):
             self.store.consume(identifier)
             return []
-        prompt = argument if command == '/run' else text
-        is_request = (not command or command == '/run') and bool(prompt) and len(prompt) <= 8000
+        prompt = argument if command in ('/run', '/voice') else text
+        voice_error, reuse_voice = None, False
+        if command == '/voice':
+            if not self.voice_enabled or self.media is None:
+                voice_error = 'Voice replies are not configured yet. You can still ask in text.'
+            elif not argument:
+                previous = self.store.latest_completed(chat['id'])
+                if previous is None or previous['status'] != 'succeeded':
+                    voice_error = 'No answer to read yet. Use /voice your question.'
+                elif len(previous['result']) > 4000:
+                    voice_error = 'That answer is too long for a voice note. Use /voice and ask for a shorter summary.'
+                else:
+                    prompt, reuse_voice = previous['result'], True
+        is_request = (not command or command in ('/run', '/voice')) and bool(prompt) and len(prompt) <= 8000 and voice_error is None
         job = {'chat_id': chat['id'], 'user_id': sender['id'], 'prompt': prompt} if is_request else None
+        if command == '/voice' and job is not None:
+            self.media.record_voice_request(identifier, job, reuse=reuse_voice)
         outcome = self.store.consume(identifier, job, max_pending=self.max_pending)
         if outcome == 'duplicate':
             return []
@@ -74,7 +91,9 @@ class Router:
             if self.acknowledge is not None:
                 return [(chat['id'], self.acknowledge())]
             return [(chat['id'], f'Queued request #{identifier}. Use /status to check progress.')]
-        if command == '/status':
+        if voice_error is not None:
+            response = voice_error
+        elif command == '/status':
             jobs = self.store.recent(chat['id'])
             response = '\n'.join(f'Request #{job["id"]}: {job["status"]}' for job in jobs) or 'No requests yet.'
         elif command == '/session':

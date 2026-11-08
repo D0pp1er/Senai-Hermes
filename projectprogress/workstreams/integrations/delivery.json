@@ -5,31 +5,57 @@
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
+    "senai.telegram.api",
     "senai.telegram.chat",
+    "senai.telegram.media",
     "senai.telegram.router",
     "senai.telegram.runner",
-    "senai.telegram.store",
-    "senai.telegram.service"
+    "senai.telegram.service",
+    "senai.telegram.speech",
+    "senai.telegram.store"
   ],
   "public_api": [
     {
       "name": "Router",
-      "signature": "Router(store, allowed_users, username, *, max_pending=4, acknowledge=None)",
-      "purpose": "Authorize and queue Telegram requests, optionally selecting acknowledgement text."
+      "signature": "Router(store, allowed_users, username, *, max_pending=4, acknowledge=None, voice_enabled=False, media=None)",
+      "purpose": "Authorize and queue text/voice requests; preserve command and pairing behavior."
     },
     {
       "name": "CommandRunner",
-      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False)",
-      "purpose": "Run the existing CLI and exact shared session with opt-in chat style."
+      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None)",
+      "purpose": "Use existing exact native session/executor; prepare selected media and optional speech."
     },
     {
-      "name": "acknowledgement",
-      "signature": "acknowledgement() -> str",
-      "purpose": "Choose one of five approved replies."
+      "name": "MediaOutbox",
+      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); add_voice(job_id, content); record_voice_request(job_id, job, *, reuse=False); voice_mode(job); deliver(job, api, *, authorized)",
+      "purpose": "Persist voice intent, bounded media snapshots and upload progress separately from Telegram jobs."
+    },
+    {
+      "name": "OpenAISpeech",
+      "signature": "OpenAISpeech(key, *, model='gpt-4o-mini-tts', voice='coral', opener=None); __call__(text) -> bytes",
+      "purpose": "Injectable optional OpenAI speech generation returning MP3."
+    },
+    {
+      "name": "BotService",
+      "signature": "BotService(api, store, router, runner, *, poll_timeout=10, transport=None, media=None)",
+      "purpose": "Reuse existing worker; deliver stable text and media with authorization checks."
+    },
+    {
+      "name": "BotAPI.send_photo",
+      "signature": "send_photo(chat_id, path)",
+      "purpose": "Upload bounded local photo bytes with generic filename."
+    },
+    {
+      "name": "BotAPI.send_voice",
+      "signature": "send_voice(chat_id, path)",
+      "purpose": "Upload bounded MP3 voice with AI disclosure."
     }
   ],
   "commands": [
-    ".venv/bin/python -m senai telegram --help"
+    ".venv/bin/python -m senai telegram --help",
+    "Telegram /voice QUESTION: one spoken answer plus text",
+    "Telegram /voice: read the latest successful answer in this private chat",
+    "Telegram text request: generate/select images for actual photo attachment"
   ],
   "executor_contract": {
     "interface": "CommandRunner.__call__(job) -> tuple[str, str]",
@@ -45,29 +71,40 @@
     "development": []
   },
   "storage": {
-    "namespace": "Configured bot/project outputs Telegram state directory",
+    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB",
     "schema_version": 1,
-    "migration_notes": "Additive CREATE TABLE IF NOT EXISTS delivery_snapshots. Existing jobs, cursors, users, config and shared session mapping are retained. Legacy partial replies retain original status headers and chunk boundaries."
+    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion."
   },
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python -m unittest tests.integrations.test_telegram_media tests.integrations.test_telegram_voice -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 151,
-    "tested_commit": "7487862",
-    "live_result": "not-run"
+    "offline_test_count": 184,
+    "tested_commit": "a78aa29447c62fac8f60377eb1b3b74a9f8a67dd",
+    "live_result": "not-run",
+    "evidence_logs": [
+      "outputs/qa-integrations/regression.log",
+      "outputs/qa-integrations/media-voice.log"
+    ]
   },
   "integration": {
     "shared_file_changes": [],
     "sibling_requirements": []
   },
   "limitations": [
-    "Discord is excluded from this delivered Telegram milestone and remains backlog.",
-    "Live Telegram/model response style unverified.",
-    "Plain-text brevity is a model preference, not a hard output filter."
+    "Live image generation, Telegram uploads/playback and speech API authorization/quality not tested.",
+    "PNG/JPEG images in configured outputs only; max 4, 10 MiB each.",
+    "Speech max 4000 characters and 10 MiB; missing speech config/failure falls back to text.",
+    "Crash between remote send and local cursor save may duplicate an item.",
+    "No incoming voice transcription or media resend through /result; Discord deferred."
   ],
-  "delivery_scope": "Telegram adapter and conversational chat milestone; Discord remains backlog."
+  "delivery_scope": "Telegram image attachments and explicit outbound /voice replies; Discord deferred.",
+  "external_services": [
+    "Optional OpenAI Speech API: local SENAI_TTS_API_KEY (fallback OPENAI_API_KEY), API billing, default gpt-4o-mini-tts/coral",
+    "Installed Codex built-in image generation when available; no image API client/key added"
+  ]
 }

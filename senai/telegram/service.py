@@ -27,8 +27,9 @@ def instance_lock(path):
 
 
 class BotService:
-    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None):
+    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None, media=None):
         self.api, self.store, self.router, self.runner = api, store, router, runner
+        self.media = media
         self.transport = transport
         self.poll_timeout = poll_timeout
         self.stop = threading.Event()
@@ -65,6 +66,8 @@ class BotService:
             for part in parts[job['parts_sent']:]:
                 self.api.send_message(job['chat_id'], part)
                 self.store.mark_part_sent(job['id'])
+            if self.media is not None and job['status'] == 'succeeded':
+                self.media.deliver(job, self.api, authorized=lambda: self.router.is_authorized(job['user_id']))
             self.store.mark_delivered(job['id'])
 
     def poll_once(self):
