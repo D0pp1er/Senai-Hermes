@@ -1,22 +1,54 @@
 # Memory architecture
 
-senai.memory.store uses standard-library SQLite, independent of Telegram state.
-Namespace canonicalizes project paths and requires an explicit scope. Entries carry
-UUID IDs, provenance and UTC creation/update timestamps. Every write opens a short
-transaction; BEGIN IMMEDIATE serializes capacity checks. Limits apply per namespace.
-Duplicate text fails; capacity errors never evict facts. Delete is namespace-qualified.
-Schema v1 creates only memory_entries; unknown versions fail. Corrupt DBs raise without
-replacement. Lexical retrieval requires overlapping words; no vector service.
+## Implemented modules
 
-Reference consulted 2026-11-09: https://hermes-agent.nousresearch.com/docs/user-guide/features/memory
-Implemented subset: durable curated facts, explicit edits/removal and bounded capacity.
-This is not Hermes file format compatibility, session search, or automatic retention.
-Credential pattern rejection is defense in depth, not a complete secret detector.
+- store.py: Namespace canonicalizes project paths and requires an explicit scope.
+  Entry carries UUID ID, text, provenance and UTC creation/update timestamps.
+  SQLite connections are short-lived. BEGIN IMMEDIATE serializes writes and capacity
+  checks; concurrent writers cannot bypass namespace limits. CRUD predicates include
+  project/scope. Exact duplicate text fails. Delete is permanent at the application
+  level and immediately excludes the entry from subsequent retrieval.
+- context.py: lexical word-overlap retrieval, deterministic tie order, up to ten
+  relevant entries. Snapshots contain provenance/namespace/time metadata as JSON,
+  explicitly labeled untrusted reference facts. Angle brackets are escaped. Default
+  2200-character budget includes framing and JSON; oversized entries are omitted whole.
+  No match yields empty context. A returned string is frozen for that invocation.
+  execute_with_memory calls existing build_prompt and a caller-supplied executor
+  with the existing run_codex signature. No model calls happen on import.
+- candidates.py: bounded, opt-in parser for Memory: fact lines in caller-verified
+  outcomes. No model/provider dependency. Candidates are volatile immutable values;
+  extraction never writes storage. accept_candidate requires boolean approval,
+  namespace match and store validation. Rejection discards the value; acceptance
+  uses ordinary capacity/duplicate rules. Accepted facts can be updated/deleted by ID.
+- __main__.py: feature-local add/list/update/delete/context commands. Requires explicit
+  project/scope. Uses prepare_workspace and outputs/.senai-memory/memory.db; rejects
+  symlinked state roots/DB. Private directory/file modes; diagnostics omit fact content.
 
-context.py builds bounded JSON snapshots (including metadata and escaping), labels
-them untrusted, escapes angle brackets and omits whole entries that do not fit.
-execute_with_memory composes existing build_prompt and an injected run_codex-shaped
-callback. It forwards workspace/options unchanged, does not save results or alter sessions.
-Coordinator proposal: call this wrapper after authorization/workspace preparation with
-an explicit Namespace, isolated MemoryStore, existing run_codex and CodexOptions.
-No shared files need changing until coordinator integration.
+## Limits and failure behavior
+
+Store defaults: 100 entries and 20000 text characters per namespace; individual text
+4000 characters, provenance 500, scope 200. No automatic eviction or compaction.
+Writes reject empty/oversized/control-character and recognizable credential patterns.
+Pattern rejection cannot identify every secret: candidates require review. Caller
+owns authorization and namespace selection; scope names alone are not access control.
+Direct MemoryStore callers own path/mode validation; CLI applies isolated path checks.
+
+SQLite schema version 1 is independent of all existing native/Telegram state. Corrupt
+DBs and unsupported versions fail without replacement. There is no backup/repair tool.
+Deletion is logical SQL deletion, not secure erasure of SQLite pages/backups, and cannot
+remove a snapshot already supplied to an executor. Storage is local and unencrypted.
+Lexical retrieval has no stemming, semantic embeddings, priority or recency learning.
+Candidate extraction is explicit marked-line parsing, not autonomous fact mining.
+Existing facts are not silently updated/deduplicated semantically.
+
+## Hermes subset and integration
+
+Official reference consulted 2026-11-09:
+https://hermes-agent.nousresearch.com/docs/user-guide/features/memory
+
+Hermes documents bounded curated memory, persisted edits/removals, frozen session
+snapshots and capacity rejection. This branch adopts those ideas for explicit scoped
+facts using SQLite. It does not implement Hermes MEMORY.md/USER.md compatibility,
+automatic writes, session search, external memory providers or profile tooling.
+Our snapshots are per wrapper invocation, rather than a native session lifecycle hook.
+See current task.md for the minimal proposed coordinator hook; it is not wired here.
