@@ -1,6 +1,7 @@
 """Authorize private updates before routing text into the durable request queue."""
 
 from .pairing import PairingManager
+from ..integrations.telegram import parse_private_update
 
 HELP = (
     'Send a code request as text, or /run your request.\n'
@@ -15,15 +16,18 @@ HELP = (
 
 
 def result_text(job):
+    if job['status'] == 'succeeded':
+        return job['result']
     return f'Request #{job["id"]}: {job["status"]}\n\n{job["result"]}'
 
 
 class Router:
-    def __init__(self, store, allowed_users, username, *, max_pending=4):
+    def __init__(self, store, allowed_users, username, *, max_pending=4, acknowledge=None):
         self.store = store
         self.allowed_users = allowed_users
         self.username = username.lower()
         self.max_pending = max_pending
+        self.acknowledge = acknowledge
 
     def is_authorized(self, user_id):
         status = self.store.user_status(user_id)
@@ -33,20 +37,12 @@ class Router:
         identifier = update.get('update_id') if isinstance(update, dict) else None
         if type(identifier) is not int or identifier < 0:
             return []
-        message = update.get('message')
-        message = message if isinstance(message, dict) else {}
-        sender, chat = message.get('from', {}), message.get('chat', {})
-        sender = sender if isinstance(sender, dict) else {}
-        chat = chat if isinstance(chat, dict) else {}
-        eligible = (
-            type(sender.get('id')) is int and sender['id'] > 0
-            and sender.get('is_bot') is not True and chat.get('type') == 'private'
-            and type(chat.get('id')) is int and chat['id'] == sender['id']
-        )
-        text = message.get('text')
-        if not eligible or not isinstance(text, str):
+        parsed = parse_private_update(update)
+        if parsed is None:
             self.store.consume(identifier)
             return []
+        _, user_id, chat_id, text = parsed
+        sender, chat = {'id': user_id}, {'id': chat_id}
         text = text.strip()
         command, argument = '', ''
         if text.startswith('/'):
@@ -75,6 +71,8 @@ class Router:
         if outcome == 'busy':
             return [(chat['id'], 'Senai is busy; its request queue is full. Try again after /status.')]
         if outcome == 'queued':
+            if self.acknowledge is not None:
+                return [(chat['id'], self.acknowledge())]
             return [(chat['id'], f'Queued request #{identifier}. Use /status to check progress.')]
         if command == '/status':
             jobs = self.store.recent(chat['id'])

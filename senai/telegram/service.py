@@ -27,8 +27,9 @@ def instance_lock(path):
 
 
 class BotService:
-    def __init__(self, api, store, router, runner, *, poll_timeout=10):
+    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None):
         self.api, self.store, self.router, self.runner = api, store, router, runner
+        self.transport = transport
         self.poll_timeout = poll_timeout
         self.stop = threading.Event()
         self.worker_failed = False
@@ -39,8 +40,13 @@ class BotService:
         if identifiers:
             self.store.set_offset(max(identifiers) + 1)
 
+    def delivery_parts(self, text):
+        if self.transport is not None:
+            return self.transport.delivery_parts(text)
+        return split_message(self.api.redact(text))
+
     def send_text(self, chat_id, text):
-        for part in split_message(self.api.redact(text)):
+        for part in self.delivery_parts(text):
             self.api.send_message(chat_id, part)
 
     def deliver_results(self):
@@ -48,7 +54,14 @@ class BotService:
             if not self.router.is_authorized(job['user_id']):
                 self.store.mark_delivered(job['id'])
                 continue
-            parts = split_message(self.api.redact(result_text(job)))
+            parts = self.store.delivery_snapshot(job['id'])
+            if parts is None:
+                # Earlier releases sent a status header; retain its chunk boundaries.
+                text = ('Request #{}: {}\n\n{}'.format(job['id'], job['status'], job['result'])
+                        if job['parts_sent'] else result_text(job))
+                parts = self.store.delivery_snapshot(job['id'], self.delivery_parts(text))
+            if job['parts_sent'] > len(parts):
+                raise ValueError('Saved Telegram delivery cursor exceeds its payload.')
             for part in parts[job['parts_sent']:]:
                 self.api.send_message(job['chat_id'], part)
                 self.store.mark_part_sent(job['id'])

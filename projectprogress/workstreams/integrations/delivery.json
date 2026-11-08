@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "feature": "integrations",
+  "status": "ready",
+  "modules": [
+    "senai.integrations.contract",
+    "senai.integrations.telegram",
+    "senai.telegram.chat",
+    "senai.telegram.router",
+    "senai.telegram.runner",
+    "senai.telegram.store",
+    "senai.telegram.service"
+  ],
+  "public_api": [
+    {
+      "name": "Router",
+      "signature": "Router(store, allowed_users, username, *, max_pending=4, acknowledge=None)",
+      "purpose": "Authorize and queue Telegram requests, optionally selecting acknowledgement text."
+    },
+    {
+      "name": "CommandRunner",
+      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False)",
+      "purpose": "Run the existing CLI and exact shared session with opt-in chat style."
+    },
+    {
+      "name": "acknowledgement",
+      "signature": "acknowledgement() -> str",
+      "purpose": "Choose one of five approved replies."
+    }
+  ],
+  "commands": [
+    ".venv/bin/python -m senai telegram --help"
+  ],
+  "executor_contract": {
+    "interface": "CommandRunner.__call__(job) -> tuple[str, str]",
+    "inputs": [
+      "job mapping with id and prompt; optional existing chat/user fields"
+    ],
+    "outputs": [
+      "status succeeded or failed and response text; exact native session retained"
+    ]
+  },
+  "dependencies": {
+    "runtime": [],
+    "development": []
+  },
+  "storage": {
+    "namespace": "Configured bot/project outputs Telegram state directory",
+    "schema_version": 1,
+    "migration_notes": "Additive CREATE TABLE IF NOT EXISTS delivery_snapshots. Existing jobs, cursors, users, config and shared session mapping are retained. Legacy partial replies retain original status headers and chunk boundaries."
+  },
+  "verification": {
+    "offline_commands": [
+      ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
+      "git diff --check"
+    ],
+    "offline_result": "passed",
+    "offline_test_count": 151,
+    "tested_commit": "7487862",
+    "live_result": "not-run"
+  },
+  "integration": {
+    "shared_file_changes": [],
+    "sibling_requirements": []
+  },
+  "limitations": [
+    "Discord is excluded from this delivered Telegram milestone and remains backlog.",
+    "Live Telegram/model response style unverified.",
+    "Plain-text brevity is a model preference, not a hard output filter."
+  ],
+  "delivery_scope": "Telegram adapter and conversational chat milestone; Discord remains backlog."
+}

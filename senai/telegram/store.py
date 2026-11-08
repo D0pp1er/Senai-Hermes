@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 from pathlib import Path
+import json
 import sqlite3
 import time
 import uuid
@@ -17,6 +18,7 @@ class JobStore:
                 INSERT OR IGNORE INTO settings VALUES ('offset', 0);
                 CREATE TABLE IF NOT EXISTS paired_users (user_id INTEGER PRIMARY KEY, active INTEGER NOT NULL, updated REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS pairing_codes (digest TEXT PRIMARY KEY, expires REAL NOT NULL, used INTEGER NOT NULL DEFAULT 0);
+                CREATE TABLE IF NOT EXISTS delivery_snapshots (job_id INTEGER PRIMARY KEY, parts TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS sessions (name TEXT PRIMARY KEY, session_id TEXT NOT NULL, updated REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS jobs (
                     id INTEGER PRIMARY KEY, chat_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
@@ -150,3 +152,14 @@ class JobStore:
             raise ValueError('User ID must be a positive integer.')
         with self.connection() as database:
             database.execute('INSERT INTO paired_users(user_id,active,updated) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET active=excluded.active,updated=excluded.updated', (user_id, int(active), time.time()))
+
+    def delivery_snapshot(self, identifier, parts=None):
+        """Keep exact delivery chunks stable across retries and upgrades."""
+        with self.connection() as database:
+            if parts is not None:
+                if not isinstance(parts, list) or not parts or not all(isinstance(part, str) and part for part in parts):
+                    raise ValueError('Delivery parts must be nonempty strings.')
+                database.execute('INSERT OR IGNORE INTO delivery_snapshots(job_id,parts) VALUES (?,?)',
+                                 (identifier, json.dumps(parts)))
+            row = database.execute('SELECT parts FROM delivery_snapshots WHERE job_id=?', (identifier,)).fetchone()
+            return json.loads(row[0]) if row else None
