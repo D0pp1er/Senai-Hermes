@@ -230,3 +230,8 @@
 - Bootstrapped isolated .venv environments without system ensurepip; packaging tools were downloaded once and installed offline into each environment.
 - Verified correct imports from /tmp, disabled user site, senai help, and 126 passing baseline tests per worktree. Global editable installation was not changed.
 - Completed four full handoffs, workstream progress templates, and shared-file ownership guidance. No feature code, live external service, or schedule was started.
+
+## Modular merge guardrails
+- Added machine-readable single-writer ownership, a shared merge policy, standardized per-feature delivery manifests, and a Git scope/readiness checker.
+- TDD: scope-guard tests failed before implementation, covering core edits, rename deletions, untracked cross-feature paths, and shared-policy drift.
+- Preserve active feature code and current interfaces; coordinator applies shared hooks/packaging/docs once during sequential integration.

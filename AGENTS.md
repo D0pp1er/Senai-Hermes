@@ -17,3 +17,15 @@
   Codex skills/configuration, or activate real schedules during automated testing.
 - Preserve current CLI, Telegram pairing/shared-session behavior, and old DB compatibility.
 - Keep messages short. Distinguish offline tests, live checks, and unverified claims.
+
+## Mandatory merge policy
+
+Before each new step, reread projectprogress/parallel/MERGE_POLICY.md. Ownership is
+machine-readable in ownership.json on main. Shared coordinator files are read-only
+for feature chats; identical coordinator-distributed updates must be preserved.
+Maintain your own changes.md, integration-notes.md, and delivery.json in addition to
+your existing workstream records. Run scripts/check_workstream_scope.py --feature
+<your-feature> before commits and --ready before declaring delivery complete.
+Do not modify sibling modules, central CLI/packaging/aggregate files, or global registries.
+Use injected interfaces and feature-local dependency/migration records. The coordinator
+wires shared changes and merges sequentially. No feature rebase/merge is authorized here.
