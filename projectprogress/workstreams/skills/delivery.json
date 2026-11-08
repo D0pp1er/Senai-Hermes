@@ -14,7 +14,10 @@
     "Registry.record_outcome(name, *, digest, request, result, checks=(), correction=\"\") -> Outcome",
     "Registry.outcomes(name) -> list[Outcome]",
     "Check(name, passed, evidence)",
-    "Outcome(id, skill_name, skill_version, skill_digest, request, result, checks, correction, status, created_at)"
+    "Outcome(id, skill_name, skill_version, skill_digest, request, result, checks, correction, status, created_at)",
+    "Registry.propose_revision(name, *, document, outcome_ids, reason) -> Revision",
+    "Registry.revisions(name) -> list[Revision]",
+    "Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)"
   ],
   "commands": [],
   "executor_contract": {
@@ -33,8 +36,8 @@
   },
   "storage": {
     "namespace": "<explicit project>/outputs/skills/",
-    "schema_version": 2,
-    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration."
+    "schema_version": 3,
+    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged."
   },
   "verification": {
     "offline_commands": [
@@ -42,8 +45,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 151 tests on the outcome-step working tree; retained log outputs/skills-qa/outcomes-suite.log. Exact post-commit verification pending; status remains draft.",
-    "offline_test_count": 151,
+    "offline_result": "PASS: 159 offline tests on revision-step working tree; log outputs/skills-qa/revisions-suite.log. 23 feature tests. Scope guard passed. Exact post-commit verification pending; delivery remains draft.",
+    "offline_test_count": 159,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -54,9 +57,10 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: revision lifecycle, automatic Codex review, CLI/demo and public imports pending.",
+    "Draft partial delivery: regression validation, activation/rollback, automatic Codex review, CLI/demo and public imports pending. Inactive proposals implemented.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Restricted frontmatter; not full Hermes compatibility.",
-    "No live model checks."
+    "No live model checks.",
+    "Proposals modify SKILL.md only; supporting files preserved unchanged."
   ]
 }

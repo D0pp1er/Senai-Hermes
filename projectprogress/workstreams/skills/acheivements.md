@@ -8,3 +8,5 @@
 - Full offline regression result recorded in manualqa.md.
 
 - Added outcome records and six red-to-green tests: restart identity, failed-check correction, unverified prose, invalid record atomicity, registry isolation and insertion order. No activation occurs.
+
+- Learning step 2: eight red-to-green tests cover inactive proposal restart, supporting-file preservation, evidence rejection, wrong-skill links, invalid candidate cleanup, duplicate versions, tamper detection and passed-outcome support.
