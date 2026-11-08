@@ -248,3 +248,8 @@ persistent Codex session; future turns and restarts resume its exact ID.
 See [Telegram setup](projectprogress/telegram.md) for startup, additional pairing,
 local revocation, /session, compatibility with old configuration, and limits.
 The old bot was user-verified live; new setup/pairing still needs manual acceptance.
+
+## Parallel feature development
+
+See [parallel workstreams](projectprogress/parallel/README.md) for four isolated WSL
+worktrees/environments, ownership rules, and the four self-contained chat prompts.

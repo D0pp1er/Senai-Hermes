@@ -1,0 +1,4 @@
+# Reproducible packaging tools; no runtime dependencies added.
+pip==25.3
+setuptools==80.1.0
+wheel==0.45.1

@@ -219,3 +219,8 @@
 ## Telegram sessions merged
 - At user request, merged feature/telegram-sessions into main (664539c) on 2026-11-08.
 - All 126 regression tests passed before merge; existing live-token configuration was not read or changed.
+
+## Parallel feature preparation
+- Added shared ownership/execution-boundary guidance, repository agent instructions, pinned packaging tools, and four self-contained feature-chat handoffs.
+- Seeded separate workstream objectives/achievements/current-task/architecture/manual-QA files.
+- Baseline has 126 passing tests; no runtime feature implementation is included in this preparation.

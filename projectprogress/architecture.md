@@ -360,3 +360,11 @@ migration; test_telegram_pairing.py covers code expiry/use/revocation;
 test_telegram_wizard.py covers protected configuration, setup races, and startup.
 Live Codex turns confirmed memory after runner/store restart for a second simulated
 user. The new wizard/pairing protocol has not yet been live-tested with the bot.
+
+## Parallel development ownership
+
+The four feature worktrees have isolated environments/runtime fixtures. Their module
+architectures live under workstreams/<feature>/architecture.md until integration.
+This aggregate architecture and the shared CLI/execution seams remain coordinator-owned.
+See [execution boundaries](parallel/execution-contract.md). No new runtime hook or feature
+was added merely by preparing these worktrees.
