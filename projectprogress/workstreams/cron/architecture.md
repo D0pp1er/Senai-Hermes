@@ -23,3 +23,7 @@ redelivery. A crash before delivery can lose notification; consumers can inspect
 
 No dependencies beyond Python standard library/system IANA zoneinfo data. This is a new
 feature-local database, not a migration of Telegram state. Shared CLI routing remains unwired.
+
+CLI: .venv/bin/python -m senai.cron --project <directory> <command>.
+Management and dry-run only; does not invoke Codex. Dry-run is an advisory snapshot,
+not a reservation. Create requires an offset-aware ISO start; timezone is persisted metadata.
