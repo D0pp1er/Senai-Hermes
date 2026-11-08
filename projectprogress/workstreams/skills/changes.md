@@ -14,3 +14,6 @@
 
 - 2026-11-09, 31ea486: validated activation and rollback.
 - 2026-11-09, current CLI step: module entrypoint, permanent local import/list/view/context and audit commands, isolated offline lifecycle demo, eight red-to-green tests and separate-process QA.
+
+- 2026-11-09, a855c14: feature-local CLI and offline demo.
+- 2026-11-09, current reviewer step: evidence-bounded JSON reviewer, inactive/no-change results, read-only native Codex adapter and explicit CLI review. Twelve reviewer tests plus two new CLI tests; fake-executable transport and installed option checks.

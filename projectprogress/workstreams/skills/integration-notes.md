@@ -33,3 +33,11 @@ Remaining production gates: feature-local CLI/demo, injected reviewer, broader i
 Implemented `python -m senai.skills`, separately callable within this checkout's .venv. cli.main(argv=None, stdout=None, stderr=None) -> int. Uses stable senai.workspace.prepare_workspace; no sibling import. Per-project registry is outputs/skills/. demo.run_demo(project) -> dict retains synthetic evidence under outputs/skills-demo/.
 
 Coordinator may later dispatch `senai skills ...` to this feature-local main once merging. No dispatch or packaging patch applied here. The context command exports instructions and does not invoke Codex. Production execution/reviewer wiring still pending. No dependency/migration change in this step.
+
+## Reviewer contract
+
+Exports: ReviewResult(status, reason, revision); review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult; review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult. reviewer(prompt) returns strict JSON text; executor(prompt, workspace, *, options) returns native final-response text. No activation or validation occurs as a side effect. Caller selects trustworthy/redacted evidence. No-change decisions have no separate durable log yet.
+
+CLI: python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]. Native installed Codex/auth required only for this explicit command. Output contains proposed Revision or no_change. Shared router/normal execution/session mappings unchanged. No new dependencies or DB migration.
+
+Coordinator may call review after independently verified outcomes, but should not infer checks from model success prose or promote proposals without independent regression cases. Native Codex option/config semantics apply. Live reviewer output quality, actual behavioral improvement and production wiring remain unverified.

@@ -5,7 +5,8 @@
   "modules": [
     "senai.skills",
     "senai.skills.cli",
-    "senai.skills.demo"
+    "senai.skills.demo",
+    "senai.skills.review"
   ],
   "public_api": [
     "Registry(root)",
@@ -29,7 +30,10 @@
     "Registry.history(name) -> list[Activation]",
     "Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at)",
     "senai.skills.cli.main(argv=None, stdout=None, stderr=None) -> int",
-    "senai.skills.demo.run_demo(project) -> dict"
+    "senai.skills.demo.run_demo(project) -> dict",
+    "ReviewResult(status, reason, revision)",
+    "review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult",
+    "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -40,16 +44,20 @@
     "python -m senai.skills --project PROJECT validations REVISION_ID",
     "python -m senai.skills --project PROJECT activate REVISION_ID",
     "python -m senai.skills --project PROJECT rollback NAME --digest DIGEST --reason REASON",
-    "python -m senai.skills --project PROJECT demo"
+    "python -m senai.skills --project PROJECT demo",
+    "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
     "inputs": [
       "request: nonempty str",
-      "skills: tuple[Skill, ...]"
+      "skills: tuple[Skill, ...]",
+      "reviewer(prompt: str) -> strict JSON text for review_skill",
+      "optional review executor(prompt, workspace, *, options) -> str for review_with_codex"
     ],
     "outputs": [
-      "Executor return value is returned unchanged; exceptions propagate. No outcome verification implied."
+      "Executor return value is returned unchanged; exceptions propagate. No outcome verification implied.",
+      "Review returns inactive proposal or no_change; no validation or activation implied."
     ]
   },
   "dependencies": {
@@ -67,8 +75,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 186 offline tests on CLI-step working tree, including 50 feature tests. Scope guard passed. Separate-process demo/list passed. Logs outputs/skills-qa/cli-suite.log and cli-demo-report.json. Exact post-commit verification pending; delivery remains draft.",
-    "offline_test_count": 186,
+    "offline_result": "PASS: 200 offline tests on reviewer-step working tree, including 64 feature tests. Scope guard passed. Native subprocess used fake Codex; installed flags checked. Log outputs/skills-qa/review-suite.log. Exact post-commit verification pending; delivery remains draft.",
+    "offline_test_count": 200,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -79,10 +87,13 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: automatic Codex review, broader/public imports and normal CLI/production wiring pending. Context exports instructions only; demo checks are simulated.",
+    "Draft partial delivery: broader/public imports and normal CLI/production outcome/review wiring pending. Reviewer is explicit, not automatic.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Restricted frontmatter; not full Hermes compatibility.",
     "No live model checks.",
-    "Proposals modify SKILL.md only; supporting files preserved unchanged."
+    "Proposals modify SKILL.md only; supporting files preserved unchanged.",
+    "Live reviewer quality and actual skill improvement unverified.",
+    "No-change review results are returned but do not have a separate durable attempt log.",
+    "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation."
   ]
 }

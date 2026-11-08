@@ -72,3 +72,25 @@ The import persists in outputs/skills/; subsequent calls list it. Unknown/duplic
 Observed offline CLI QA PASS: executed real module demo, then a separate CLI process listed saved demo-workflow v1. JSON logs: outputs/skills-qa/cli-demo-report.json and cli-demo-list.json. Eight CLI behavior tests pass; red log outputs/skills-qa/cli-red.log. No live model or production usage tested.
 
 CLI-step full offline suite: PASS, 186 tests (50 skills tests). Scope guard: PASS. Retained full log: outputs/skills-qa/cli-suite.log.
+
+## Reviewer adapter step
+
+```bash
+.venv/bin/python -m unittest tests.skills.test_review -v
+.venv/bin/python -m unittest tests.skills.test_cli -v
+.venv/bin/python -m senai.skills review --help
+```
+
+Expected: twelve reviewer tests and ten CLI tests pass. Tests use injected model replies and a real wrapper subprocess with a temporary fake codex executable; they are not live model tests. Initial red log: outputs/skills-qa/review-red.log. Installed-option inspection PASS: outputs/skills-qa/review-parser-check.txt. Required flags: --output-schema, --sandbox, --skip-git-repo-check, --output-last-message.
+
+For an explicitly desired live review, first inspect saved outcomes for the selected project, then choose observed-check IDs for the current version:
+
+```bash
+.venv/bin/python -m senai.skills --project YOUR_PROJECT outcomes SKILL_NAME
+.venv/bin/python -m senai.skills --project YOUR_PROJECT review SKILL_NAME --outcome OUTCOME_ID
+.venv/bin/python -m senai.skills --project YOUR_PROJECT revisions SKILL_NAME
+```
+
+The review command uses installed Codex/auth and may consume model usage. Expected: no_change or an inactive proposal. Existing active skill remains unchanged; proposed revision has zero validation attempts. A proposal must be independently regression-checked before activation. Review of synthetic demo evidence is only a transport test, not proof of genuine improvement. No live reviewer or real model reuse has been run in this step.
+
+Reviewer-step full offline suite: PASS, 200 tests (64 skills tests). Ownership guard: PASS. Retained log outputs/skills-qa/review-suite.log. No live model/production checks performed.

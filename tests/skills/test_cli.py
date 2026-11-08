@@ -5,6 +5,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from senai.skills import Registry
+from senai.skills.review import ReviewResult
 
 from senai.skills.cli import main
 
@@ -98,3 +102,22 @@ class SkillsCliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("symlink", err)
         self.assertEqual(list(outside.iterdir()), [])
+
+    def test_review_cli_delegates_explicit_model_and_outcomes(self):
+        self.call("import", str(self.fixture))
+        with patch("senai.skills.cli.review_with_codex", return_value=ReviewResult("no_change", "No reusable lesson", None)) as review:
+            code, out, err = self.call("review", "example", "--outcome", "id-one", "--outcome", "id-two", "--model", "chosen-model")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out)["status"], "no_change")
+        self.assertEqual(review.call_args.kwargs["outcome_ids"], ["id-one", "id-two"])
+        self.assertEqual(review.call_args.kwargs["model"], "chosen-model")
+        self.assertEqual(review.call_args.kwargs["project"], self.project)
+
+    def test_review_cli_missing_evidence_fails_without_model_call(self):
+        self.call("import", str(self.fixture))
+        with patch("senai.codex.run_codex") as run:
+            code, out, err = self.call("review", "example", "--outcome", "missing")
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertNotIn("Traceback", err)
+        run.assert_not_called()

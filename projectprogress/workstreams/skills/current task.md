@@ -3,10 +3,10 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Feature-local CLI/demo implemented. Eight tests first failed on missing senai.skills.cli, then passed. Commands support permanent local import, metadata listing, instruction viewing/context export, outcomes/revisions/validations/versions/history inspection and explicit activation/rollback. No shared router change.
+Reviewer step implemented: review_skill(..., reviewer=...) accepts selected observed outcomes and stages evidence-linked proposals or returns no_change. review_with_codex uses the stable run_codex wrapper, read-only options and JSON Schema in a temporary project-local outputs workspace. CLI review NAME --outcome ID [--outcome ID] [--model MODEL] calls it explicitly. No validation/activation happens automatically.
 
-Real offline subprocess demo PASS: retained isolated project in outputs/skills-demo/, synthetic update to v2 then restore v1, independently listed by a new CLI process. Evidence: outputs/skills-qa/cli-demo-report.json and cli-demo-list.json. This is simulated validation, not model improvement evidence.
+TDD: initial reviewer tests failed on missing review module, then passed. Twelve reviewer tests plus ten CLI tests pass; includes actual run_codex subprocess with fake codex executable and stale-base rejection. Installed codex exec --help advertises required flags. No live model review or real improvement check performed.
 
-Next TDD step: injectable Codex reviewer boundary to generate evidence-linked instruction proposals (never activate automatically). Then broaden metadata compatibility and public import adapters; coordinator wiring and real isolated end-to-end verification remain necessary before production claims. No automatic learner or normal senai integration yet.
+Next step: broaden SKILL.md metadata compatibility and public-source imports with validation/provenance tests; add controlled real reuse/evaluation evidence once a suitable local workflow/checker is chosen. Normal execution/Telegram outcome hooks remain coordinator-owned and unapplied. End-to-end production integration still pending.
 
-Reread MERGE_POLICY.md before each implementation step. Run scope/full suite before commits. Final delivery remains draft.
+Reread MERGE_POLICY.md before each implementation step; scope/full suite required before commits. Final delivery remains draft.

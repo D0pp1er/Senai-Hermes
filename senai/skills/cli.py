@@ -9,6 +9,7 @@ import sys
 from senai.workspace import prepare_workspace
 from .registry import Registry, SkillError
 from .demo import run_demo
+from .review import review_with_codex
 
 
 def _parser():
@@ -31,6 +32,10 @@ def _parser():
     context = commands.add_parser("context", help="Export request plus one selected skill; does not run a model")
     context.add_argument("name")
     context.add_argument("request")
+    review = commands.add_parser("review", help="Explicit Codex call: propose an inactive update from selected saved outcomes")
+    review.add_argument("name")
+    review.add_argument("--outcome", dest="outcome_ids", action="append", required=True)
+    review.add_argument("--model", default=None)
     commands.add_parser("demo", help="Run and retain an isolated synthetic offline lifecycle demo")
     return parser
 
@@ -78,6 +83,8 @@ def main(argv=None, stdout=None, stderr=None):
                 result = _record(registry.activate_revision(args.revision_id), instructions=False)
             elif args.command == "rollback":
                 result = _record(registry.rollback(args.name, digest=args.digest, reason=args.reason), instructions=False)
+            elif args.command == "review":
+                result = _record(review_with_codex(registry, args.name, outcome_ids=args.outcome_ids, project=project, model=args.model))
             elif args.command == "context":
                 result = registry.execute(args.request, [args.name], executor=lambda request, skills: {"request": request, "skills": [_record(skill) for skill in skills]})
             else:
