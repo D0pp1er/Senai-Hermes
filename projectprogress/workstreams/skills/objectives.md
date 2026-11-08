@@ -19,3 +19,5 @@ Approximate expanded-scope progress: 60%; not a production-readiness claim. Exis
 - [ ] Obsidian export explicitly deferred until LAST by user; prioritize acquisition/usability and production wiring first.
 
 - [x] Public GitHub package acquisition pinned to exact commit, with validated paths/content/provenance and isolated network QA. Other sources/archives unsupported.
+
+- [x] Ordinary feature-local CLI requests using saved skills, retained artifacts and explicit observed checks; real imported-skill request passed narrow artifact/format QA.

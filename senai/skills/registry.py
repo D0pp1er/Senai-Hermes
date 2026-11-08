@@ -203,9 +203,14 @@ class Registry:
         Callers must supply independently observed checks. Neither check labels nor
         stored evidence authenticate a caller or prove a model's claims true.
         """
-        skill = self.select([name])[0]
-        if digest != skill.digest:
-            raise SkillError("Outcome must identify the exact selected skill digest")
+        _name(name)
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise SkillError("Outcome requires a full accepted package digest")
+        with self._connect() as db:
+            row = db.execute("SELECT name, version, description, source, digest, directory FROM accepted_versions WHERE name=? AND digest=?", (name, digest)).fetchone()
+        if row is None:
+            raise SkillError("Outcome must identify an exact accepted skill digest")
+        skill = self._skill(row)
         for label, value, limit, required in (("request", request, 32000, True), ("result", result, 64000, False), ("correction", correction, 16000, False)):
             if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
                 raise SkillError("Invalid outcome " + label)

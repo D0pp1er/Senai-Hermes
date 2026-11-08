@@ -10,7 +10,7 @@ Live acceptance observed: baseline values [[1,2],[10,20]] lost identifier string
 
 ## 2. Acquisition and real-task usability
 
-DONE: pinned public GitHub acquisition with thirteen validation/provenance/traversal/symlink tests and real official-package QA; local import compatibility retained. Add or document a small user-selected actual workflow and checker so users can repeat meaningful reuse beyond the controlled demo. Normal senai execution adapter stays coordinator-owned.
+DONE: pinned public GitHub acquisition with thirteen validation/provenance/traversal/symlink tests and real official-package QA; local import compatibility retained. DONE: ordinary run CLI uses saved context/resources and explicit checks; real imported skill-creator produced a local instruction artifact with existence and format checks. Further task-specific semantic checks remain caller-defined. Normal senai execution adapter stays coordinator-owned.
 
 ## 3. Accurate origin and learning records
 

@@ -67,3 +67,13 @@ Registry.import_github(repository, *, commit, path, fetch=None) -> Skill. reposi
 No new runtime dependency or DB migration. Canonical source URL contains exact commit/path; package digest and import audit retained. Public import cannot overwrite native/global skills or an existing registry name. No provider beyond allowed installed Codex is introduced. Arbitrary/private sources, archive extraction, automatic updates and native skill installation remain unsupported. Default transport ignores environment proxy credentials and refuses redirects; deployments requiring a proxy need an explicit adapter/policy later.
 
 Actual network QA imported official skill-creator into a separate outputs QA registry, with seven files/hash/provenance verified after restart; no script ran. This does not establish safety or compatibility of every public skill. Coordinator normal CLI/Telegram wiring remains unapplied. Obsidian export LAST.
+
+## Ordinary request adapter
+
+Exports run_request(registry, request, names, *, project, model=None, read_only=False, native_skills=(), executor=None, checker=None, compatibility_check=None) -> RunResult, RunResult(id, status, verification, response, workspace, report_path, skills, outcome_ids, error), RunSkill(name, version, digest, source). Executor uses stable run_codex(prompt, workspace, *, options) signature; checker(response, workspace) -> Iterable[Check] supplies observed results. Compatibility predicate follows the existing select contract.
+
+CLI run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--read-only] [--expect-file PATH] is feature-local and available now. It snapshots context and writes only a unique project outputs run. Shared CLI/Telegram routing remains untouched and should use coordinator adapters with explicit session policy, not replace bot execution with standalone runs.
+
+No dependency/schema migration. Additive outcome behavior allows exact previously accepted digests for in-flight runs after a concurrent activation; no never-accepted proposal outcomes allowed. Independent checks required for passed/failed evidence. Default unverified outcomes do not qualify for reviewer proposals. Partial outcome recording errors retain existing IDs and failure status.
+
+Real ordinary imported-skill run passed artifact existence and independent metadata parsing. This verifies routing/use on that example; no automatic learned-origin registration, global installation or generalized improvement established. Obsidian still LAST.

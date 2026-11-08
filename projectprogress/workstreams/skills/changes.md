@@ -29,3 +29,6 @@
 
 - 2026-11-09, 5126e00: live checked skill reuse demo.
 - 2026-11-09, public-source step: pinned GitHub commit/tree/blob verification, bounded staged acquisition, shared atomic activation and import-github CLI. Thirteen offline tests plus real official-package acquisition/restart passed.
+
+- 2026-11-09, 08d29aa: pinned public acquisition.
+- 2026-11-09, ordinary-request step: saved-skill run CLI, isolated retained artifacts/context, native skill mentions, explicit checker/file evidence and in-flight accepted-version identity. Thirteen new tests and a real imported skill-creator artifact-generation run passed.

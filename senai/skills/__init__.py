@@ -5,5 +5,6 @@ from .revisions import Revision
 from .validation import Validation
 from .activation import Activation
 from .review import ReviewResult, review_skill, review_with_codex
+from .run import RunResult, RunSkill, run_request
 
-__all__ = ["Registry", "Skill", "SkillError", "Check", "Outcome", "Revision", "Validation", "Activation", "ReviewResult", "review_skill", "review_with_codex"]
+__all__ = ["Registry", "Skill", "SkillError", "Check", "Outcome", "Revision", "Validation", "Activation", "ReviewResult", "review_skill", "review_with_codex", "RunResult", "RunSkill", "run_request"]

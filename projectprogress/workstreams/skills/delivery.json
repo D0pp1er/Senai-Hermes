@@ -10,7 +10,8 @@
     "senai.skills.metadata",
     "senai.skills.errors",
     "senai.skills.live_demo",
-    "senai.skills.sources"
+    "senai.skills.sources",
+    "senai.skills.run"
   ],
   "public_api": [
     "Registry(root)",
@@ -40,7 +41,10 @@
     "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult",
     "Registry.metadata(name) -> dict",
     "run_live_demo(project, *, executor=None, model=None, emit=None) -> dict",
-    "Registry.import_github(repository, *, commit, path, fetch=None) -> Skill"
+    "Registry.import_github(repository, *, commit, path, fetch=None) -> Skill",
+    "run_request(registry, request, names, *, project, model=None, read_only=False, native_skills=(), executor=None, checker=None, compatibility_check=None) -> RunResult",
+    "RunResult(id, status, verification, response, workspace, report_path, skills, outcome_ids, error)",
+    "RunSkill(name, version, digest, source)"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -55,7 +59,8 @@
     "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]",
     "python -m senai.skills --project PROJECT metadata NAME",
     "python -m senai.skills --project PROJECT demo --live [--model MODEL]",
-    "python -m senai.skills --project PROJECT import-github OWNER/REPO --commit SHA --path DIRECTORY"
+    "python -m senai.skills --project PROJECT import-github OWNER/REPO --commit SHA --path DIRECTORY",
+    "python -m senai.skills --project PROJECT run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--read-only] [--expect-file PATH]"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
@@ -63,7 +68,8 @@
       "request: nonempty str",
       "skills: tuple[Skill, ...]",
       "reviewer(prompt: str) -> strict JSON text for review_skill",
-      "optional review executor(prompt, workspace, *, options) -> str for review_with_codex"
+      "optional review executor(prompt, workspace, *, options) -> str for review_with_codex",
+      "ordinary checker(response: str, workspace: Path) -> Iterable[Check]; no checker means unverified outcome"
     ],
     "outputs": [
       "Executor return value is returned unchanged; exceptions propagate. No outcome verification implied.",
@@ -87,10 +93,10 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 228 offline tests on public-source-step working tree, including 92 feature tests. Scope guard passed. Full log outputs/skills-qa/sources-suite.log. Real unauthenticated public import separately passed as recorded. Exact post-commit verification pending; delivery draft.",
-    "offline_test_count": 228,
+    "offline_result": "PASS: 241 offline tests on ordinary-run-step working tree, including 105 feature tests. Scope guard passed. Full log outputs/skills-qa/run-suite.log. Real ordinary imported-skill artifact/format QA separately passed as recorded. Exact post-commit verification pending; delivery draft.",
+    "offline_test_count": 241,
     "tested_commit": "",
-    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution."
+    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution. Ordinary CLI imported skill-creator request PASS: generated local csv-identifiers/SKILL.md; explicit existence and separate format/name checks passed. Report outputs/skills-qa/run-live-report.json. Not automatic acquisition or behavioral improvement proof."
   },
   "integration": {
     "shared_file_changes": [
@@ -109,6 +115,7 @@
     "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
     "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
     "User deferred Obsidian export until LAST; explicit imported/learned/unknown origin classification remains backlog. No export command exists.",
-    "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition."
+    "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition.",
+    "Ordinary runs are standalone, not the coordinator shared execution/session pipeline. File-existence checks prove only existence; generated skill artifacts are not automatically registered as learned."
   ]
 }

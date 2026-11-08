@@ -11,6 +11,7 @@ from .registry import Registry, SkillError
 from .demo import run_demo
 from .live_demo import run_live_demo
 from .review import review_with_codex
+from .run import run_request, expected_files_checker
 
 
 def _parser():
@@ -41,6 +42,14 @@ def _parser():
     review.add_argument("name")
     review.add_argument("--outcome", dest="outcome_ids", action="append", required=True)
     review.add_argument("--model", default=None)
+    run = commands.add_parser("run", help="Run an ordinary request with saved skills; artifacts retained under outputs/skill-runs")
+    run.add_argument("name", help="Primary saved skill")
+    run.add_argument("request")
+    run.add_argument("--skill", action="append", default=[], help="Additional saved skill; repeatable")
+    run.add_argument("--native-skill", action="append", default=[], help="Additional installed native skill; repeatable")
+    run.add_argument("--model", default=None)
+    run.add_argument("--read-only", action="store_true")
+    run.add_argument("--expect-file", action="append", default=[], help="Explicit relative artifact existence check, not a correctness proof")
     demo = commands.add_parser("demo", help="Run an isolated demo; --live uses installed Codex with actual output checks")
     demo.add_argument("--live", action="store_true", help="Make up to four live Codex calls on a controlled fixture")
     demo.add_argument("--model", default=None)
@@ -99,11 +108,16 @@ def main(argv=None, stdout=None, stderr=None):
                 result = _record(registry.rollback(args.name, digest=args.digest, reason=args.reason), instructions=False)
             elif args.command == "review":
                 result = _record(review_with_codex(registry, args.name, outcome_ids=args.outcome_ids, project=project, model=args.model))
+            elif args.command == "run":
+                checker = expected_files_checker(args.expect_file) if args.expect_file else None
+                result = _record(run_request(registry, args.request, [args.name, *args.skill], project=project, model=args.model, read_only=args.read_only, native_skills=tuple(args.native_skill), checker=checker))
             elif args.command == "context":
                 result = registry.execute(args.request, [args.name], executor=lambda request, skills: {"request": request, "skills": [_record(skill) for skill in skills]})
             else:
                 raise SkillError("Unsupported command")
         print(json.dumps(result, default=str, indent=2), file=out)
+        if args.command == "run" and result["status"] != "completed":
+            return 2
         return 2 if args.command == "demo" and args.live and result.get("status") != "completed" else 0
     except (ValueError, OSError, sqlite3.Error) as exc:
         print("skills: " + str(exc), file=err)

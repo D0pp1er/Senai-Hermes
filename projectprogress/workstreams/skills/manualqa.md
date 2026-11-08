@@ -167,3 +167,25 @@ Expected: source URL includes exact commit/path, validation passed and content d
 User independently confirmed actual live demo completed in outputs/skills-live-demo/run-k7msx0uu (baseline failure, passing update/reuse, rollback), separate from these acquisition-only checks.
 
 Public-source-step full offline suite: PASS, 228 tests (92 skills tests). Scope guard: PASS. Log outputs/skills-qa/sources-suite.log. Real public acquisition also passed as recorded above.
+
+## Ordinary saved-skill requests
+
+Offline verification:
+
+```bash
+.venv/bin/python -m unittest tests.skills.test_run -v
+```
+
+Expected: thirteen passing tests. Checks cover context/resource snapshots, unchecked outcomes, passing/failing/errored checkers, model errors, model/native/read-only options, namespace/escape/symlink guards, multiple skills, CLI requests and old-revision identity across concurrent activation. Initial red log outputs/skills-qa/run-red.log; targeted log run-feature.log.
+
+Working user command for retained real public skill:
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k run skill-creator "Create a concise CSV identifier skill at csv-identifiers/SKILL.md. Preserve identifier strings and leading zeros. Keep all generated files inside this run workspace; no global installation." --expect-file csv-identifiers/SKILL.md
+```
+
+Expected: status completed, verification passed for requested file existence, nonempty response, unique workspace/report_path and outcome_ids. Inspect reported workspace to read artifact. Without --expect-file or an injected checker, expected verification is unverified. File checks do not prove semantics; independently validate important task behavior.
+
+Observed native live QA PASS: imported skill-creator generated csv-identifiers/SKILL.md (2,126 bytes) in outputs/skills-import-demo/run-izmdpt0k/outputs/skill-runs/e1da4304dfb841eb84e8b3cf91e30e67/workspace. Explicit file check passed. Host parsed SKILL.md and checked name csv-identifiers separately; PASS. Reports outputs/skills-qa/run-live-report.json and run-live-format-check.json. Outcome ID 46459b96ec5842fe8bbfcc2579b83a3d is linked to the original imported skill-creator digest. No automatic generated-skill registration/native install is claimed. This is actual model evidence, separate from injected offline tests.
+
+Ordinary-run-step full offline suite: PASS, 241 tests (105 skills tests). Scope guard: PASS. Full log outputs/skills-qa/run-suite.log. Separate actual model artifact/format QA PASS as above.

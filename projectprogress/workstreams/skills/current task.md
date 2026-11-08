@@ -3,10 +3,12 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Pinned public GitHub acquisition implemented. Registry.import_github(repository, *, commit, path, fetch=None) and CLI import-github require a full immutable commit SHA and explicit package path. Commit/tree identities and every Git blob are verified; bounded downloads validated before atomic registry import. Symlinks/submodules/unsafe paths/truncated trees/duplicates/conflicts rejected; scripts copied as inert files, never run. Existing local importer uses the same atomic file-bundle path.
+Ordinary saved-skill request milestone implemented: CLI run NAME REQUEST with additional --skill/--native-skill, optional --model/--read-only and explicit --expect-file checks. Requests use existing Codex wrapper in unique outputs/skill-runs/<id>/workspace; context/resource copies and results/checks/run manifest retained separately. Unchecked successful output stays unverified; model claims never create passing evidence.
 
-Thirteen offline source tests pass. Actual unauthenticated CLI import PASS: openai/skills commit 49f948faa9258a0c61caceaf225e179651397431, skills/.system/skill-creator; seven preserved files, package SHA-256 a617b59ca9bc4cf6e15744b6fe4896f1408eac4c1c2d072cc066f720148b59e0. Retained QA project outputs/skills-import-demo/run-izmdpt0k. Report outputs/skills-qa/github-import-report.json. No imported scripts executed/global registries touched.
+Thirteen new offline behavior tests pass. Actual CLI request using imported skill-creator PASSED: generated csv-identifiers/SKILL.md in QA project's outputs/skill-runs/e1da4304dfb841eb84e8b3cf91e30e67/workspace. Explicit file-existence check passed. Independent format/name parse also passed; this does not prove procedure quality. Report outputs/skills-qa/run-live-report.json; format check run-live-format-check.json. Generated skill is an artifact, not automatically imported/activated or labelled learned.
 
-User also independently confirmed live corrective-reuse demo status completed in outputs/skills-live-demo/run-k7msx0uu. Production routing still unimplemented. Next: actual user-task usability/native execution adapter and durable origin/new-skill authoring records, with coordinator integration proposals. Obsidian export remains LAST.
+Outcome recording now accepts exact previously accepted digests so a concurrent activation cannot misattribute in-flight execution to a new revision. Never-accepted candidates still cannot receive execution outcomes. No DB migration.
 
-Reread MERGE_POLICY.md before each implementation step. Scope/full suite before commit; delivery remains draft until complete evidence/--ready.
+Next: explicit durable imported/learned/unknown origin and evidence-guided acceptance of locally authored skill artifacts; normal CLI/Telegram hooks remain coordinator-owned. Obsidian export LAST. Full work order in workplan.md.
+
+Read MERGE_POLICY.md before each step. Full suite/scope before commit; delivery draft pending final contract and --ready.

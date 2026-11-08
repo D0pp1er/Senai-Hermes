@@ -26,3 +26,5 @@
 - Working live controlled demo PASSED: actual Codex baseline lost identifier zeros; reviewed instructions passed 4/4 regression checks and 2/2 held-out reuse checks; rollback preserved audit. Six new offline tests cover live-demo control flow and failure gates. Obsidian export deferred by user.
 
 - Public acquisition: thirteen offline tests pass. Real CLI imported openai/skills skill-creator at immutable commit 49f948faa9258a0c61caceaf225e179651397431 into isolated outputs registry; seven preserved files and pinned provenance survived restart. No scripts executed/global state changed.
+
+- Ordinary CLI requests now use exact saved instructions and resources via the existing Codex wrapper. Thirteen behavior tests passed. Real imported skill-creator generated a workspace-local csv-identifiers/SKILL.md; artifact existence and separate format/name checks passed. No automatic registry/learned-origin activation of the generated artifact.
