@@ -6,5 +6,5 @@
 - [x] SOUL remains human-controlled; learning cannot edit it.
 - [x] Installation-local SQLite facts, bounded snapshots and frozen resume context.
 - [x] Separate installation isolation, compatibility with old scoped APIs and no silent import.
-- [ ] Final current-revision regression/readiness evidence.
+- [x] Final current-revision regression/readiness evidence.
 - Coordinator-owned: shared CLI/configuration, event judgment and native session wiring.

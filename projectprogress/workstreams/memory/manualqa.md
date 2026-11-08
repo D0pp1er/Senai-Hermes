@@ -92,3 +92,8 @@ or task project. A different installation has no facts. No installation-global d
 written under the operating-system home directory. Ordinary unrequested/unverified
 remember calls fail. Model output alone must not supply trusted decision flags.
 Live app event classifier/configuration/session wiring remains unverified.
+
+Installation code commit d3fbff9: 176 full offline tests PASS, including 40 memory.
+Retained exact-commit log: outputs/qa-project/memory-installation-tests.log.
+Disposable subprocess QA: outputs/qa-project/memory-installation-qa.json PASS.
+No live classifier, app integration or production state used.

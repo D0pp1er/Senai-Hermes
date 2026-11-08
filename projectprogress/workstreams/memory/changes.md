@@ -22,3 +22,6 @@
 Added installation-wide USER/MEMORY/SOUL and SQLite adapter, cross-project recall,
 request-or-verified-noteworthy app learning and --installation CLI. Old scoped APIs
 remain compatible. TDD red: missing InstallationMemory export; green: 40 memory tests.
+
+- d3fbff9: single-owner installation memory implemented. Full regression 176 PASS,
+  including 40 memory tests; disposable installation CLI QA and scope/readiness PASS.

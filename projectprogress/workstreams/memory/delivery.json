@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "memory",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.memory.store",
     "senai.memory.context",
@@ -179,18 +179,22 @@
       ".venv/bin/python -m unittest discover -s tests/memory -q",
       ".venv/bin/python scripts/check_workstream_scope.py --feature memory",
       "Disposable profile CLI subprocess QA: outputs/qa-project/memory-multifile-qa.json",
-      ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v"
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
+      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json"
     ],
     "offline_result": "passed",
-    "offline_test_count": 170,
-    "tested_commit": "411d8b0a7b01f6875128e331263ba088a6c745ac",
+    "offline_test_count": 176,
+    "tested_commit": "d3fbff9c41c4a56516db3868187bb0befef4d063",
     "live_result": "not-run",
     "evidence_logs": [
       "outputs/qa-project/memory-multifile-tests.log",
       "outputs/qa-project/memory-multifile-qa.json",
-      "outputs/qa-project/memory-transport-tests.log"
+      "outputs/qa-project/memory-transport-tests.log",
+      "outputs/qa-project/memory-installation-tests.log",
+      "outputs/qa-project/memory-installation-qa.json"
     ],
-    "memory_test_count": 34
+    "memory_test_count": 40
   },
   "integration": {
     "shared_file_changes": [

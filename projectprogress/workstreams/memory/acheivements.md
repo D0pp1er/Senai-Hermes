@@ -31,3 +31,7 @@ Single-owner installation extension: flat global files, inclusion of USER across
 projects, selective app retention, no SOUL learning, exact duplicate suppression
 and separate-installation isolation. Existing scoped behavior preserved.
 Forty memory tests pass; full current-revision evidence is being finalized.
+
+Final installation verification: d3fbff9, 176 full offline tests PASS (40 memory).
+CLI subprocesses confirm flat global files, fresh-session reload and other-installation
+isolation. Evidence retained in outputs/qa-project/memory-installation-*.
