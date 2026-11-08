@@ -1,5 +1,4 @@
 # Current task
 
-Branch feature/memory; assigned WSL .venv verified. Storage milestone complete.
-Next: bounded snapshots and injectable executor, then reviewed outcome candidates.
-Shared CLI/prompts/Telegram files remain coordinator-owned.
+Storage and bounded executor context complete. Next: reviewed outcome candidates
+and local CLI. Shared integration is proposed only; no live model checks.
