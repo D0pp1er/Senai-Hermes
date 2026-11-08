@@ -1,14 +1,15 @@
 {
   "schema_version": 1,
   "feature": "memory",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.memory.store",
     "senai.memory.context",
     "senai.memory.candidates",
     "senai.memory.profiles",
     "senai.memory.session",
-    "senai.memory.__main__"
+    "senai.memory.__main__",
+    "senai.memory.installation"
   ],
   "public_api": [
     {
@@ -125,9 +126,27 @@
       "name": "senai.memory.ProfileStore.apply",
       "signature": "apply(self, proposal, *, approved)",
       "purpose": "Scoped apply operation"
+    },
+    {
+      "name": "senai.memory.InstallationMemory",
+      "signature": "InstallationMemory(installation)",
+      "purpose": "One owner per repo/installation. Caller explicitly selects the installation."
+    },
+    {
+      "name": "senai.memory.InstallationMemory.snapshot",
+      "signature": "InstallationMemory.snapshot(self, request, *, max_chars=8000)",
+      "purpose": "Fresh installation snapshot always includes the single owner's USER.md."
+    },
+    {
+      "name": "senai.memory.InstallationMemory.remember",
+      "signature": "InstallationMemory.remember(self, name, text, *, user_requested=False, noteworthy=False, verified=False)",
+      "purpose": "Append a validated fact on user request or trusted noteworthy-event judgment."
     }
   ],
   "commands": [
+    "python -m senai.memory --installation REPO remember {USER.md,MEMORY.md} TEXT [--user-requested | --noteworthy --verified]",
+    "python -m senai.memory --installation REPO session-context REQUEST [--max-chars N]",
+    "python -m senai.memory --installation REPO {add,update,list,delete,context,profile-show,profile-propose,profile-apply}",
     "python -m senai.memory --project PROJECT --scope SCOPE {add,update,list,delete,context}",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-show NAME",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
@@ -150,9 +169,9 @@
     "development": []
   },
   "storage": {
-    "namespace": "canonical project + explicit scope; USER.md additionally uses authorized user_id",
+    "namespace": "Recommended: canonical installation + fixed installation scope, one user across projects. Legacy explicit project/scope still supported.",
     "schema_version": 1,
-    "migration_notes": "Existing memory SQLite schema v1 unchanged. Add optional profiles/<namespace hash>/{SOUL.md,MEMORY.md}, users/<user hash>/USER.md and cooperative lock. No old state migration, auto-import or DB/file mirroring."
+    "migration_notes": "New flat SOUL.md/USER.md/MEMORY.md at INSTALLATION/outputs/.senai-memory alongside memory.db. Schema v1 unchanged, no silent copying/deletion/import of old scopes or hashed files."
   },
   "verification": {
     "offline_commands": [
@@ -175,20 +194,19 @@
   },
   "integration": {
     "shared_file_changes": [
-      "Proposed coordinator fresh-session loader and explicit snapshot reuse/refresh lifecycle; see integration-notes.md",
-      "Optional top-level CLI route; feature-local CLI works independently"
+      "Supersedes earlier multi-user proposal: configure one explicit installation root and use InstallationMemory.snapshot for fresh sessions across projects",
+      "Coordinator wires user-request/noteworthy/verified judgments into InstallationMemory.remember; SOUL remains human-only",
+      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md"
     ],
     "sibling_requirements": []
   },
   "limitations": [
-    "Shared CLI/native session lifecycle/Telegram integration not wired or live-tested",
-    "SOUL origin/verified/approved fields rely on trusted caller authorization, not cryptographic proof",
-    "USER context must be explicitly excluded from shared sessions",
-    "WSL/POSIX fcntl required; standard library only",
-    "Curated limits 4000 chars/16000 bytes per file; total snapshot 8000 chars default; overflow errors",
-    "No semantic duplicate detection, automatic retention or file/DB synchronization",
-    "Credential pattern matching incomplete; local storage unencrypted; deletion not secure erasure",
-    "Cooperative locks protect our writers; external editors can race; no version history",
-    "Snapshots frozen in memory; cross-process native-session mapping left to coordinator"
+    "Installation-wide mode assumes exactly one owner; not suitable for independent users sharing an installation",
+    "Shared configuration/CLI/native lifecycle and app noteworthy-event judgment are not wired or live tested",
+    "Decision flags are trusted caller assertions, not authorization or verification by the memory module",
+    "Legacy scoped data is preserved but not automatically migrated or loaded",
+    "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
+    "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
+    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context"
   ]
 }

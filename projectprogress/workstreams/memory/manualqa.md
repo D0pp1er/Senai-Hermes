@@ -77,3 +77,18 @@ The child executable is a temporary fixture, never the installed live Codex.
 Code/test commit 411d8b0: full suite 170 PASS, memory suite 34 tests.
 Retained verbose evidence: outputs/qa-project/memory-transport-tests.log.
 Live model/Telegram wiring remains not run.
+
+## Single-owner installation mode (current recommended interface)
+
+Within the assigned WSL worktree, use only a disposable installation for QA:
+
+    mkdir -p outputs/qa-project/installation-demo
+    .venv/bin/python -m senai.memory --installation outputs/qa-project/installation-demo remember USER.md 'Prefers Python' --user-requested
+    .venv/bin/python -m senai.memory --installation outputs/qa-project/installation-demo remember MEMORY.md 'Completed a release' --noteworthy --verified
+    .venv/bin/python -m senai.memory --installation outputs/qa-project/installation-demo session-context release
+
+Expected: USER and MEMORY are both loaded with source labels, without selecting a user
+or task project. A different installation has no facts. No installation-global data is
+written under the operating-system home directory. Ordinary unrequested/unverified
+remember calls fail. Model output alone must not supply trusted decision flags.
+Live app event classifier/configuration/session wiring remains unverified.

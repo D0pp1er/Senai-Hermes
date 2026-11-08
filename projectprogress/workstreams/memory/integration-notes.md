@@ -1,81 +1,85 @@
-# Memory integration contract
+# Current memory integration: one owner per installation
 
-## Minimal coordinator hook (proposed, not applied)
+This supersedes the earlier multi-user/project-private integration proposal.
+User clarified: one senai repo/installation has one user. All its projects and sessions
+share USER.md and MEMORY.md. Separate installations remain independent.
 
-After authorization, canonical project/scope selection and prepare_workspace, create:
-- MemoryStore(workspace / ".senai-memory" / "memory.db")
-- ProfileStore(workspace / ".senai-memory" / "profiles", namespace, user_id=authorized_user_or_none)
+## Coordinator hook (proposed, not wired here)
 
-Validate/reject symlinked state roots and DB as the feature-local CLI does. Direct callers
-own their state location and access permissions. Never infer scope/user identity from
-model output. ProfileStore validates its paths; no recursive context discovery.
+Select one stable, explicit installation root from trusted app configuration.
+Do not derive it from the active project, request text, cwd, Python site-packages,
+home directory, or bot/chat identity.
 
-For a genuinely fresh native session:
-    snapshot = start_session(profiles, store, request, include_user=False, max_chars=8000)
-    result = execute_session(request, workspace, snapshot=snapshot,
+    memory = InstallationMemory(configured_installation_root)
+    snapshot = memory.snapshot(request)
+    result = execute_session(request, task_workspace, snapshot=snapshot,
                              executor=run_codex, options=options, skills=skills)
 
-Use include_user=True only in an authorized private session with an explicit user_id.
-USER.md is project/scope/user-specific. SOUL.md and MEMORY.md are project/scope-specific.
-Never include a private USER.md in Telegram's configured shared conversation.
+The task workspace may belong to any project. The installation root stays constant.
+New snapshots include SOUL.md, USER.md, MEMORY.md and relevant installation SQLite facts.
+Reuse the frozen snapshot during native resume. A fresh session or explicit refresh
+rebuilds it. Coordinator still owns native-session snapshot persistence across processes.
+Do not change exact native resume IDs or treat chat history as saved semantic memory.
 
-Retain the same snapshot object for later turns in that native session. A new session
-or explicit authorized refresh calls start_session again. Persisting snapshot-to-native-
-session mappings across wrapper process restarts is coordinator work, not implemented
-here. Do not silently reload files into a resumed native session. Keep existing Telegram
-session ID behavior. No automatic reset/resume changes are required by this module.
+No multi-user routing or private USER exclusion is needed in this single-owner mode.
+Do not expose this mode to multiple independent users; legacy scoped APIs remain
+available unchanged for compatibility, not as the recommended single-owner design.
 
-The older execute_with_memory API stays unchanged for SQLite-only callers. The new
-session API is additive; do not combine both bridges or build_prompt twice.
-Executor is synchronous run_codex(prompt, workspace, **kwargs) -> str; exceptions propagate.
+## Flat storage and migration
 
-## Update rules
+All paths below are relative to the configured installation root:
 
-SOUL.md: explicit human authorship only. USER.md: reviewed stable preferences, private
-to project/scope/user. MEMORY.md: reviewed curated project summary.
-SQLite: detailed facts with IDs/provenance/timestamps. No automatic file/DB mirroring.
-The same fact should have one authoritative home; semantic duplicate detection is not
-implemented. File updates are complete replacement proposals, with visible unified diffs.
+    outputs/.senai-memory/SOUL.md
+    outputs/.senai-memory/USER.md
+    outputs/.senai-memory/MEMORY.md
+    outputs/.senai-memory/memory.db
 
-propose(name, text, origin="human", verified=False) only creates a volatile proposal.
-Outcome-origin proposals require a trusted validator's verified=True; SOUL.md rejects
-outcome origin even when verified. apply(proposal, approved=True) checks owner, validation,
-and previous content hash under a cooperative process lock, then atomically replaces
-the file. Empty replacement text deletes the file. An explicit human approval path is
-required; model output is neither verification nor permission. Fields are not signatures:
-trusted local caller/authentication is the boundary.
+USER: stable preferences, habits, likes/dislikes and significant choices.
+MEMORY: core events, milestones and noteworthy experiences with the user.
+SOUL: explicit human-authored identity/style; automatic learning cannot update it.
+SQLite: detailed explicit facts with provenance/timestamps. Fixed namespace is
+Namespace(canonical_installation_root, "installation"), shared across task projects.
 
-## Storage, dependencies, compatibility
+The SQLite schema remains v1. Existing per-project scopes/hashed profile files remain
+untouched and are not silently imported, mixed, deleted or exposed. Any migration of
+real old profiles needs explicit source selection and user review. No automatic file/DB
+mirroring. InstallationMemory is an additive compatibility adapter.
+No global home-directory state or machine-wide memory is introduced.
 
-No new dependency; standard-library fcntl means WSL/POSIX is required.
-SQLite remains schema v1; no migration of existing entries/native/Telegram state.
-Optional files live at profiles/<sha256(project,scope)>/{SOUL.md,MEMORY.md}, and
-profiles/<sha256(project,scope)>/users/<sha256(user_id)>/USER.md.
-Missing files are valid and existing SQLite users need no setup.
-No starter personality is silently created and no external home/profile files imported.
+## App-controlled learning
 
-Shared proposals only: coordinator may add top-level command routing and session lifecycle
-adapter. No sibling modules required. No shared/core files changed by this workstream.
+    memory.remember("USER.md", "Prefers concise responses", user_requested=True)
+    memory.remember("MEMORY.md", "Completed the first release",
+                    noteworthy=True, verified=True)
 
-## Limitations
+user_requested must reflect a real authorized user request.
+noteworthy and verified must come from the trusted app decision/validation path.
+The app may save these without another approval prompt, per the user's standing request.
+Ordinary output and unverified noteworthy claims are rejected. The memory module does
+not run an autonomous classifier or equate a model's success text with verification.
+Candidate generation/judgment wiring belongs to the coordinator.
 
-Files: UTF-8, maximum 4000 characters / 16000 bytes each; fixed allowlist.
-Total session context default 8000 chars including source metadata/escaping. Curated files
-must fit in full; overflow errors. SQLite results fill remaining space and may be omitted.
-SOUL guidance is subordinate to higher instructions and authorization; factual sources
-are untrusted reference data. Labels do not guarantee model resistance to prompt injection.
-Changes are visible to new snapshots only. File locks coordinate our writers; unrelated
-manual editors do not participate in the lock. Hash checks catch prior edits, not hostile
-races or cross-file transactions from external editors. Atomic replace prevents partial
-files; this is not a version-history or disaster-recovery system.
-Credential pattern filters are incomplete. Storage is unencrypted; deletion is not secure
-erasure and cannot retract previously supplied context. No live model test or session
-lifecycle integration has been performed.
+remember appends a bounded validated bullet, skips exact duplicate blocks and preserves
+existing text. On racing updates it raises ConflictError; retry after rereading. It cannot
+edit SOUL. Corrections/deletions/full replacements use existing reviewed propose/apply
+APIs (or explicit human edits). All file-size, credential-pattern and conflict rules remain.
+No raw transcript retention, silent eviction, automatic compaction or semantic deduplication.
 
-## Additional offline handoff evidence
+## CLI and verification
 
-411d8b0 adds tests against real run_codex with a temporary fake executable. Fresh
-context transport, exact resume forwarding, frozen snapshots, shared USER exclusion,
-final-response saving and child failure/no-retention checks pass. No API changes.
-This supports the adapter proposal above; coordinator still owns routing, persistent
-native-session/snapshot mapping, cross-feature checks and live acceptance.
+Recommended:
+    python -m senai.memory --installation REPO remember USER.md 'Prefers Python' --user-requested
+    python -m senai.memory --installation REPO session-context hello
+
+No --project, --scope or --user-id is used in installation mode. USER is included by default.
+add/list/update/delete/context operate on installation SQLite facts. profile-show,
+profile-propose/profile-apply work with the flat global files. SOUL remains human-only.
+Legacy --project PROJECT --scope SCOPE mode retains its original behavior.
+
+Standard library only; WSL/POSIX fcntl required. Shared/core files are unchanged.
+Coordinator owns shared CLI selection and learning/session adapters. Live wiring unverified.
+Limits: files 4000 chars / 16000 UTF-8 bytes, total context 8000 chars default. Curated
+overflow fails; relevant SQLite entries fill remaining space. Frozen context cannot
+retract deleted facts from existing sessions. Local data unencrypted; pattern-based
+secret detection is incomplete. Cooperative locking does not protect against hostile
+external filesystem races. Source labels cannot guarantee model instruction compliance.

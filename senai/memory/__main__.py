@@ -11,12 +11,15 @@ from .context import build_snapshot
 from .store import MemoryStore, Namespace
 from .profiles import ProfileStore, ProfileProposal
 from .session import start_session
+from .installation import InstallationMemory
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Explicit project-scoped memory")
-    parser.add_argument("--project", required=True, type=Path)
-    parser.add_argument("--scope", required=True)
+    parser = argparse.ArgumentParser(description="Single-user installation memory; legacy project mode supported")
+    location = parser.add_mutually_exclusive_group(required=True)
+    location.add_argument("--installation", type=Path, help="Senai repo root; shared across its projects")
+    location.add_argument("--project", type=Path, help="Legacy scoped memory")
+    parser.add_argument("--scope")
     parser.add_argument("--user-id", help="Authorized identity; never inferred from prompt text")
     sub = parser.add_subparsers(dest="command", required=True)
     for command in ("add", "update"):
@@ -46,21 +49,42 @@ def main(argv=None):
     child.add_argument("--include-user", action="store_true",
                        help="Only for a session authorized to see this user's profile")
     child.add_argument("--max-chars", type=int, default=8000)
+    child = sub.add_parser("remember")
+    child.add_argument("name", choices=("USER.md", "MEMORY.md"))
+    child.add_argument("text")
+    child.add_argument("--user-requested", action="store_true")
+    child.add_argument("--noteworthy", action="store_true")
+    child.add_argument("--verified", action="store_true")
     args = parser.parse_args(argv)
+    if args.installation is not None and (args.scope is not None or args.user_id is not None):
+        parser.error("installation mode has one owner and no project scope selection")
+    if args.project is not None and not args.scope:
+        parser.error("legacy project mode requires --scope")
+    if args.command == "remember" and args.installation is None:
+        parser.error("remember requires --installation")
     try:
-        namespace = Namespace(args.project, args.scope)
-        workspace = prepare_workspace(args.project)
-        directory = workspace / ".senai-memory"
-        if directory.is_symlink():
-            raise ValueError("memory directory must not be a symlink")
-        directory.mkdir(mode=0o700, exist_ok=True)
-        path = directory / "memory.db"
-        if path.is_symlink():
-            raise ValueError("memory database must not be a symlink")
-        store = MemoryStore(path)
-        path.chmod(0o600)
-        profiles = ProfileStore(directory / "profiles", namespace, user_id=args.user_id)
-        if args.command == "profile-show":
+        installation = InstallationMemory(args.installation) if args.installation is not None else None
+        if installation is not None:
+            namespace, store, profiles = installation.namespace, installation.store, installation.profiles
+        else:
+            namespace = Namespace(args.project, args.scope)
+            workspace = prepare_workspace(args.project)
+            directory = workspace / ".senai-memory"
+            if directory.is_symlink():
+                raise ValueError("memory directory must not be a symlink")
+            directory.mkdir(mode=0o700, exist_ok=True)
+            path = directory / "memory.db"
+            if path.is_symlink():
+                raise ValueError("memory database must not be a symlink")
+            store = MemoryStore(path)
+            path.chmod(0o600)
+            profiles = ProfileStore(directory / "profiles", namespace, user_id=args.user_id)
+        if args.command == "remember":
+            document = installation.remember(args.name, args.text, user_requested=args.user_requested,
+                                              noteworthy=args.noteworthy, verified=args.verified)
+            result = asdict(document)
+            result["path"] = str(document.path)
+        elif args.command == "profile-show":
             document = profiles.read(args.name)
             result = asdict(document)
             result["path"] = str(document.path)
@@ -75,8 +99,9 @@ def main(argv=None):
             result = asdict(profiles.apply(proposal, approved=args.approve))
             result["path"] = str(result["path"])
         elif args.command == "session-context":
-            snapshot = start_session(profiles, store, args.request,
-                                     include_user=args.include_user, max_chars=args.max_chars)
+            snapshot = (installation.snapshot(args.request, max_chars=args.max_chars) if installation else
+                        start_session(profiles, store, args.request,
+                                      include_user=args.include_user, max_chars=args.max_chars))
             print(snapshot.context)
             return 0
         elif args.command == "add":

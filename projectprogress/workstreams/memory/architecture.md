@@ -77,3 +77,14 @@ fake executable, without replacing its subprocess call. Demonstrates both a fres
 request with all sources and a resumed shared request with an existing snapshot.
 This verifies transport compatibility; it does not wire the production CLI or prove
 model behavior. Source APIs remain unchanged.
+
+## Current single-owner installation adapter (supersedes multi-user recommendation)
+
+installation.py introduces InstallationMemory. One explicit configured repo root
+selects outputs/.senai-memory; all three curated files are flat there. SQLite namespace
+is the canonical installation plus fixed installation scope. Task project/user/chat
+identity never selects another store. snapshot always loads the single owner's USER.
+remember appends validated exact-deduplicated facts only on real user request or a
+trusted verified noteworthy decision, with conflict rejection and no SOUL learning.
+Legacy scoped APIs remain unchanged. See current integration-notes.md for authoritative
+storage/lifecycle/learning policy; earlier sections describe the compatibility APIs.

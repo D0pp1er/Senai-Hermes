@@ -26,3 +26,8 @@ inside a temporary output workspace. Verified final response persistence, litera
 request transport, all memory sources, USER exclusion, frozen resumed context,
 exact native session ID and failure/no-retention behavior.
 170 total tests pass, including 34 memory tests. No live model claim.
+
+Single-owner installation extension: flat global files, inclusion of USER across
+projects, selective app retention, no SOUL learning, exact duplicate suppression
+and separate-installation isolation. Existing scoped behavior preserved.
+Forty memory tests pass; full current-revision evidence is being finalized.

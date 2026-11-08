@@ -4,10 +4,11 @@ from .context import build_snapshot, execute_with_memory
 from .candidates import Candidate, extract_candidates, accept_candidate
 from .profiles import ConflictError, ProfileDocument, ProfileProposal, ProfileStore
 from .session import SessionSnapshot, start_session, execute_session
+from .installation import InstallationMemory
 
 __all__ = [
     "Entry", "MemoryStore", "Namespace", "build_snapshot", "execute_with_memory",
     "Candidate", "extract_candidates", "accept_candidate", "ConflictError",
     "ProfileDocument", "ProfileProposal", "ProfileStore", "SessionSnapshot",
-    "start_session", "execute_session",
+    "start_session", "execute_session", "InstallationMemory",
 ]

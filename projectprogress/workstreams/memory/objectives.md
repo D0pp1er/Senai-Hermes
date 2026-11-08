@@ -1,12 +1,10 @@
-# Memory objectives
+# Current memory objectives
 
-- [x] Explicit persistent scoped SQLite CRUD, relevance, budgets and approval-only learning.
-- [x] Scoped optional SOUL.md / USER.md / MEMORY.md with clear ownership.
-- [x] Human-only SOUL edits; project/scope/user isolation for USER.
-- [x] Reviewed atomic file replacement/deletion and stale-proposal conflict rejection.
-- [x] Multifile loading with limits, source labels and frozen fresh-session snapshots.
-- [x] Feature-local CLI and deterministic TDD coverage.
-- [x] Final retained regression evidence and policy readiness check.
-- Coordinator-owned: native session lifecycle mapping and shared CLI/Telegram wiring.
-
-- [x] Offline memory-to-real-executor transport, exact resume forwarding and failure handling.
+- [x] One installation-wide USER.md and MEMORY.md, across projects and fresh sessions.
+- [x] USER stores preferences/habits/likes/dislikes/significant choices; MEMORY core events.
+- [x] App may retain explicit user requests or trusted verified noteworthy events.
+- [x] SOUL remains human-controlled; learning cannot edit it.
+- [x] Installation-local SQLite facts, bounded snapshots and frozen resume context.
+- [x] Separate installation isolation, compatibility with old scoped APIs and no silent import.
+- [ ] Final current-revision regression/readiness evidence.
+- Coordinator-owned: shared CLI/configuration, event judgment and native session wiring.

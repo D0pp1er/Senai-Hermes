@@ -17,3 +17,8 @@
 - 411d8b0: offline real-adapter transport tests. All curated sources plus relevant
   SQLite facts reach the child, exact resume ID and frozen shared snapshot survive,
   errors propagate, and no result is implicitly saved. 170 total / 34 memory pass.
+
+2026-11-09 requirement revision: user confirmed one owner per senai repo/installation.
+Added installation-wide USER/MEMORY/SOUL and SQLite adapter, cross-project recall,
+request-or-verified-noteworthy app learning and --installation CLI. Old scoped APIs
+remain compatible. TDD red: missing InstallationMemory export; green: 40 memory tests.
