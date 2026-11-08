@@ -199,3 +199,9 @@
 - Added expiring, single-use local pairing codes; only hashes are stored. Any private account can pair with a code obtained from the operator.
 - Persist paired users, support local --pair-code and --revoke-user, and retain legacy allowed-ID compatibility. Explicit revocation overrides legacy configuration.
 - Recheck dynamic authorization for queued work and pending delivery. TDD: eight pairing/authorization tests failed before implementation.
+
+## Automated Telegram setup
+- Added scripts/setup_telegram.sh and --configure/--start: hidden token entry, API validation, private code pairing, atomic mode-600 token file, and automatic bot startup.
+- Saved configuration is discovered per project under XDG_CONFIG_HOME (or ~/.config), outside the controlled workspace; no manual export or numeric ID lookup is needed.
+- Added guided setup and file-protection tests. A failing race test exposed code messages being skipped; the backlog is now drained before showing the pairing code.
+- Existing --setup, --env-file, and explicit allowed-ID configurations remain supported. No real token was read or changed by these tests.

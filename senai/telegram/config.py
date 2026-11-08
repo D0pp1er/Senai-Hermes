@@ -1,6 +1,8 @@
 """Read bot credentials without executing shell configuration."""
 
 import os
+import hashlib
+import tempfile
 import re
 from pathlib import Path
 
@@ -33,3 +35,30 @@ def load_credentials(environ=None, *, env_file=None, require_users=True):
     if any(user <= 0 for user in users) or (require_users and not users):
         raise ValueError('Set TELEGRAM_ALLOWED_USER_IDS to your positive numeric Telegram user ID. Use --setup to discover it.')
     return token, users
+
+
+def default_env_file(project):
+    identity = hashlib.sha256(str(Path(project).expanduser().resolve()).encode()).hexdigest()[:20]
+    base = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))).expanduser()
+    return base / 'senai' / 'telegram' / f'{identity}.env'
+
+
+def write_token_file(path, token):
+    token, _ = load_credentials({'TELEGRAM_BOT_TOKEN': token}, require_users=False)
+    path = Path(path).expanduser()
+    if path.is_symlink():
+        raise ValueError('Refusing a symlinked Telegram credential file.')
+    existed = path.parent.exists()
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if not existed:
+        path.parent.chmod(0o700)
+    descriptor, temporary = tempfile.mkstemp(prefix='.telegram-', dir=path.parent)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as stream:
+            stream.write('TELEGRAM_BOT_TOKEN=' + token + '\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        Path(temporary).unlink(missing_ok=True)

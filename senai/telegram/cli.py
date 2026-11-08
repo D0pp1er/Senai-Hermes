@@ -5,13 +5,13 @@ from pathlib import Path
 import secrets
 
 from .api import BotAPI, TelegramError
-from .config import load_credentials
+from .config import load_credentials, default_env_file
+from .connection import identify_bot, state_directory
 from .router import Router
 from .pairing import PairingManager
 from .runner import CommandRunner
 from .service import BotService, instance_lock
 from .store import JobStore
-from ..workspace import prepare_workspace
 
 
 def discover_user(api, username, stdout):
@@ -36,10 +36,12 @@ def telegram_main(argv, stdout, stderr):
     parser.add_argument('--project', default='.', help='Parent project; code and bot state stay inside outputs/.')
     parser.add_argument('--env-file', help='Optional local token/user-ID assignments; never a shell script.')
     modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--configure', action='store_true', help='Guided token validation, private pairing, and protected config saving.')
     modes.add_argument('--setup', action='store_true', help='Discover your numeric user ID without executing requests.')
     modes.add_argument('--pair-code', action='store_true', help='Print a new single-use local pairing code; works while the bot runs.')
     modes.add_argument('--revoke-user', type=int, metavar='ID', help='Locally revoke a paired or legacy allowed user.')
     modes.add_argument('--check', action='store_true', help='Check bot identity and webhook compatibility, without polling or execution.')
+    parser.add_argument('--start', action='store_true', help='Start polling after --configure completes.')
     parser.add_argument('--skip-git-repo-check', action='store_true', help='Allow the selected non-Git project.')
     parser.add_argument('-m', '--model', help='Fixed Codex model for requests.')
     parser.add_argument('-p', '--profile', help='Fixed Codex configuration profile.')
@@ -52,25 +54,27 @@ def telegram_main(argv, stdout, stderr):
     try:
         if not 1 <= args.max_pending <= 100 or not 1 <= args.poll_timeout <= 30:
             raise ValueError('Use --max-pending between 1 and 100 and --poll-timeout between 1 and 30.')
-        token, users = load_credentials(env_file=args.env_file, require_users=False)
+        if args.start and not args.configure:
+            raise ValueError('--start is used with --configure.')
+        if args.configure:
+            from .wizard import configure_project
+            configured = configure_project(args.project, env_file=args.env_file, stdout=stdout)
+            if not args.start:
+                print('Start with senai telegram --project YOUR_PROJECT (add --skip-git-repo-check for non-Git folders).', file=stdout)
+                return 0
+            args.env_file = str(configured.env_file)
+            token, users = configured.token, frozenset()
+        else:
+            path = Path(args.env_file).expanduser() if args.env_file else default_env_file(args.project)
+            token, users = load_credentials(env_file=path if args.env_file or path.is_file() else None, require_users=False)
         api = BotAPI(token)
-        identity = api.get_me()
-        if not isinstance(identity, dict) or identity.get('is_bot') is not True or type(identity.get('id')) is not int or identity['id'] <= 0 or not isinstance(identity.get('username'), str):
-            raise ValueError('Telegram returned an invalid bot identity.')
-        info = api.get_webhook_info()
-        if not isinstance(info, dict) or info.get('url'):
-            raise ValueError('This bot has an active webhook. Use a dedicated bot or remove that webhook explicitly before polling; senai will not delete it automatically.')
+        identity = identify_bot(api)
         if args.check:
             print(f'Connected to @{identity["username"]}; webhook is off. Execution requires a locally paired user or existing allowed-user configuration.', file=stdout)
             return 0
         if args.setup:
             return discover_user(api, identity['username'], stdout)
-        workspace = prepare_workspace(args.project)
-        state = workspace / '.senai-telegram' / str(identity['id'])
-        if not state.resolve().is_relative_to(workspace.resolve()):
-            raise ValueError('Telegram state must stay inside outputs/.')
-        state.mkdir(parents=True, exist_ok=True)
-        state.chmod(0o700)
+        state = state_directory(args.project, identity['id'])
         if args.pair_code or args.revoke_user is not None:
             store = JobStore(state / 'state.sqlite3')
             if args.revoke_user is not None:

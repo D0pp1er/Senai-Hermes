@@ -152,6 +152,13 @@ class TelegramRunnerTests(unittest.TestCase):
 
 
 class TelegramCLITests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        resolver = patch('senai.telegram.cli.default_env_file', return_value=Path(temporary.name) / 'missing.env')
+        resolver.start()
+        self.addCleanup(resolver.stop)
+
     def test_telegram_help_needs_no_credentials(self):
         with patch.dict('os.environ', {}, clear=True), self.assertRaises(SystemExit) as result:
             cli.main(['telegram', '--help'])
