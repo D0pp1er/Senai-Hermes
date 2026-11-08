@@ -37,3 +37,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Implemented Telegram control on feature/telegram-bot with no new runtime dependencies; 100 tests pass, including offline end-to-end message/job/child/result verification. Subsequently, the user confirmed live operation on 2026-11-08.
 
 - On feature/telegram-sessions: local-code pairing, automated protected configuration, and one persistent shared conversation; 126 tests pass. Two real Codex turns retained the same ID/context after a runner/store restart across simulated users. New wizard/pairing awaits live acceptance.
+
+- Prepared four clean WSL worktrees with separate branches, isolated editable environments, and four self-contained handoffs. Each passed the 126-test baseline; the global senai install was unchanged.

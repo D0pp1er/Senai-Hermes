@@ -224,3 +224,9 @@
 - Added shared ownership/execution-boundary guidance, repository agent instructions, pinned packaging tools, and four self-contained feature-chat handoffs.
 - Seeded separate workstream objectives/achievements/current-task/architecture/manual-QA files.
 - Baseline has 126 passing tests; no runtime feature implementation is included in this preparation.
+
+## Parallel environments verified
+- Created feature/integrations, feature/memory, feature/cron, and feature/skills in separate WSL folders.
+- Bootstrapped isolated .venv environments without system ensurepip; packaging tools were downloaded once and installed offline into each environment.
+- Verified correct imports from /tmp, disabled user site, senai help, and 126 passing baseline tests per worktree. Global editable installation was not changed.
+- Completed four full handoffs, workstream progress templates, and shared-file ownership guidance. No feature code, live external service, or schedule was started.

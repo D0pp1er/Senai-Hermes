@@ -41,7 +41,8 @@ Telegram's shared Codex conversation must not be mistaken for project memory or 
 - Use only your assigned WSL worktree and branch; never edit the Windows mirror or another checkout.
 - Read AGENTS.md, projectprogress/parallel/README.md, execution-contract.md, main task.md,
   and the current architecture before coding. Synced/reference material is read-only.
-- Activate .venv and use its python/pip/senai. Never reinstall senai globally or use pip --user.
+- Activate .venv and use its python/pip/senai. Activation lasts only for that shell;
+  use absolute .venv/bin/python paths or activate again in every new tool call. Never reinstall senai globally or use pip --user.
 - Verify git branch --show-current and python -c 'import senai; print(senai.__file__)' first.
 - Start with failing behavior tests, implement small increments, refactor, and commit briefly.
 - Preserve existing CLI/Telegram behavior and old state. Do not auto-merge, push, deploy,

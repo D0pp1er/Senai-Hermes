@@ -27,7 +27,8 @@ senai --help
 ```
 
 Both printed paths must belong to that same worktree. A separate pip editable install
-is made inside each .venv. Activating one environment does not affect other terminals.
+is made inside each .venv. Activating one environment does not affect other terminals or later tool calls.
+Use the absolute .venv/bin/python or source activation in each separate shell call.
 The existing global user senai command continues to point at the main checkout.
 
 Use outputs/qa-project in the assigned worktree for runtime experiments. Do not point
@@ -64,3 +65,15 @@ main's outputs/parallel/environment-report.json and setup logs.
 
 No feature implementation, Discord connection, live cron job, shared memory database,
 or global skill import is enabled by this preparation.
+
+## Prepared environment status
+
+All four worktrees/environments have been created and validated:
+- Own .venv and editable package binding, verified from /tmp rather than repository cwd.
+- User site packages disabled in each environment; no global senai reinstall.
+- Installed senai --help works, all 126 baseline tests pass per worktree, and checkouts are clean.
+- outputs/qa-project exists independently in each worktree for later runtime fixtures.
+- Four full handoff prompts are in prompts/. No new chats were created automatically.
+
+The prompts authorize scoped feature implementation when pasted into their respective
+new chats. Preparation itself did not implement the four new features.
