@@ -185,7 +185,7 @@ The installed-command tests use a deterministic fake Codex child process, so the
 ## Verified compatibility baseline
 
 Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
-- 126 offline tests pass, including installed-command child-process tests.
+- 136 offline tests pass, including installed-command child-process tests.
 - Installed CLI checks: version, exec/resume/review/MCP/plugin help, feature listing.
 - Live checks: search-enabled code creation, session resume retaining a marker,
   interactive launch, installed skill picker, and clean /quit exit.

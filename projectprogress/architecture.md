@@ -235,7 +235,7 @@ termination or a job supervisor; native child/terminal behavior remains relevant
 | Review scopes and read-only choice | [test_review.py](../tests/test_review.py) |
 | Installed command through a real, deterministic fake child | [test_installed.py](../tests/test_installed.py) |
 
-The current suite has 126 offline tests. These verify wrapper behavior, not every
+The current suite has 136 offline tests. These verify wrapper behavior, not every
 live account/tool/model combination. Live verification evidence is recorded in
 [CHANGELOG.md](../CHANGELOG.md); the manual checklist records user-observed outcomes.
 
@@ -368,3 +368,11 @@ architectures live under workstreams/<feature>/architecture.md until integration
 This aggregate architecture and the shared CLI/execution seams remain coordinator-owned.
 See [execution boundaries](parallel/execution-contract.md). No new runtime hook or feature
 was added merely by preparing these worktrees.
+
+## Modular delivery guardrails
+
+[Merge policy](parallel/MERGE_POLICY.md) and ownership.json define one writer per module/path.
+Feature-local delivery.json describes public APIs, executor shape, dependencies, storage,
+migrations, and test evidence; shared integration-notes.md proposals stay unapplied until
+coordinator integration. The scope guard checks Git ownership and declared readiness.
+The coordinator alone updates shared CLI/hooks/packaging/aggregate docs and merges sequentially.

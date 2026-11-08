@@ -282,7 +282,7 @@ senai --help
 senai codex -- --version
 ```
 
-The current suite contains 126 offline tests. Installed-command tests use a fake
+The current suite contains 136 offline tests. Installed-command tests use a fake
 Codex child process and skip only if the package is not installed. These tests do
 not consume model usage. Live model/tool checks do consume usage and need account access.
 

@@ -24,7 +24,7 @@ senai review --help
 senai codex --help
 ```
 
-Expected: commands resolve to WSL installations; 126 tests pass with no skips when
+Expected: commands resolve to WSL installations; 136 tests pass with no skips when
 senai is installed; all help commands exit 0 and show the documented options.
 If senai is missing, follow projectprogress/features.md before continuing.
 

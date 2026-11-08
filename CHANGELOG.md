@@ -235,3 +235,8 @@
 - Added machine-readable single-writer ownership, a shared merge policy, standardized per-feature delivery manifests, and a Git scope/readiness checker.
 - TDD: scope-guard tests failed before implementation, covering core edits, rename deletions, untracked cross-feature paths, and shared-policy drift.
 - Preserve active feature code and current interfaces; coordinator applies shared hooks/packaging/docs once during sequential integration.
+
+## Merge policy synchronized
+- Distributed identical coordinator rules/tooling and committed only those paths plus missing per-feature delivery records on all four active branches. No feature code was overwritten or rebased.
+- All four ownership audits passed. Ten scope/readiness tests pass in each worktree; main regression suite has 136 passing tests.
+- Feature manifests remain draft until module owners provide actual public API, dependencies, storage/migration, executor shape, and verification evidence.
