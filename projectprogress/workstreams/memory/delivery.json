@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "feature": "memory",
+  "status": "ready",
+  "modules": [
+    "senai.memory.store",
+    "senai.memory.context",
+    "senai.memory.candidates",
+    "senai.memory.profiles",
+    "senai.memory.session",
+    "senai.memory.__main__",
+    "senai.memory.installation"
+  ],
+  "public_api": [
+    {
+      "name": "senai.memory.Entry",
+      "signature": "Entry(id: str, project: str, scope: str, text: str, provenance: str, created_at: str, updated_at: str) -> None",
+      "purpose": "Entry(id: str, project: str, scope: str, text: str, provenance: str, created_at: str, updated_at: str)"
+    },
+    {
+      "name": "senai.memory.MemoryStore",
+      "signature": "MemoryStore(path, *, max_entries=100, max_chars=20000)",
+      "purpose": "MemoryStore"
+    },
+    {
+      "name": "senai.memory.Namespace",
+      "signature": "Namespace(project: str, scope: str) -> None",
+      "purpose": "Namespace(project: str, scope: str)"
+    },
+    {
+      "name": "senai.memory.build_snapshot",
+      "signature": "build_snapshot(store, namespace, request, *, max_chars=2200, limit=10)",
+      "purpose": "Return a frozen string. Budget includes framing, metadata and JSON escapes."
+    },
+    {
+      "name": "senai.memory.execute_with_memory",
+      "signature": "execute_with_memory(request, workspace, *, store, namespace, executor, max_chars=2200, skills=(), **executor_kwargs)",
+      "purpose": "Caller owns authorization, workspace validation, and explicit namespace selection."
+    },
+    {
+      "name": "senai.memory.Candidate",
+      "signature": "Candidate(namespace: senai.memory.store.Namespace, text: str, provenance: str) -> None",
+      "purpose": "Candidate(namespace: senai.memory.store.Namespace, text: str, provenance: str)"
+    },
+    {
+      "name": "senai.memory.extract_candidates",
+      "signature": "extract_candidates(outcome, *, namespace, outcome_id, verified, max_candidates=10)",
+      "purpose": "Parse 'Memory: fact' lines only; never store raw output or invoke a model."
+    },
+    {
+      "name": "senai.memory.accept_candidate",
+      "signature": "accept_candidate(store, namespace, candidate, *, approved)",
+      "purpose": "Approval must come from the authorized caller. Candidates are volatile until saved."
+    },
+    {
+      "name": "senai.memory.ConflictError",
+      "signature": "ConflictError(*args)",
+      "purpose": "The reviewed file revision no longer matches disk."
+    },
+    {
+      "name": "senai.memory.ProfileDocument",
+      "signature": "ProfileDocument(name: str, path: pathlib.Path, text: str, revision: str) -> None",
+      "purpose": "ProfileDocument(name: str, path: pathlib.Path, text: str, revision: str)"
+    },
+    {
+      "name": "senai.memory.ProfileProposal",
+      "signature": "ProfileProposal(name: str, text: str, origin: str, verified: bool, owner: str, before_revision: str, diff: str) -> None",
+      "purpose": "ProfileProposal(name: str, text: str, origin: str, verified: bool, owner: str, before_revision: str, diff: str)"
+    },
+    {
+      "name": "senai.memory.ProfileStore",
+      "signature": "ProfileStore(root, namespace, *, user_id=None)",
+      "purpose": "Caller supplies authorized project/scope/user; no identity inference."
+    },
+    {
+      "name": "senai.memory.SessionSnapshot",
+      "signature": "SessionSnapshot(project: str, scope: str, user_id: str | None, context: str, revisions: tuple[tuple[str, str], ...]) -> None",
+      "purpose": "SessionSnapshot(project: str, scope: str, user_id: str | None, context: str, revisions: tuple[tuple[str, str], ...])"
+    },
+    {
+      "name": "senai.memory.start_session",
+      "signature": "start_session(profiles, store, request, *, include_user=False, max_chars=8000)",
+      "purpose": "Load curated files in order, then relevant SQLite facts within total budget."
+    },
+    {
+      "name": "senai.memory.execute_session",
+      "signature": "execute_session(request, workspace, *, snapshot, executor, skills=(), **executor_kwargs)",
+      "purpose": "Use this same explicit snapshot for resumed turns; caller checks session ownership."
+    },
+    {
+      "name": "senai.memory.MemoryStore.list",
+      "signature": "list(self, namespace)",
+      "purpose": "Scoped list operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.add",
+      "signature": "add(self, namespace, text, *, provenance)",
+      "purpose": "Scoped add operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.update",
+      "signature": "update(self, namespace, entry_id, text, *, provenance)",
+      "purpose": "Scoped update operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.delete",
+      "signature": "delete(self, namespace, entry_id)",
+      "purpose": "Scoped delete operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.retrieve",
+      "signature": "retrieve(self, namespace, request, *, limit=10)",
+      "purpose": "Scoped retrieve operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.read",
+      "signature": "read(self, name)",
+      "purpose": "Scoped read operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.propose",
+      "signature": "propose(self, name, text, *, origin='human', verified=False)",
+      "purpose": "Scoped propose operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.apply",
+      "signature": "apply(self, proposal, *, approved)",
+      "purpose": "Scoped apply operation"
+    },
+    {
+      "name": "senai.memory.InstallationMemory",
+      "signature": "InstallationMemory(installation)",
+      "purpose": "One owner per repo/installation. Caller explicitly selects the installation."
+    },
+    {
+      "name": "senai.memory.InstallationMemory.snapshot",
+      "signature": "InstallationMemory.snapshot(self, request, *, max_chars=8000)",
+      "purpose": "Fresh installation snapshot always includes the single owner's USER.md."
+    },
+    {
+      "name": "senai.memory.InstallationMemory.remember",
+      "signature": "InstallationMemory.remember(self, name, text, *, user_requested=False, noteworthy=False, verified=False)",
+      "purpose": "Append a validated fact on user request or trusted noteworthy-event judgment."
+    }
+  ],
+  "commands": [
+    "python -m senai.memory --installation REPO remember {USER.md,MEMORY.md} TEXT [--user-requested | --noteworthy --verified]",
+    "python -m senai.memory --installation REPO session-context REQUEST [--max-chars N]",
+    "python -m senai.memory --installation REPO {add,update,list,delete,context,profile-show,profile-propose,profile-apply}",
+    "python -m senai.memory --project PROJECT --scope SCOPE {add,update,list,delete,context}",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-show NAME",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-apply PROPOSAL_JSON --approve",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]"
+  ],
+  "executor_contract": {
+    "interface": "executor(prompt, workspace, **executor_kwargs) -> str (synchronous run_codex signature)",
+    "inputs": [
+      "existing build_prompt output plus bounded snapshot",
+      "caller-authorized workspace",
+      "options/stdout/stderr forwarded unchanged; executor injected"
+    ],
+    "outputs": [
+      "executor result unchanged; exceptions propagate; no implicit retention"
+    ]
+  },
+  "dependencies": {
+    "runtime": [],
+    "development": []
+  },
+  "storage": {
+    "namespace": "Recommended: canonical installation + fixed installation scope, one user across projects. Legacy explicit project/scope still supported.",
+    "schema_version": 1,
+    "migration_notes": "New flat SOUL.md/USER.md/MEMORY.md at INSTALLATION/outputs/.senai-memory alongside memory.db. Schema v1 unchanged, no silent copying/deletion/import of old scopes or hashed files."
+  },
+  "verification": {
+    "offline_commands": [
+      ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python -m unittest discover -s tests/memory -q",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature memory",
+      "Disposable profile CLI subprocess QA: outputs/qa-project/memory-multifile-qa.json",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
+      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json"
+    ],
+    "offline_result": "passed",
+    "offline_test_count": 176,
+    "tested_commit": "d3fbff9c41c4a56516db3868187bb0befef4d063",
+    "live_result": "not-run",
+    "evidence_logs": [
+      "outputs/qa-project/memory-multifile-tests.log",
+      "outputs/qa-project/memory-multifile-qa.json",
+      "outputs/qa-project/memory-transport-tests.log",
+      "outputs/qa-project/memory-installation-tests.log",
+      "outputs/qa-project/memory-installation-qa.json"
+    ],
+    "memory_test_count": 40
+  },
+  "integration": {
+    "shared_file_changes": [
+      "Supersedes earlier multi-user proposal: configure one explicit installation root and use InstallationMemory.snapshot for fresh sessions across projects",
+      "Coordinator wires user-request/noteworthy/verified judgments into InstallationMemory.remember; SOUL remains human-only",
+      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md"
+    ],
+    "sibling_requirements": []
+  },
+  "limitations": [
+    "Installation-wide mode assumes exactly one owner; not suitable for independent users sharing an installation",
+    "Shared configuration/CLI/native lifecycle and app noteworthy-event judgment are not wired or live tested",
+    "Decision flags are trusted caller assertions, not authorization or verification by the memory module",
+    "Legacy scoped data is preserved but not automatically migrated or loaded",
+    "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
+    "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
+    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context"
+  ]
+}
