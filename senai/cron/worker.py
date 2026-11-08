@@ -5,17 +5,18 @@ class Worker:
     def tick(self):
         run = self.store.claim()
         if run is None:
+            if self.deliver:
+                from .delivery import DeliveryWorker
+                DeliveryWorker(self.store, lambda item: self.deliver(item['run'])).tick()
             return None
         try:
             result = self.executor(run)
         except Exception as exc:
-            self.store.finish(run['id'], error=str(exc))
+            self.store.finish(run['id'], error=str(exc), enqueue_delivery=self.deliver is not None)
         else:
-            self.store.finish(run['id'], result=result)
+            self.store.finish(run['id'], result=result, enqueue_delivery=self.deliver is not None)
         saved = next(r for r in self.store.runs() if r['id'] == run['id'])
-        if self.deliver and saved['status'] in ('succeeded', 'failed'):
-            try:
-                self.deliver(saved)
-            except Exception as exc:
-                self.store.delivery_failed(run['id'], str(exc))
+        if self.deliver:
+            from .delivery import DeliveryWorker
+            DeliveryWorker(self.store, lambda item: self.deliver(item['run'])).tick()
         return saved

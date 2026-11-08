@@ -24,3 +24,9 @@ this local database like project data. No real schedules are activated by these 
 
 PASS: full offline regression 135 tests. CLI behavior tested in temporary directories.
 Documentation example above is a reproducible operator check, not a claimed live run.
+
+Durable-delivery verification: run .venv/bin/python -m unittest tests.cron.test_delivery -v.
+All send callbacks use fakes and temporary DBs. Inspect queue with:
+.venv/bin/python -m senai.cron --project outputs/qa-project deliveries
+No transport/daemon is started. CLI create supports --delivery-target as a JSON object;
+this is stored routing data, not proof of permission. Unknown sends require operator review.

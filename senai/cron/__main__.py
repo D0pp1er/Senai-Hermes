@@ -2,6 +2,7 @@
 import argparse
 import json
 import sys
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 from .store import Store, timestamp
@@ -14,11 +15,12 @@ def main(argv=None):
     create = sub.add_parser('create')
     for flag in ('name', 'prompt', 'scope', 'at'):
         create.add_argument('--'+flag, required=True)
+    create.add_argument('--delivery-target', type=json.loads, help='JSON destination object; adapter must authorize it')
     create.add_argument('--timezone', default='Asia/Dhaka')
     create.add_argument('--every', type=int, help='elapsed seconds; omit for one-shot')
     create.add_argument('--retries', type=int, default=0)
     create.add_argument('--retry-delay', type=int, default=60)
-    for command in ('list', 'runs', 'dry-run'):
+    for command in ('list', 'runs', 'deliveries', 'dry-run'):
         sub.add_parser(command)
     for command in ('pause', 'resume', 'delete', 'interrupt'):
         sub.add_parser(command).add_argument('id')
@@ -31,9 +33,11 @@ def main(argv=None):
         if args.command == 'create':
             result = store.create(name=args.name, prompt=args.prompt, scope=args.scope,
                 at=datetime.fromisoformat(args.at), project=project, timezone=args.timezone,
-                every=args.every, retries=args.retries, retry_delay=args.retry_delay)
+                every=args.every, retries=args.retries, retry_delay=args.retry_delay, delivery_target=args.delivery_target)
         elif args.command == 'list':
             result = store.list()
+        elif args.command == 'deliveries':
+            result = store.deliveries()
         elif args.command == 'runs':
             result = store.runs()
         elif args.command == 'dry-run':
@@ -48,7 +52,7 @@ def main(argv=None):
             result = {'status': args.command, 'id': args.id}
         print(json.dumps(result, indent=2))
         return 0
-    except (ValueError, KeyError, OSError) as exc:
+    except (ValueError, KeyError, OSError, sqlite3.Error) as exc:
         print(str(exc), file=sys.stderr)
         return 2
 

@@ -27,3 +27,10 @@ feature-local database, not a migration of Telegram state. Shared CLI routing re
 CLI: .venv/bin/python -m senai.cron --project <directory> <command>.
 Management and dry-run only; does not invoke Codex. Dry-run is an advisory snapshot,
 not a reservation. Create requires an offset-aware ISO start; timezone is persisted metadata.
+
+## Durable delivery update
+Supersedes the earlier best-effort delivery paragraph: finish atomically inserts an outbox
+request for targeted tasks or legacy callback execution. DeliveryWorker uses independent
+pending/delivering/delivered/failed/unknown states. See delivery-contract.md for transitions,
+recovery and compatibility. Default send attempts: three total with a 60-second fixed delay;
+only explicit RetryDelivery certifies safe retry. No implicit replay of unknown sends.

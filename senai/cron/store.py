@@ -31,7 +31,15 @@ class Store:
                     status TEXT NOT NULL, attempt INTEGER NOT NULL,
                     ready_at REAL NOT NULL, result TEXT, error TEXT,
                     delivery_error TEXT);
+                CREATE TABLE IF NOT EXISTS deliveries (
+                    id TEXT PRIMARY KEY, run_id TEXT UNIQUE NOT NULL,
+                    target TEXT NOT NULL, status TEXT NOT NULL,
+                    attempt INTEGER NOT NULL DEFAULT 0, ready_at REAL NOT NULL,
+                    token TEXT, error TEXT);
             """)
+            columns = {r['name'] for r in db.execute("PRAGMA table_info(schedules)")}
+            if 'delivery_target' not in columns:
+                db.execute("ALTER TABLE schedules ADD COLUMN delivery_target TEXT")
 
     @contextmanager
     def connection(self):
@@ -44,11 +52,15 @@ class Store:
             db.close()
 
     def create(self, *, name, prompt, project, scope, at, timezone="Asia/Dhaka",
-               every=None, retries=0, retry_delay=60):
+               every=None, retries=0, retry_delay=60, delivery_target=None):
         try:
             ZoneInfo(timezone)
         except (ZoneInfoNotFoundError, TypeError) as exc:
             raise ValueError("invalid timezone") from exc
+        if delivery_target is not None:
+            if not isinstance(delivery_target, dict) or not delivery_target:
+                raise ValueError("delivery_target must be a nonempty JSON object")
+            delivery_target = json.dumps(delivery_target, allow_nan=False)
         due = timestamp(at)
         if not all(isinstance(x, str) and x.strip() for x in (name, prompt, scope)):
             raise ValueError("name, prompt and scope are required")
@@ -61,9 +73,9 @@ class Store:
             raise ValueError("project must be a directory")
         ident = uuid.uuid4().hex
         with self.connection() as db:
-            db.execute("INSERT INTO schedules VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            db.execute("INSERT INTO schedules (id,name,prompt,project,scope,timezone,enabled,next_due,every,retries,retry_delay,delivery_target) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                        (ident, name, prompt, project, scope, timezone, 1, due,
-                        every, retries, retry_delay))
+                        every, retries, retry_delay, delivery_target))
         return ident
 
     def list(self):
@@ -117,7 +129,7 @@ class Store:
             db.execute("INSERT INTO runs VALUES (:id,:schedule_id,:scheduled_at,:snapshot,:status,:attempt,:ready_at,:result,:error,:delivery_error)", row)
             return row
 
-    def finish(self, ident, *, result=None, error=None):
+    def finish(self, ident, *, result=None, error=None, enqueue_delivery=False):
         now = timestamp(self.clock())
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -130,6 +142,10 @@ class Store:
                 status = 'retry'
             db.execute("UPDATE runs SET status=?,result=?,error=?,ready_at=? WHERE id=?",
                        (status, result, error, now+policy['retry_delay'], ident))
+            target = policy.get('delivery_target')
+            if status in ('succeeded', 'failed') and (target or enqueue_delivery):
+                db.execute("INSERT INTO deliveries (id,run_id,target,status,ready_at) VALUES (?,?,?,'pending',?)",
+                           (uuid.uuid4().hex, ident, target or '{}', now))
 
     def interrupt(self, ident):
         # Operator must first establish the old worker has stopped.
@@ -140,3 +156,39 @@ class Store:
     def delivery_failed(self, ident, error):
         with self.connection() as db:
             db.execute("UPDATE runs SET delivery_error=? WHERE id=?", (error, ident))
+
+    def deliveries(self):
+        with self.connection() as db:
+            return [dict(r) for r in db.execute("SELECT * FROM deliveries ORDER BY rowid")]
+
+    def claim_delivery(self):
+        now = timestamp(self.clock())
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT * FROM deliveries WHERE status='pending' AND ready_at<=? ORDER BY ready_at,rowid LIMIT 1", (now,)).fetchone()
+            if row is None:
+                return None
+            token = uuid.uuid4().hex
+            db.execute("UPDATE deliveries SET status='delivering',attempt=attempt+1,token=? WHERE id=?", (token, row['id']))
+            item = dict(row)
+            item.update(status='delivering', attempt=item['attempt']+1, token=token)
+            item['target'] = json.loads(item['target'])
+            item['run'] = dict(db.execute("SELECT * FROM runs WHERE id=?", (item['run_id'],)).fetchone())
+            return item
+
+    def finish_delivery(self, ident, token, *, status, error=None, retry_delay=60):
+        if status not in ('delivered', 'failed', 'unknown', 'pending') or retry_delay < 1:
+            raise ValueError("invalid delivery outcome")
+        with self.connection() as db:
+            row = db.execute("UPDATE deliveries SET status=?,error=?,ready_at=?,token=NULL WHERE id=? AND token=? AND status='delivering'",
+                (status, error, timestamp(self.clock())+retry_delay, ident, token))
+            if not row.rowcount:
+                raise ValueError("delivery claim is no longer owned")
+            db.execute("UPDATE runs SET delivery_error=? WHERE id=(SELECT run_id FROM deliveries WHERE id=?)", (error, ident))
+
+    def abandon_delivery(self, ident):
+        # Only after the operator establishes that the claiming sender has stopped.
+        with self.connection() as db:
+            if not db.execute("UPDATE deliveries SET status='unknown',token=NULL,error='sender stopped; outcome unknown' WHERE id=? AND status='delivering'", (ident,)).rowcount:
+                raise ValueError("delivery is not in flight")
+            db.execute("UPDATE runs SET delivery_error='sender stopped; outcome unknown' WHERE id=(SELECT run_id FROM deliveries WHERE id=?)", (ident,))
