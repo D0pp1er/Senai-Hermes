@@ -11,11 +11,13 @@
     "senai.skills.errors",
     "senai.skills.live_demo",
     "senai.skills.sources",
-    "senai.skills.run"
+    "senai.skills.run",
+    "senai.skills.learning",
+    "senai.skills.origins"
   ],
   "public_api": [
     "Registry(root)",
-    "Registry.import_local(source) -> Skill",
+    "Registry.import_local(source, *, demo=False) -> Skill",
     "Registry.list() -> list[Skill]",
     "Registry.select(names, *, compatibility_check=None) -> list[Skill]",
     "Registry.execute(request, names, *, executor, compatibility_check=None)",
@@ -44,7 +46,17 @@
     "Registry.import_github(repository, *, commit, path, fetch=None) -> Skill",
     "run_request(registry, request, names, *, project, model=None, read_only=False, native_skills=(), executor=None, checker=None, compatibility_check=None) -> RunResult",
     "RunResult(id, status, verification, response, workspace, report_path, skills, outcome_ids, error)",
-    "RunSkill(name, version, digest, source)"
+    "RunSkill(name, version, digest, source)",
+    "Registry.stage_learning(run_id, *, path, reason) -> LearningCandidate",
+    "Registry.learning_candidates() -> list[LearningCandidate]",
+    "Registry.check_learning(candidate_id, *, validator) -> LearningValidation",
+    "Registry.learning_checks(candidate_id) -> list[LearningValidation]",
+    "Registry.accept_learning(candidate_id) -> Skill",
+    "Registry.origin(name) -> Origin",
+    "check_with_codex(registry, candidate_id, *, cases, project, model=None, executor=None) -> LearningValidation",
+    "Origin(name, kind, source_kind, source, source_run_id, source_outcome_ids, reason, original_digest, validation_id, created_at, locally_revised)",
+    "LearningCandidate(id, name, version, digest, source_run_id, source_path, source_outcome_ids, reason, path, instructions, status, created_at)",
+    "LearningValidation(id, candidate_id, digest, checks, status, error, created_at)"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -60,7 +72,13 @@
     "python -m senai.skills --project PROJECT metadata NAME",
     "python -m senai.skills --project PROJECT demo --live [--model MODEL]",
     "python -m senai.skills --project PROJECT import-github OWNER/REPO --commit SHA --path DIRECTORY",
-    "python -m senai.skills --project PROJECT run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--read-only] [--expect-file PATH]"
+    "python -m senai.skills --project PROJECT run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--read-only] [--expect-file PATH]",
+    "python -m senai.skills --project PROJECT learn --run ID --path PACKAGE --reason TEXT",
+    "python -m senai.skills --project PROJECT learning",
+    "python -m senai.skills --project PROJECT check-learning ID --cases JSON_FILE [--model MODEL]",
+    "python -m senai.skills --project PROJECT learning-checks ID",
+    "python -m senai.skills --project PROJECT accept-learning ID",
+    "python -m senai.skills --project PROJECT origin NAME"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
@@ -84,8 +102,8 @@
   },
   "storage": {
     "namespace": "<explicit project>/outputs/skills/",
-    "schema_version": 5,
-    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved. Additive accepted_versions/activation_history; idempotent backfill of existing active skills as accepted import baselines."
+    "schema_version": 6,
+    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved. Additive accepted_versions/activation_history; idempotent backfill of existing active skills as accepted import baselines. Additive origins/learning_candidates/learning_validations; idempotent legacy origins from known audit evidence or unknown."
   },
   "verification": {
     "offline_commands": [
@@ -93,10 +111,10 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 241 offline tests on ordinary-run-step working tree, including 105 feature tests. Scope guard passed. Full log outputs/skills-qa/run-suite.log. Real ordinary imported-skill artifact/format QA separately passed as recorded. Exact post-commit verification pending; delivery draft.",
-    "offline_test_count": 241,
+    "offline_result": "PASS: 252 offline tests on learned-acceptance working tree, including 116 feature tests. Scope guard passed. Full log outputs/skills-qa/learning-suite.log. Native JSON candidate checks/acceptance separately passed. Exact post-commit verification pending; final delivery draft.",
+    "offline_test_count": 252,
     "tested_commit": "",
-    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution. Ordinary CLI imported skill-creator request PASS: generated local csv-identifiers/SKILL.md; explicit existence and separate format/name checks passed. Report outputs/skills-qa/run-live-report.json. Not automatic acquisition or behavioral improvement proof."
+    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution. Ordinary CLI imported skill-creator request PASS: generated local csv-identifiers/SKILL.md; explicit existence and separate format/name checks passed. Report outputs/skills-qa/run-live-report.json. Not automatic acquisition or behavioral improvement proof. Learned acceptance PASS: user source run c0f1248ce000468e8303cf4cc1f3fc98, candidate f9f3b4739b2647048767cd79af1926c6, two native-model cases independently matched expected JSON, accepted csv-identifiers as learned_here; source origin/evidence survived restart. Log outputs/skills-qa/learn-live-checks.json."
   },
   "integration": {
     "shared_file_changes": [
@@ -105,7 +123,7 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: normal CLI/production outcome/review wiring and durable origin/new-skill authoring records pending. Reviewer explicit, not automatic.",
+    "Draft partial delivery: coordinator normal CLI/production wiring and final Obsidian view pending. Reviewer/learning acceptance explicit, not automatic.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Bounded YAML subset; Hermes metadata inert, no full runtime compatibility or source-folder/name conformance claim.",
     "Live model checks passed only for the controlled CSV demo; normal production integration unverified.",
@@ -114,8 +132,9 @@
     "No-change review results are returned but do not have a separate durable attempt log.",
     "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
     "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
-    "User deferred Obsidian export until LAST; explicit imported/learned/unknown origin classification remains backlog. No export command exists.",
+    "User deferred Obsidian export until LAST. Durable origin classification implemented; no export command exists.",
     "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition.",
-    "Ordinary runs are standalone, not the coordinator shared execution/session pipeline. File-existence checks prove only existence; generated skill artifacts are not automatically registered as learned."
+    "Ordinary runs standalone, not shared execution/session pipeline. File checks prove existence only; generated artifacts require explicit staged behavioral checks and acceptance to register as learned.",
+    "Learning cases establish only declared expected results; source-run reports/check adapters are trusted local state, not cryptographically authenticated proof or weight training."
   ]
 }

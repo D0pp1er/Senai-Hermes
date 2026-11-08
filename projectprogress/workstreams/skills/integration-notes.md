@@ -77,3 +77,13 @@ CLI run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--rea
 No dependency/schema migration. Additive outcome behavior allows exact previously accepted digests for in-flight runs after a concurrent activation; no never-accepted proposal outcomes allowed. Independent checks required for passed/failed evidence. Default unverified outcomes do not qualify for reviewer proposals. Partial outcome recording errors retain existing IDs and failure status.
 
 Real ordinary imported-skill run passed artifact existence and independent metadata parsing. This verifies routing/use on that example; no automatic learned-origin registration, global installation or generalized improvement established. Obsidian still LAST.
+
+## Learned package/origin APIs
+
+Registry.stage_learning(run_id, *, path, reason) -> LearningCandidate; Registry.learning_candidates() -> list[LearningCandidate]; Registry.check_learning(candidate_id, *, validator) -> LearningValidation; Registry.learning_checks(candidate_id) -> list[LearningValidation]; Registry.accept_learning(candidate_id) -> Skill; Registry.origin(name) -> Origin. Optional check_with_codex(registry, candidate_id, *, cases, project, model=None, executor=None) -> LearningValidation supports deterministic JSON expected-result checking. Trusted validator(candidate) supplies observed Check records.
+
+CLI: learn --run ID --path RELATIVE_PACKAGE --reason TEXT; learning; check-learning ID --cases JSON_FILE [--model MODEL]; learning-checks ID; accept-learning ID; origin NAME. list now adds origin/source_kind/locally_revised fields. import_local(source, *, demo=False) adds a backward-compatible explicit synthetic fixture label. Native/global skill invocation unaffected.
+
+Additive DB tables origins/learning_candidates/learning_validations; no destructive data migration/dependency change. Existing origin inferred only from recognized import audit evidence; other legacy data unknown. Imported plus locally revised stays imported. Source run reports are trusted project state; not cryptographically authenticated author evidence. JSON checks establish only the selected cases.
+
+Actual user-generated artifact was accepted only after two independent real-output checks. Source run ID, observed outcome IDs and validation ID persist in learned origin. Production shared routing still coordinator-owned/unapplied; no automatic background reviews or imports introduced. Obsidian export LAST.

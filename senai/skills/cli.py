@@ -12,6 +12,7 @@ from .demo import run_demo
 from .live_demo import run_live_demo
 from .review import review_with_codex
 from .run import run_request, expected_files_checker
+from .learning import check_with_codex
 
 
 def _parser():
@@ -25,7 +26,7 @@ def _parser():
     github.add_argument("repository", help="owner/repo (no URL or credentials)")
     github.add_argument("--commit", required=True, help="Exact 40-character lowercase commit SHA")
     github.add_argument("--path", required=True, help="Package directory inside repository, or . for root")
-    for name in ("show", "metadata", "versions", "history", "revisions", "outcomes"):
+    for name in ("show", "metadata", "origin", "versions", "history", "revisions", "outcomes"):
         command = commands.add_parser(name)
         command.add_argument("name")
     for name in ("validations", "activate"):
@@ -42,6 +43,18 @@ def _parser():
     review.add_argument("name")
     review.add_argument("--outcome", dest="outcome_ids", action="append", required=True)
     review.add_argument("--model", default=None)
+    commands.add_parser("learning", help="List inactive and accepted locally authored candidates")
+    learn = commands.add_parser("learn", help="Stage a generated package from a checked saved run; does not activate")
+    learn.add_argument("--run", dest="run_id", required=True)
+    learn.add_argument("--path", required=True, help="Relative package directory inside source run workspace")
+    learn.add_argument("--reason", required=True)
+    checking = commands.add_parser("check-learning", help="Use Codex on explicit JSON test cases; compare results independently")
+    checking.add_argument("candidate_id")
+    checking.add_argument("--cases", required=True, help="JSON list: name, request, expected_json per case")
+    checking.add_argument("--model", default=None)
+    for name in ("accept-learning", "learning-checks"):
+        learning_command = commands.add_parser(name)
+        learning_command.add_argument("candidate_id")
     run = commands.add_parser("run", help="Run an ordinary request with saved skills; artifacts retained under outputs/skill-runs")
     run.add_argument("name", help="Primary saved skill")
     run.add_argument("request")
@@ -93,9 +106,32 @@ def main(argv=None, stdout=None, stderr=None):
             elif args.command == "import-github":
                 result = _record(registry.import_github(args.repository, commit=args.commit, path=args.path), instructions=False)
             elif args.command == "list":
-                result = [_record(skill, instructions=False) for skill in registry.list()]
+                result = []
+                for skill in registry.list():
+                    record = _record(skill, instructions=False)
+                    origin = registry.origin(skill.name)
+                    record.update(origin=origin.kind, source_kind=origin.source_kind, locally_revised=origin.locally_revised)
+                    result.append(record)
             elif args.command == "show":
                 result = _record(registry.select([args.name])[0])
+            elif args.command == "origin":
+                result = _record(registry.origin(args.name))
+            elif args.command == "learning":
+                result = [_record(candidate) for candidate in registry.learning_candidates()]
+            elif args.command == "learn":
+                result = _record(registry.stage_learning(args.run_id, path=args.path, reason=args.reason))
+            elif args.command == "check-learning":
+                cases_path = Path(args.cases).expanduser()
+                if not cases_path.is_file() or cases_path.stat().st_size > 64000:
+                    raise SkillError("Cases must be a JSON file up to 64,000 bytes")
+                cases = json.loads(cases_path.read_text(encoding="utf-8"))
+                result = _record(check_with_codex(registry, args.candidate_id, cases=cases, project=project, model=args.model))
+            elif args.command == "accept-learning":
+                accepted = registry.accept_learning(args.candidate_id)
+                result = _record(accepted, instructions=False)
+                result["origin"] = _record(registry.origin(accepted.name))
+            elif args.command == "learning-checks":
+                result = [_record(value) for value in registry.learning_checks(args.candidate_id)]
             elif args.command == "metadata":
                 result = registry.metadata(args.name)
             elif args.command in {"versions", "history", "revisions", "outcomes"}:
@@ -116,6 +152,8 @@ def main(argv=None, stdout=None, stderr=None):
             else:
                 raise SkillError("Unsupported command")
         print(json.dumps(result, default=str, indent=2), file=out)
+        if args.command == "check-learning" and result["status"] != "passed":
+            return 2
         if args.command == "run" and result["status"] != "completed":
             return 2
         return 2 if args.command == "demo" and args.live and result.get("status") != "completed" else 0

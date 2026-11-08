@@ -10,6 +10,7 @@ from .validation import Validation
 from .activation import Activation
 from .errors import SkillError
 from .metadata import parse_document as _parse, policy_metadata
+from .origins import Origin
 from hashlib import sha256
 from pathlib import Path
 import re
@@ -114,6 +115,18 @@ class Registry:
                     self._accept(db, row)
                     self._audit(db, row[0], "import", "", row[4], reason="Preserved existing registry skill")
 
+            db.execute("CREATE TABLE IF NOT EXISTS origins (name TEXT PRIMARY KEY,kind TEXT NOT NULL,source_kind TEXT NOT NULL,source TEXT NOT NULL,source_run_id TEXT NOT NULL,outcome_ids TEXT NOT NULL,reason TEXT NOT NULL,original_digest TEXT NOT NULL,validation_id TEXT NOT NULL,created_at TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS learning_candidates (id TEXT PRIMARY KEY,name TEXT NOT NULL,version TEXT NOT NULL,digest TEXT NOT NULL,source_run_id TEXT NOT NULL,source_path TEXT NOT NULL,outcome_ids TEXT NOT NULL,reason TEXT NOT NULL,directory TEXT NOT NULL,accepted INTEGER NOT NULL,created_at TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS learning_validations (id TEXT PRIMARY KEY,candidate_id TEXT NOT NULL,digest TEXT NOT NULL,checks TEXT NOT NULL,status TEXT NOT NULL,error TEXT NOT NULL,created_at TEXT NOT NULL)")
+            for name, source in db.execute("SELECT name,source FROM skills").fetchall():
+                if db.execute("SELECT 1 FROM origins WHERE name=?", (name,)).fetchone():
+                    continue
+                event = db.execute("SELECT to_digest,reason,created_at FROM activation_history WHERE skill_name=? AND action='import' ORDER BY rowid LIMIT 1", (name,)).fetchone()
+                known = event and event[1] in {"Validated package import", "Validated local import"}
+                kind = "imported" if known else "unknown"
+                source_kind = "github" if known and source.startswith("https://github.com/") else "local" if known else "legacy"
+                db.execute("INSERT INTO origins VALUES (?,?,?,?,?,?,?,?,?,?)", (name,kind,source_kind,source,"","[]","Legacy import evidence" if known else "Insufficient legacy origin evidence",event[0] if event else "","",event[2] if event else ""))
+
     @contextmanager
     def _connect(self):
         db = sqlite3.connect(self.root / "registry.sqlite3")
@@ -123,18 +136,18 @@ class Registry:
         finally:
             db.close()
 
-    def import_local(self, source):
+    def import_local(self, source, *, demo=False):
         source = Path(source).absolute()
         if self.root == source.resolve() or self.root.is_relative_to(source.resolve()):
             raise SkillError("Source cannot contain registry")
         files, _ = _snapshot(source)
-        return self._import_files(files, str(source.resolve()))
+        return self._import_files(files, str(source.resolve()), origin={"kind": "demo" if demo else "imported", "source_kind": "controlled-fixture" if demo else "local"})
 
     def import_github(self, repository, *, commit, path, fetch=None):
         from .sources import import_github
         return import_github(self, repository, commit=commit, path=path, fetch=fetch)
 
-    def _import_files(self, files, source):
+    def _import_files(self, files, source, *, origin=None, before_commit=None):
         from .sources import _path
         if not isinstance(files, dict) or "SKILL.md" not in files or len(files) > 256:
             raise SkillError("Package requires SKILL.md and at most 256 files")
@@ -164,7 +177,11 @@ class Registry:
                 row = (metadata["name"], metadata["version"], metadata["description"], source, digest, directory)
                 db.execute("INSERT INTO skills VALUES (?, ?, ?, ?, ?, ?)", row)
                 self._accept(db, row)
-                self._audit(db, row[0], "import", "", digest, reason="Validated package import")
+                details = {} if origin is None else origin
+                if before_commit is not None:
+                    before_commit(db, row[0], digest)
+                self._audit(db, row[0], "import", "", digest, reason=("Accepted learned skill: " + details["reason"]) if details.get("kind") == "learned_here" else "Validated package import")
+                db.execute("INSERT INTO origins VALUES (?,?,?,?,?,?,?,?,?,?)", (row[0], details.get("kind", "imported"), details.get("source_kind", "local"), source, details.get("source_run_id", ""), json.dumps(details.get("source_outcome_ids", ())), details.get("reason", "Validated package import"), digest, details.get("validation_id", ""), datetime.now(timezone.utc).isoformat()))
         except BaseException:
             shutil.rmtree(stage, ignore_errors=True)
             shutil.rmtree(target, ignore_errors=True)
@@ -452,3 +469,32 @@ class Registry:
         skill = self.select([name])[0]
         metadata, _ = _parse(skill.path.read_bytes())
         return metadata
+
+    def origin(self, name):
+        _name(name)
+        with self._connect() as db:
+            row = db.execute("SELECT name,kind,source_kind,source,source_run_id,outcome_ids,reason,original_digest,validation_id,created_at FROM origins WHERE name=?", (name,)).fetchone()
+            revised = db.execute("SELECT 1 FROM activation_history WHERE skill_name=? AND action='activate' LIMIT 1", (name,)).fetchone()
+        if row is None:
+            raise SkillError("Skill origin is not registered")
+        return Origin(*row[:5], tuple(json.loads(row[5])), *row[6:], bool(revised))
+
+    def stage_learning(self, run_id, *, path, reason):
+        from .learning import stage_learning
+        return stage_learning(self, run_id, path=path, reason=reason)
+
+    def learning_candidates(self):
+        from .learning import learning_candidates
+        return learning_candidates(self)
+
+    def check_learning(self, candidate_id, *, validator):
+        from .learning import check_learning
+        return check_learning(self, candidate_id, validator=validator)
+
+    def learning_checks(self, candidate_id):
+        from .learning import learning_checks
+        return learning_checks(self, candidate_id)
+
+    def accept_learning(self, candidate_id):
+        from .learning import accept_learning
+        return accept_learning(self, candidate_id)

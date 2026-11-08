@@ -19,7 +19,7 @@ def run_demo(project):
     document = "---\nname: demo-workflow\ndescription: Synthetic offline lifecycle fixture\nversion: 1\n---\nCheck the example result.\n"
     (source / "SKILL.md").write_text(document, encoding="utf-8")
     registry = Registry(prepare_workspace(demo_project) / "skills")
-    original = registry.import_local(source)
+    original = registry.import_local(source, demo=True)
     outcome = registry.record_outcome("demo-workflow", digest=original.digest, request="Synthetic boundary example", result="Simulated failure", checks=(Check("synthetic boundary", False, "Fixture deliberately reports a boundary failure"),), correction="Add boundary checks")
     revision = registry.propose_revision("demo-workflow", document=document.replace("version: 1", "version: 2").replace("Check the example result.", "Check the example result and boundary cases."), outcome_ids=(outcome.id,), reason="Demonstrate an evidence-linked proposal")
     validation = registry.validate_revision(revision.id, validator=lambda *args: (Check("synthetic regression", True, "Injected fixture result; no real task/model evaluated"),))

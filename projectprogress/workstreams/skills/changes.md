@@ -32,3 +32,6 @@
 
 - 2026-11-09, 08d29aa: pinned public acquisition.
 - 2026-11-09, ordinary-request step: saved-skill run CLI, isolated retained artifacts/context, native skill mentions, explicit checker/file evidence and in-flight accepted-version identity. Thirteen new tests and a real imported skill-creator artifact-generation run passed.
+
+- 2026-11-09, 3cb011e: ordinary saved-skill requests.
+- 2026-11-09, learning acceptance: inactive generated-package staging, independent exact-output checks, latest-pass atomic acceptance and persistent truthful origins. Eleven new tests; actual user-authored CSV skill passed 2/2 live cases and was accepted as learned_here.

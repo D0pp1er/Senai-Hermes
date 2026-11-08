@@ -77,7 +77,7 @@ def run_live_demo(project, *, executor=None, model=None, emit=None):
     source.mkdir(parents=True)
     (source / "SKILL.md").write_text(_BASE_DOCUMENT, encoding="utf-8")
     registry = Registry(prepare_workspace(demo_project) / "skills")
-    original = registry.import_local(source)
+    original = registry.import_local(source, demo=True)
     report_path = demo_project / "outputs" / "report.json"
     report = {"mode": "live-codex-controlled-fixture", "executor_kind": "native-codex" if executor is None else "injected", "status": "running", "project": str(demo_project), "registry": str(registry.root), "skill": original.name, "report_path": str(report_path), "stages": [], "artifacts": [], "limitation": "Deliberately lossy imported fixture and known checks; demonstrates a controlled correction, not general autonomous improvement. Injected executors may be used in offline tests."}
 

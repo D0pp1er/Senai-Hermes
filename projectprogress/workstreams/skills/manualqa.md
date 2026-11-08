@@ -189,3 +189,25 @@ Expected: status completed, verification passed for requested file existence, no
 Observed native live QA PASS: imported skill-creator generated csv-identifiers/SKILL.md (2,126 bytes) in outputs/skills-import-demo/run-izmdpt0k/outputs/skill-runs/e1da4304dfb841eb84e8b3cf91e30e67/workspace. Explicit file check passed. Host parsed SKILL.md and checked name csv-identifiers separately; PASS. Reports outputs/skills-qa/run-live-report.json and run-live-format-check.json. Outcome ID 46459b96ec5842fe8bbfcc2579b83a3d is linked to the original imported skill-creator digest. No automatic generated-skill registration/native install is claimed. This is actual model evidence, separate from injected offline tests.
 
 Ordinary-run-step full offline suite: PASS, 241 tests (105 skills tests). Scope guard: PASS. Full log outputs/skills-qa/run-suite.log. Separate actual model artifact/format QA PASS as above.
+
+## Checked learned-skill acceptance and origin
+
+```bash
+.venv/bin/python -m unittest tests.skills.test_learning -v
+```
+
+Expected eleven passing tests: inactive staging/restart, accepted origin/evidence, no/failed/later-error gates, candidate tamper, source-run/path guards, duplicate-name atomicity, imported revision classification, independent JSON checking, legacy origin migration and actual CLI routing/failure codes. Initial red log outputs/skills-qa/learning-red.log. Offline models are injected; native evidence below is separate.
+
+Actual user artifact from run c0f1248ce000468e8303cf4cc1f3fc98 staged with learn --path csv-identifiers into candidate f9f3b4739b2647048767cd79af1926c6. Live check-learning used two requests; expected JSON ["001","002"] and ["007","000","42"] was compared by host, not provided in model prompts. Both passed, then accept-learning succeeded. Reopening registry preserved origin and evidence. Files under outputs/skills-qa/: learn-candidate.json, learn-cases.json, learn-live-checks.json and learn-accepted.json. New package name csv-identifiers, origin learned_here; existing skill-creator remains imported. This is instruction package acquisition/checked reuse, not weight training or broad improvement proof.
+
+Inspect now:
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k list
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k origin csv-identifiers
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k learning-checks f9f3b4739b2647048767cd79af1926c6
+```
+
+For a future generated skill: learn --run RUN_ID --path RELATIVE_PACKAGE --reason TEXT, inspect proposed candidate, provide independent cases to check-learning CANDIDATE_ID --cases FILE, then accept-learning CANDIDATE_ID only if latest checks pass. Staging never activates. Reusing an accepted name requires versioned revisions, not duplicate learning acceptance. Cases JSON is a list of objects with name, request and expected_json. No-check/error/failed cases cannot activate.
+
+Learned-acceptance full offline suite: PASS, 252 tests (116 skills tests). Scope guard: PASS. Log outputs/skills-qa/learning-suite.log. Separate actual candidate checks/acceptance PASS as detailed above.

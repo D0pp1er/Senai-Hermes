@@ -126,4 +126,4 @@ def import_github(registry, repository, *, commit, path, fetch=None):
             raise SkillError("Downloaded bytes did not match the pinned Git blob")
         files[relative] = data
     source = "https://github.com/" + repository + "/tree/" + commit + ("/" + urllib.parse.quote(package, safe="/") if package else "")
-    return registry._import_files(files, source)
+    return registry._import_files(files, source, origin={"kind": "imported", "source_kind": "github"})

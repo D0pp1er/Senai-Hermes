@@ -14,7 +14,7 @@ DONE: pinned public GitHub acquisition with thirteen validation/provenance/trave
 
 ## 3. Accurate origin and learning records
 
-Add explicit imported/learned_here/unknown provenance where needed; synthetic fixtures visibly labelled. An imported skill revised here remains imported with a locally_revised flag. Genuine new-skill authoring must be evidence-guided and separately validated. No false learned_here labels based on installation, a demo or wording.
+DONE: explicit imported/learned_here/unknown/demo origin records, with latest-check-gated generated-skill acceptance and actual native JSON-case verification. Synthetic fixtures explicitly labelled for new imports. An imported skill revised here remains imported with a locally_revised flag. The user-generated CSV package passed separate expected-output checks and was accepted from its retained source run; other new packages must follow the same evidence/check gate. No false learned_here labels based on installation, a demo or wording.
 
 ## 4. Production integration and final verification
 
