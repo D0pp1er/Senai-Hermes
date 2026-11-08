@@ -103,3 +103,24 @@ text delivery snapshots/part cursors remain usable; already-partial legacy text
 finishes without audio. No text acknowledgement for accepted /voice requests.
 Normal chat, photo delivery, explicit /result, optional key setup and native auth stay.
 No merge/restart/live API playback performed; coordinator review is the next step.
+
+## Voice-only integration (2026-11-09)
+
+Merged feature/integrations through fadeea4 (tested implementation c858952) in af84cc2. Feature scope/readiness and all 216 branch tests passed again. Resolved the Telegram CLI startup conflict by combining protected optional speech loading with existing cron deadlines and independent delivery callbacks. Added tests/coordination/test_voice_cron_composition.py for configured/unavailable speech alongside cron startup. All 345 combined tests passed. Logs: outputs/qa-integrations/coordinator-voice-review.log in the feature worktree, and outputs/voice-only-combined-regression.log plus outputs/voice-cron-composition.log on main.
+
+Current /voice policy supersedes prior text-plus-audio documentation: audio only on successful upload, text fallback when unavailable/failing, no text acknowledgement, and persisted audio/fallback choice across delivery retries. Legacy partial text replies finish as text. Explicit /result still returns text. Optional local voice configuration commands are included; setup remains skippable. New voice_delivery storage is additive and media-local.
+
+No Telegram credentials, production jobs/pairing/media/native authentication/session state were accessed or changed. No bot restart, live API test, push or deployment was performed. No further blocking code fixes found. Later operator-managed live QA should verify /voice QUESTION, bare /voice, explicit /result, unavailable-key fallback and restart/retry continuity. Network acceptance followed by local persistence failure remains an acknowledged ambiguity; no exactly-once claim.
+
+Safely update the feature worktree using a fast-forward merge (do not rebase already-integrated history). The coordinator has NOT updated that worktree:
+    cd /home/rk/SentiensHermes/senai-integrations
+    git status --short
+    git branch --show-current
+Stop if the tree is not clean or the branch is not feature/integrations. Then:
+    git merge --ff-only main
+    source .venv/bin/activate
+    python -m pip install -e .
+    python -m pip check
+    python -m unittest discover -s tests -v
+    python scripts/check_workstream_scope.py --feature integrations --ready
+Reinstalling in this worktree's .venv includes the cron dependencies now present on main; never use pip --user or reinstall globally. If fast-forward refuses because new feature commits were added, stop for coordinator review; do not reset or automatically rebase. These commands do not restart the bot or migrate live runtime state.

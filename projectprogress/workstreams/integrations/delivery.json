@@ -23,7 +23,7 @@
     },
     {
       "name": "CommandRunner",
-      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None)",
+      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None)",
       "purpose": "Use existing exact native session/executor; prepare selected media and optional speech."
     },
     {
@@ -38,7 +38,7 @@
     },
     {
       "name": "BotService",
-      "signature": "BotService(api, store, router, runner, *, poll_timeout=10, transport=None, media=None)",
+      "signature": "BotService(api, store, router, runner, *, poll_timeout=10, transport=None, media=None, idle_work=None, idle_delivery=None)",
       "purpose": "Reuse existing worker; deliver stable text and media with authorization checks."
     },
     {
@@ -137,5 +137,20 @@
   "external_services": [
     "Optional OpenAI Speech API: dedicated env key, saved protected voice file, then generic OpenAI env key; local setup/check makes no network call.",
     "Installed Codex built-in image generation when available; no image API client/key added"
-  ]
+  ],
+  "coordinator_integration": {
+    "merge_commit": "af84cc2",
+    "source_tip": "fadeea4",
+    "tested_implementation": "c858952",
+    "feature_test_count": 216,
+    "combined_test_count": 345,
+    "combined_result": "passed",
+    "cli_conflict_resolution": "Protected voice loading plus existing bounded cron/session and independent delivery hooks",
+    "live_bot_restarted": false,
+    "production_state_used": false,
+    "evidence": [
+      "outputs/voice-only-combined-regression.log",
+      "outputs/voice-cron-composition.log"
+    ]
+  }
 }
