@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -107,20 +107,19 @@
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
-      ".venv/bin/python -m unittest tests.integrations.test_voice_config tests.integrations.test_voice_setup_cli -v",
+      ".venv/bin/python -m unittest tests.integrations.test_telegram_voice -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready",
       "git diff --check"
     ],
     "offline_result": "passed",
     "offline_test_count": 216,
-    "tested_commit": "voice-only working tree before commit",
+    "tested_commit": "c858952a171916d28ed34941417c5ce56e4a4baf",
     "live_result": "not-run",
     "evidence_logs": [
-      "outputs/qa-integrations/voice-setup-regression.log",
-      "outputs/qa-integrations/voice-setup-focused.log",
-      "outputs/qa-integrations/voice-config-red.log",
-      "outputs/qa-integrations/voice-cli-red.log",
-      "outputs/qa-integrations/voice-compat-red.log"
+      "outputs/qa-integrations/voice-only-red.log",
+      "outputs/qa-integrations/voice-no-key-red.log",
+      "outputs/qa-integrations/voice-only-green.log",
+      "outputs/qa-integrations/voice-only-regression.log"
     ]
   },
   "integration": {

@@ -133,3 +133,5 @@ Current expected checks after separately approved integration/restart:
 Offline fixtures cover these plus legacy partially sent text completion without audio.
 Logs: outputs/qa-integrations/voice-only-{red,green,regression}.log and voice-no-key-red.log.
 Live API/audio checks NOT RUN; no production process/state was touched.
+
+Final voice-only verification: c858952a171916d28ed34941417c5ce56e4a4baf, 216 regression tests PASS and 23 voice tests PASS. Exact log: outputs/qa-integrations/voice-only-regression.log. Readiness metadata now records this source commit. No live playback/restart performed.
