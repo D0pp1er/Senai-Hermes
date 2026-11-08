@@ -384,3 +384,32 @@ Telegram now passes private updates through TelegramAdapter into the existing au
 ## Telegram media outbox
 
 CommandRunner prepares selected image snapshots and optional speech; BotService sends durable text then MediaOutbox uploads snapshots with a separate media.sqlite3 cursor. Existing job/session/pairing tables are retained. Dedicated speech credentials are excluded from Codex child environments; native Codex API authentication remains available.
+
+## Installation memory integration (2026-11-09)
+
+Memory is opt-in through one explicit existing installation root:
+    export SENAI_INSTALLATION_ROOT=/absolute/path/to/installation
+    senai --project /absolute/path/to/project-a "Remember in USER.md: Prefers concise replies"
+    senai --project /absolute/path/to/project-b "What response style do I prefer?"
+
+Alternatively pass --installation ROOT on each call. The installation root stays constant across projects; no inference from cwd, home, package location or Telegram identity. One owner per installation only. USER.md and MEMORY.md live at ROOT/outputs/.senai-memory/, alongside human-controlled SOUL.md and memory.db.
+
+Direct management is available as senai memory --installation ROOT remember USER.md "Prefers concise replies" --user-requested. With SENAI_INSTALLATION_ROOT configured, the memory subcommand uses that root automatically.
+
+Fresh execution loads a bounded InstallationMemory snapshot. Native thread.started events bind it in native-snapshots.sqlite3; exact --resume ID reuses that persisted snapshot without rereading changed profiles. --last, ephemeral mode and sessions without a stored snapshot fail clearly rather than silently selecting/rebuilding context. Existing native sessions and old scoped memory are retained and not silently adopted/imported. Unconfigured runs retain the original execution path. Native interactive/pass-through commands do not gain memory injection.
+
+Explicit requests "Remember in USER.md: FACT", "Remember in MEMORY.md: FACT", or "Remember that FACT" are saved after successful execution (the latter defaults to MEMORY.md). Telegram's presentation wrapper is supported when its child inherits the explicitly configured root; no production bot was enabled/restarted for this integration. Automatic SOUL save requests are rejected. App-managed profile instructions are cooperative; this is not a sandbox against hostile filesystem writes.
+
+Trusted app validators can call InstallationRuntime.execute(..., learning=validator). The validator receives (request, successful_response, workspace) and returns LearningDecision objects. A noteworthy event requires noteworthy=True AND verified=True; user_requested must represent real user authorization. Ordinary model output, "Memory:" lines and success text never grant verification or trigger implicit saving. No autonomous noteworthy classifier is introduced. Learning does not refresh an existing session's frozen context.
+
+Integrated feature/memory through 3146de5 in merge 0f0c979. Coordinator lifecycle wiring: 62cbf9f. Feature scope/readiness passed before merge, with 176 offline tests (40 memory tests). Combined regression: 235 passed, including existing Telegram media/auth tests, 40 memory tests and 11 coordinator memory lifecycle tests. TDD logs include failing missing-runtime and SOUL-write tests before implementations.
+
+Real isolated Codex acceptance at 62cbf9f: project A saved a harmless USER.md fact; a distinct fresh session in project B recalled it from the same installation. Exact-ID resume also succeeded. No production bot state, jobs, pairing, sessions or credentials were copied or used; no push, deployment or production restart.
+
+Evidence:
+- outputs/memory-combined-regression.log
+- outputs/memory-transport-tests.log
+- outputs/qa-memory-installation/acceptance.json
+- outputs/qa-memory-installation/first-session.jsonl
+- outputs/qa-memory-installation/final-fresh-session.jsonl
+- outputs/qa-memory-installation/final-resume.jsonl

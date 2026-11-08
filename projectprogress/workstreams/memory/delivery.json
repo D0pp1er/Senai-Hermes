@@ -206,11 +206,22 @@
   },
   "limitations": [
     "Installation-wide mode assumes exactly one owner; not suitable for independent users sharing an installation",
-    "Shared configuration/CLI/native lifecycle and app noteworthy-event judgment are not wired or live tested",
+    "Coordinator CLI/native lifecycle now wired and isolated-live tested; noteworthy-event classification remains a trusted injected validator, not an autonomous model classifier",
     "Decision flags are trusted caller assertions, not authorization or verification by the memory module",
     "Legacy scoped data is preserved but not automatically migrated or loaded",
     "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
     "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
     "Concurrent edits raise conflicts; no secure erasure or retraction of old session context"
-  ]
+  ],
+  "coordinator_integration": {
+    "merge_commit": "0f0c979",
+    "wiring_commit": "62cbf9f",
+    "configured_root": "--installation or SENAI_INSTALLATION_ROOT",
+    "combined_test_count": 235,
+    "combined_offline_result": "passed",
+    "isolated_live_recall": "passed",
+    "exact_native_resume": "passed",
+    "production_bot_state_used": false,
+    "evidence": "outputs/qa-memory-installation/acceptance.json"
+  }
 }

@@ -240,3 +240,19 @@
 - Distributed identical coordinator rules/tooling and committed only those paths plus missing per-feature delivery records on all four active branches. No feature code was overwritten or rebased.
 - All four ownership audits passed. Ten scope/readiness tests pass in each worktree; main regression suite has 136 passing tests.
 - Feature manifests remain draft until module owners provide actual public API, dependencies, storage/migration, executor shape, and verification evidence.
+
+## Installation memory integration (2026-11-09)
+
+Added opt-in single-owner installation memory, global USER.md/MEMORY.md, persistent native-session snapshots and controlled learning. Existing unconfigured execution and Telegram state are preserved.
+
+Integrated feature/memory through 3146de5 in merge 0f0c979. Coordinator lifecycle wiring: 62cbf9f. Feature scope/readiness passed before merge, with 176 offline tests (40 memory tests). Combined regression: 235 passed, including existing Telegram media/auth tests, 40 memory tests and 11 coordinator memory lifecycle tests. TDD logs include failing missing-runtime and SOUL-write tests before implementations.
+
+Real isolated Codex acceptance at 62cbf9f: project A saved a harmless USER.md fact; a distinct fresh session in project B recalled it from the same installation. Exact-ID resume also succeeded. No production bot state, jobs, pairing, sessions or credentials were copied or used; no push, deployment or production restart.
+
+Evidence:
+- outputs/memory-combined-regression.log
+- outputs/memory-transport-tests.log
+- outputs/qa-memory-installation/acceptance.json
+- outputs/qa-memory-installation/first-session.jsonl
+- outputs/qa-memory-installation/final-fresh-session.jsonl
+- outputs/qa-memory-installation/final-resume.jsonl
