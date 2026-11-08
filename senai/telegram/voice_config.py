@@ -14,7 +14,7 @@ from .speech import OpenAISpeech
 
 __all__ = ['VoiceConfigError', 'default_voice_file', 'write_voice_key',
            'read_voice_key', 'remove_voice_key', 'resolve_voice_key',
-           'configure_voice', 'offer_voice_setup', 'speech_from_configuration']
+           'configure_voice', 'offer_voice_setup', 'speech_from_configuration', 'manage_voice']
 
 
 class VoiceConfigError(ValueError):
@@ -40,14 +40,16 @@ def default_voice_file(project, *, environ=None):
 
 def _path(project, environ):
     project = Path(project).expanduser().resolve()
+    if not project.is_dir():
+        raise VoiceConfigError('Project must be an existing directory.')
     path = default_voice_file(project, environ=environ).absolute()
-    if path.resolve().is_relative_to(project):
-        raise VoiceConfigError('Voice credentials must remain outside the controlled project.')
     for parent in (path, *path.parents):
         if parent.is_symlink():
             raise VoiceConfigError('Voice configuration paths must not contain symlinks.')
         if parent.is_dir() and ((parent / '.git').exists() or (parent / '.git').is_symlink()):
             raise VoiceConfigError('Voice credentials must remain outside Git repositories.')
+    if path.resolve().is_relative_to(project):
+        raise VoiceConfigError('Voice credentials must remain outside the controlled project.')
     return path
 
 
@@ -155,7 +157,7 @@ def _hidden_key(prompt=None):
             # Never allow getpass's non-TTY fallback to echo a secret.
             warnings.simplefilter('error', getpass.GetPassWarning)
             return (prompt or getpass.getpass)('OpenAI voice API key (hidden; Enter keeps saved key or skips): ').strip()
-    except (getpass.GetPassWarning, EOFError, OSError):
+    except (getpass.GetPassWarning, EOFError, OSError, ValueError):
         raise VoiceConfigError('Hidden local input requires a secure terminal; no key was saved.') from None
 
 
@@ -165,6 +167,7 @@ def _restart_notice(stdout):
 
 
 def configure_voice(project, *, stdout, prompt=None, environ=None):
+    _path(project, environ)  # Fail before asking for a secret if the location is unsafe.
     entered = _hidden_key(prompt)
     if not entered:
         print('Saved voice configuration kept; voice setup skipped.' if read_voice_key(project, environ=environ) else 'Voice setup skipped. Telegram works without voice.', file=stdout)
@@ -186,3 +189,29 @@ def offer_voice_setup(project, *, stdout, choice=None, prompt=None, environ=None
     except (EOFError, KeyboardInterrupt, OSError, VoiceConfigError):
         print('Voice setup skipped; Telegram remains configured. Use --voice-configure later from a secure local terminal.', file=stdout)
         return False
+
+
+def manage_voice(project, action, *, stdout, stderr, prompt=None, environ=None):
+    """Local-only management: never contacts Telegram, speech APIs or a bot process."""
+    try:
+        if action == 'configure':
+            configure_voice(project, stdout=stdout, prompt=prompt, environ=environ)
+        elif action == 'remove':
+            removed = remove_voice_key(project, environ=environ)
+            print('Saved voice key removed.' if removed else 'No saved voice key to remove.', file=stdout)
+            _restart_notice(stdout)
+        elif action == 'check':
+            selected = resolve_voice_key(project, environ=environ)
+            if selected is None:
+                print('Voice is not configured. Telegram works without voice.', file=stdout)
+                return 1
+            print(f'Voice configured via {selected.source}. Local check only; API access and billing have not been verified. /voice sends text and matching audio.', file=stdout)
+        else:
+            raise VoiceConfigError('Unsupported voice management action.')
+        return 0
+    except KeyboardInterrupt:
+        print('Voice configuration cancelled. No bot was started or restarted.', file=stderr)
+        return 130
+    except (VoiceConfigError, OSError, EOFError):
+        print('Voice configuration could not be completed. Check the protected local file/permissions or retry hidden input in a secure terminal. Telegram configuration is unchanged.', file=stderr)
+        return 2

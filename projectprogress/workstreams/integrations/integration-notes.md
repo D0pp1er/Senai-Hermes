@@ -63,3 +63,28 @@ https://developers.openai.com/api/docs/guides/text-to-speech
 https://learn.chatgpt.com/docs/image-generation
 
 Optional key storage uses separate version-1 JSON; no Telegram config or DB migration. No new runtime dependency. Old voice environment helper remains supported unchanged.
+
+## Optional voice setup handoff (supersedes environment-only setup instructions)
+
+Storage increment b57379a; CLI/setup increment follows in Git history. See features.md
+for operator commands, precedence and graceful-restart guidance. No coordinator-owned
+source changes, dependency additions or migrations needed. Existing installed CLI
+routes through the feature-owned Telegram CLI; root dispatch stays untouched.
+
+New APIs in senai.telegram.voice_config:
+- default_voice_file(project, *, environ=None) -> Path
+- write_voice_key(project, key, *, environ=None)
+- read_voice_key(project, *, environ=None) -> str | None
+- remove_voice_key(project, *, environ=None) -> bool
+- resolve_voice_key(project, *, environ=None) -> VoiceKey | None (secret excluded from repr)
+- configure_voice(project, *, stdout, prompt=None, environ=None) -> bool
+- offer_voice_setup(project, *, stdout, choice=None, prompt=None, environ=None) -> bool
+- manage_voice(project, action, *, stdout, stderr, prompt=None, environ=None) -> int
+- speech_from_configuration(project, *, environ=None) -> OpenAISpeech | None
+
+Existing environment users and native Codex API auth remain supported. A saved dedicated
+voice key intentionally takes precedence over generic OPENAI_API_KEY, isolating voice
+from native authentication. Removing the saved key does not unset environment variables
+or instantly disable a running bot; messages explain the restart/env behavior.
+/voice still sends text plus matching audio. No real key, Telegram API, speech API,
+production state, merge, bot stop/start or live restart was used for this task.

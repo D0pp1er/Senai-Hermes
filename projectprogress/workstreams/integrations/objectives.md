@@ -19,3 +19,7 @@
 
 - [x] Protected optional voice-key storage and hidden setup primitives.
 - [ ] Wire standalone commands and initial Telegram offer, verify compatibility.
+
+- [x] Initial optional setup and standalone configure/update/check/remove.
+- [x] Protected persistence, secret redaction, existing-user/state/auth compatibility.
+- [x] Feature documentation and restart guidance; audio/text behavior unchanged.

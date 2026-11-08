@@ -1,14 +1,7 @@
 # Current task
 
-Branch: feature/integrations
-Worktree: /home/rk/SentiensHermes/senai-integrations
-
-Image and /voice implementations complete offline. 184 full-suite tests pass,
-including 31 media/voice tests; ownership and whitespace checks pass.
-Next: coordinator reviews the combined media milestone, merges if accepted and
-arranges one controlled restart/live acceptance. This chat has not merged, pushed,
-started a poller, accessed production state or requested secrets.
-Voice needs local OpenAI speech API configuration; without it normal text/images
-remain available and /voice explains unavailability. Discord stays deferred.
-
-Current increment: voice config persistence tested; standalone CLI/setup integration next. No merge/restart/live key activity.
+Optional voice setup implemented on feature/integrations. Storage commit b57379a;
+CLI/setup commit next. Verify final full regression and --ready metadata, then hand off
+the tested commit to the coordinator. No merge or live bot restart is authorized.
+All verification uses temporary fixtures and synthetic keys; no production state touched.
+/voice continues to send text plus matching audio. Live API/audio checks not performed.

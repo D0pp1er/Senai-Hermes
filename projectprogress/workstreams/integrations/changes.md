@@ -72,3 +72,13 @@ Voice implementation commit: c6b930a. Follow-up native-auth regression preserves
 ## Optional voice-key setup: storage increment
 
 TDD: missing voice_config module reproduced, then 13 tests passed for private file handling, hidden input/Skip, replacement/removal, precedence, and redaction. Protected voice JSON is separate from Telegram credentials and outside Git/project. CLI wiring follows.
+
+## Optional voice setup: CLI increment
+
+- Storage commit b57379a; added --voice-configure/--voice-check/--voice-remove.
+- Optional Configure/Skip after Telegram setup, automatic protected-key load at startup.
+- Local check is explicit about not validating remote authorization/billing.
+- Echoing input fallback and raw parser/prompt errors are blocked; replacement is atomic.
+- Standalone commands never touch Telegram credentials, DBs or a bot process.
+- Regression fixtures verify old state/session byte hashes and native API authentication.
+- /voice text-plus-matching-audio behavior unchanged. No merge or production restart.

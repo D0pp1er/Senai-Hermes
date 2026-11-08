@@ -1,0 +1,71 @@
+# Telegram optional voice setup
+
+Telegram works without a voice key. During `senai telegram --configure` (with or
+without `--start`), finish Telegram pairing, then choose Configure or Skip at the
+optional voice step. Enter defaults to Skip. Skipping never deletes existing voice
+settings; existing environment settings may still enable voice. A failed/cancelled
+optional voice step leaves Telegram configured.
+
+## Configure or update later
+
+```bash
+senai telegram --project /path/to/project --voice-configure
+```
+
+Enter the OpenAI voice API key only at the hidden local prompt. Enter with an existing
+saved key keeps it unchanged; Enter with no saved key skips. Never put a key in chat,
+command arguments, shell history, Git, logs, Telegram's credential file or outputs/.
+Hidden input refuses an echoing/non-terminal fallback. Voice uses the existing OpenAI
+speech API; API usage is separately billed. Configuration does not make a paid API call.
+
+## Check or remove later
+
+```bash
+senai telegram --project /path/to/project --voice-check
+senai telegram --project /path/to/project --voice-remove
+```
+
+These local commands need no Telegram token/pairing, never create/open job stores,
+and never start/restart/poll a bot. Check verifies local configuration/permissions,
+not remote API authorization, model access, billing or sound quality. Exit codes:
+0 configured/success, 1 no key on check, 2 invalid config/arguments, 130 cancelled.
+Removal is idempotent and removes only the saved voice file. Environment keys remain
+supported and may still enable voice.
+
+## Protected storage and precedence
+
+Per canonical project: `$XDG_CONFIG_HOME/senai/voice/<project-hash>.json`, default
+`~/.config/senai/voice/<project-hash>.json`. This is separate from Telegram credentials
+and must stay outside the controlled project and Git repositories. File mode 600,
+voice directory 700, atomic updates, no symlinks/hardlinks/shared permissions.
+Read errors are reported without raw data; malformed optional config disables voice
+at startup while Telegram continues. Configure again to replace a malformed file.
+
+Key selection on bot startup:
+
+1. `SENAI_TTS_API_KEY` environment variable.
+2. Protected saved voice key.
+3. Existing `OPENAI_API_KEY` environment fallback.
+
+`SENAI_TTS_MODEL` and `SENAI_TTS_VOICE` remain supported. Dedicated voice environment
+keys override file updates; the check command reports only the active source, never
+the key. Native Codex `OPENAI_API_KEY` authentication is preserved. A file-loaded key
+is never exported into the Codex child environment. No free TTS provider or paid
+fallback change is part of this task; old unused local packages are not runtime dependencies.
+
+## Applying changes
+
+A bot reads voice configuration at startup. For an already-running bot, use its normal
+Ctrl+C stop, let the active request finish and wait for the process to exit, then
+start it once with the same project, environment/Telegram config and existing flags.
+Do not start a duplicate bot or repeat Telegram pairing. Setup/update/removal commands
+only print this guidance; they do not touch the running process. Without an active bot,
+settings apply on the first start.
+
+## Voice reply behavior is unchanged
+
+`/voice QUESTION` sends both the text answer and matching audio. Bare `/voice` sends
+the latest successful answer from that private chat as text and matching audio without
+another model turn. Normal questions remain text. Generated audio is labeled as such.
+This task does not add an audio-only mode, change retry behavior, or alter the exact
+shared Codex session. Telegram credentials, jobs, pairing, media and sessions are retained.

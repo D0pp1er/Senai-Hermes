@@ -90,3 +90,30 @@ Final rerun on a78aa29447c62fac8f60377eb1b3b74a9f8a67dd: PASS, 184 total tests,
 The remaining delivery-record commit changes no source/tests. Live acceptance NOT RUN.
 
 Voice config storage TDD: .venv/bin/python -m unittest tests.integrations.test_voice_config -v (13 tests pass). All fixtures/keys are synthetic in temporary directories; no real configuration touched. Logs: outputs/qa-integrations/voice-config-{red,green}.log.
+
+## Optional voice setup acceptance
+
+Offline tests use only synthetic keys and temporary config/project/state directories.
+Commands: .venv/bin/python -m unittest tests.integrations.test_voice_config tests.integrations.test_voice_setup_cli -v
+Full regression: .venv/bin/python -m unittest discover -s tests -v
+Readiness: .venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready
+Logs: outputs/qa-integrations/voice-config-red.log, voice-cli-red.log,
+voice-compat-red.log, voice-cli-green.log and voice-setup-regression.log.
+
+Verified offline: Configure/Skip during initial setup with/without --start; no prompt
+for existing-user startup; later configuration/replacement/check/removal without Telegram
+credentials/API/poller; Enter keeps saved key; atomic write failure preserves old file;
+600/700 modes; reject insecure/symlink/Git/project storage; secret-free malformed config,
+repr, prompt and parser diagnostics; environment precedence; invalid optional config
+keeps text Telegram operational; no environment mutation; native auth regression retained.
+Real temporary SQLite/credential fixture hashes remain identical for jobs, users, media,
+pairing and exact native UUID through standalone configuration/update/check/removal.
+Existing /voice tests still verify text and matching audio and durable retry behavior.
+
+For an operator's later manual acceptance (NOT RUN here): choose Skip during first setup
+and confirm Telegram works; configure voice later using only the hidden local prompt;
+check local status and permissions without opening/catting the key file; replace/remove
+and check status again. Confirm command output explains graceful restart and never
+prints the key. Do not repeat setup/pairing or launch another bot. Only an explicitly
+approved later restart applies changes to a running bot. Live API key validity/audio
+playback is not claimed by these local checks and was not requested for this task.

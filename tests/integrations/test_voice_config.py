@@ -151,3 +151,30 @@ class VoiceSetupTests(unittest.TestCase):
             with self.assertRaises(VoiceConfigError):
                 configure_voice(self.project, stdout=io.StringIO(), environ=self.env)
         self.assertFalse(self.path.exists())
+
+
+class VoiceAtomicityTests(unittest.TestCase):
+    setUp = VoiceFileTests.setUp
+
+    def test_failed_atomic_replacement_keeps_old_key_and_removes_temporary_file(self):
+        write_voice_key(self.project, KEY, environ=self.env)
+        with patch("senai.telegram.voice_config.os.replace", side_effect=OSError(KEY)):
+            with self.assertRaises(VoiceConfigError) as error:
+                write_voice_key(self.project, "sk-new-key", environ=self.env)
+        self.assertNotIn(KEY, str(error.exception))
+        self.assertEqual(read_voice_key(self.project, environ=self.env), KEY)
+        self.assertEqual(list(self.path.parent.iterdir()), [self.path])
+
+    def test_prompt_failure_never_includes_raw_secret_in_diagnostics(self):
+        from senai.telegram.voice_config import manage_voice
+        out, err = io.StringIO(), io.StringIO()
+        result = manage_voice(self.project, "configure", stdout=out, stderr=err,
+                              prompt=Mock(side_effect=ValueError(KEY)), environ=self.env)
+        self.assertEqual(result, 2)
+        self.assertNotIn(KEY, out.getvalue() + err.getvalue())
+
+    def test_existing_key_can_be_kept_with_enter_without_rewriting_it(self):
+        write_voice_key(self.project, KEY, environ=self.env)
+        before = self.path.stat().st_mtime_ns
+        self.assertFalse(configure_voice(self.project, stdout=io.StringIO(), prompt=lambda message: "", environ=self.env))
+        self.assertEqual(self.path.stat().st_mtime_ns, before)
