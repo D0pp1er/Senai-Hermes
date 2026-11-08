@@ -57,6 +57,14 @@ class BotService:
             if not self.router.is_authorized(job['user_id']):
                 self.store.mark_delivered(job['id'])
                 continue
+            voice_only = self.media is not None and job['status'] == 'succeeded' and self.media.has_voice(job['id'])
+            if voice_only and not job['parts_sent']:
+                outcome = self.media.deliver_voice(job, self.api, authorized=lambda: self.router.is_authorized(job['user_id']))
+                if outcome in ('audio', 'revoked'):
+                    if outcome == 'audio':
+                        self.media.deliver(job, self.api, authorized=lambda: self.router.is_authorized(job['user_id']), skip_voice=True)
+                    self.store.mark_delivered(job['id'])
+                    continue
             parts = self.store.delivery_snapshot(job['id'])
             if parts is None:
                 # Earlier releases sent a status header; retain its chunk boundaries.
@@ -69,7 +77,7 @@ class BotService:
                 self.api.send_message(job['chat_id'], part)
                 self.store.mark_part_sent(job['id'])
             if self.media is not None and job['status'] == 'succeeded':
-                self.media.deliver(job, self.api, authorized=lambda: self.router.is_authorized(job['user_id']))
+                self.media.deliver(job, self.api, authorized=lambda: self.router.is_authorized(job['user_id']), skip_voice=voice_only)
             self.store.mark_delivered(job['id'])
 
     def poll_once(self):

@@ -13,7 +13,8 @@ from ..integrations.telegram import TelegramAdapter
 from .pairing import PairingManager
 from .runner import CommandRunner
 from .media import MediaOutbox
-from .speech import speech_from_environment
+from .voice_config import (manage_voice, offer_voice_setup, speech_from_configuration, VoiceConfigError)
+from .speech import SpeechError
 from .service import BotService, instance_lock
 from .store import JobStore
 
@@ -35,11 +36,22 @@ def discover_user(api, username, stdout):
                 return 0
 
 
+class _VoiceArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        # If a key is pasted as an extra argument, argparse must not echo it.
+        self.print_usage()
+        self.exit(2, 'Invalid voice command. Use --help; enter keys only at the hidden local prompt.\n')
+
+
 def telegram_main(argv, stdout, stderr):
-    parser = argparse.ArgumentParser(prog='senai telegram', description='Control local senai through an authorized private Telegram bot.')
+    parser_type = _VoiceArgumentParser if any(value.startswith('--voice-') for value in argv) else argparse.ArgumentParser
+    parser = parser_type(prog='senai telegram', description='Control local senai through an authorized private Telegram bot.')
     parser.add_argument('--project', default='.', help='Parent project; code and bot state stay inside outputs/.')
     parser.add_argument('--env-file', help='Optional local token/user-ID assignments; never a shell script.')
     modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--voice-configure', action='store_true', help='Configure/update the optional voice API key through hidden local input; no Telegram setup or polling.')
+    modes.add_argument('--voice-check', action='store_true', help='Check local voice key availability/permissions without contacting APIs.')
+    modes.add_argument('--voice-remove', action='store_true', help='Remove the saved voice key; environment support is retained. Restart an existing bot gracefully to apply.')
     modes.add_argument('--configure', action='store_true', help='Guided token validation, private pairing, and protected config saving.')
     modes.add_argument('--setup', action='store_true', help='Discover your numeric user ID without executing requests.')
     modes.add_argument('--pair-code', action='store_true', help='Print a new single-use local pairing code; works while the bot runs.')
@@ -62,9 +74,13 @@ def telegram_main(argv, stdout, stderr):
             raise ValueError('Use --max-pending between 1 and 100 and --poll-timeout between 1 and 30.')
         if args.start and not args.configure:
             raise ValueError('--start is used with --configure.')
+        for action in ('configure', 'check', 'remove'):
+            if getattr(args, 'voice_' + action):
+                return manage_voice(args.project, action, stdout=stdout, stderr=stderr)
         if args.configure:
             from .wizard import configure_project
             configured = configure_project(args.project, env_file=args.env_file, stdout=stdout)
+            offer_voice_setup(args.project, stdout=stdout)
             if not args.start:
                 print('Start with senai telegram --project YOUR_PROJECT (add --skip-git-repo-check for non-Git folders).', file=stdout)
                 return 0
@@ -93,7 +109,11 @@ def telegram_main(argv, stdout, stderr):
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
             media = MediaOutbox(Path(args.project).expanduser().resolve() / 'outputs', state)
-            speech = speech_from_environment()
+            try:
+                speech = speech_from_configuration(args.project)
+            except (VoiceConfigError, SpeechError, OSError):
+                speech = None
+                print('Optional voice configuration is unavailable; Telegram will continue without voice. Use --voice-check or --voice-configure locally.', file=stderr)
             base_router = Router(store, users, identity['username'], max_pending=args.max_pending,
                                  acknowledge=acknowledgement, voice_enabled=speech is not None, media=media)
             scheduler = None

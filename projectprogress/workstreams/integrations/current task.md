@@ -1,12 +1,12 @@
 # Current task
 
-Branch: feature/integrations
-Worktree: /home/rk/SentiensHermes/senai-integrations
+Voice-only /voice success with text fallback is ready for coordinator review.
+Tested commit: c858952a171916d28ed34941417c5ce56e4a4baf on feature/integrations.
+216 full regression tests pass (23 voice tests); scope/whitespace checks pass.
+Final readiness records only follow the tested source commit.
 
-Image and /voice implementations complete offline. 184 full-suite tests pass,
-including 31 media/voice tests; ownership and whitespace checks pass.
-Next: coordinator reviews the combined media milestone, merges if accepted and
-arranges one controlled restart/live acceptance. This chat has not merged, pushed,
-started a poller, accessed production state or requested secrets.
-Voice needs local OpenAI speech API configuration; without it normal text/images
-remain available and /voice explains unavailability. Discord stays deferred.
+Audio success sends no acknowledgement/transcript. Speech/config/file/upload failures
+use text fallback; failed text retries do not later add audio or regenerate speech.
+Legacy partially-sent text finishes without audio. Existing key setup/auth/session,
+Telegram configuration, jobs, pairing and image delivery are preserved.
+No merge, live restart, real key/API or production state activity performed.

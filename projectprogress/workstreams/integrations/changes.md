@@ -68,3 +68,31 @@ Voice implementation commit: c6b930a. Follow-up native-auth regression preserves
   under outputs/qa-integrations/. Scope guard and whitespace check pass.
 - Delivery status ready means ready for coordinator review of this media milestone,
   not live acceptance, deployment or completion of Discord. No merge/push/restart.
+
+## Optional voice-key setup: storage increment
+
+TDD: missing voice_config module reproduced, then 13 tests passed for private file handling, hidden input/Skip, replacement/removal, precedence, and redaction. Protected voice JSON is separate from Telegram credentials and outside Git/project. CLI wiring follows.
+
+## Optional voice setup: CLI increment
+
+- Storage commit b57379a; added --voice-configure/--voice-check/--voice-remove.
+- Optional Configure/Skip after Telegram setup, automatic protected-key load at startup.
+- Local check is explicit about not validating remote authorization/billing.
+- Echoing input fallback and raw parser/prompt errors are blocked; replacement is atomic.
+- Standalone commands never touch Telegram credentials, DBs or a bot process.
+- Regression fixtures verify old state/session byte hashes and native API authentication.
+- /voice text-plus-matching-audio behavior unchanged. No merge or production restart.
+
+## Voice setup delivery evidence
+
+- b57379a: protected optional voice credentials.
+- fa9c209: optional initial offer and standalone voice commands.
+- Exact tested implementation: fa9c20963ec146339c1c409573255b667b571c33.
+- 210 full regression tests and 26 new setup/config tests PASS. Scope/diff PASS.
+- Readiness metadata updated for coordinator review; no merge/restart/API/live activity.
+
+## Voice-only output
+
+User requested audio-only /voice success, text fallback. Updated durable delivery choice, omitted voice acknowledgements, added no-key/legacy/retry coverage and revised setup/help/docs. 216 offline tests pass. No changes to credentials/native auth/shared session, no live restart or merge.
+
+Voice-only implementation commit c858952; exact tested commit c858952a171916d28ed34941417c5ce56e4a4baf. 216 full tests and 23 voice tests PASS; scope/diff PASS. Ready for coordinator review, live playback NOT RUN.

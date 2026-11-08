@@ -72,3 +72,41 @@ modified content. Revoked users receive no pending text/media. Missing/corrupt m
 gets a brief fallback rather than blocking the outbox. A crash after successful
 remote send but before cursor persistence may duplicate that item; exactly-once
 remote delivery is not claimed. Interrupted execution is not silently rerun.
+
+## Optional voice credential persistence
+
+voice_config.py uses canonical project SHA-256 (20 hex chars) to select $XDG_CONFIG_HOME/senai/voice/<hash>.json (default ~/.config). File mode 600, dedicated directory 700; atomic temp-file replacement. Reads require owned regular single-link files, reject symlinks, shared permissions, oversized/invalid JSON and storage inside project/Git. Secrets are excluded from repr and diagnostics. Precedence: SENAI_TTS_API_KEY, saved voice key, OPENAI_API_KEY. No process environment mutation or database changes.
+
+## Voice setup lifecycle
+
+The feature-owned Telegram CLI offers optional Configure/Skip after successful
+Telegram configuration and before optional first startup. Standalone --voice-configure,
+--voice-check and --voice-remove dispatch before Telegram token lookup, API creation,
+state-directory setup or poller startup. They never touch jobs/media/session DBs.
+Voice-only parser diagnostics omit raw invalid arguments to avoid echoing pasted keys.
+
+Startup now calls speech_from_configuration(project). Resolution is dedicated voice
+environment -> protected saved voice JSON -> existing generic environment fallback.
+Model/voice env overrides remain. The old speech_from_environment helper is unchanged.
+The selected VoiceKey has secret-free repr; no saved key is put in os.environ or child
+arguments. Startup reads configuration once; later updates require normal graceful
+restart, never a second poller. Invalid optional config disables voice with a generic
+warning while Telegram continues. --voice-check is local only and performs no API call.
+No Telegram schema/session migration or reply-format change is introduced.
+
+## Voice-only delivery (current policy, supersedes text-plus-audio above)
+
+Prepared voice replies go through MediaOutbox.deliver_voice before any text snapshot
+is sent. Successful audio suppresses the transcript/acknowledgement. The answer stays
+in the job record for fallback and explicit /result. New additive voice_delivery
+(job_id PRIMARY KEY, outcome) records audio or fallback in media.sqlite3, preserving
+all existing tables and cursors. Audio success is recorded before job finalization;
+retries after finalization/other-media failures do not resend it. Failed/missing audio
+records fallback before attempting text so later retries cannot switch back to audio.
+Text fallback retains existing stable chunk snapshots/cursors. Speech generation is
+never repeated by delivery retry. Missing configuration queues /voice questions as
+normal text requests; bare /voice returns that chat's latest answer as text. Legacy
+partially sent text completes without audio. Images retain their normal media flow.
+Authorization is checked before audio/media; access/auth/polling errors still stop
+rather than claiming text delivery to a destination the bot cannot access. A network
+failure after remote acceptance can still cause ambiguity; no exactly-once guarantee.

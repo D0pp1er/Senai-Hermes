@@ -56,5 +56,5 @@ def chat_request(request, *, attachment_manifest=None, voice_reply=False):
             "Describe the result briefly without claiming upload already succeeded. "
         ) + style[end:]
     if voice_reply:
-        style += " This answer will also be spoken as an AI-generated voice note in Telegram. Keep it brief and natural to hear; avoid code and tables unless essential."
+        style += " This answer will be spoken as an AI-generated voice note in Telegram, with text used only if audio is unavailable. Keep it brief and natural to hear; avoid code and tables unless essential."
     return style + "\n\nUser message:\n" + request

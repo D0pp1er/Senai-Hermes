@@ -88,3 +88,50 @@ integration-notes.md; never paste credentials in chat or tracked config.
 Final rerun on a78aa29447c62fac8f60377eb1b3b74a9f8a67dd: PASS, 184 total tests,
 31 media/voice tests. Scope/diff checks PASS. Final evidence supersedes earlier counts.
 The remaining delivery-record commit changes no source/tests. Live acceptance NOT RUN.
+
+Voice config storage TDD: .venv/bin/python -m unittest tests.integrations.test_voice_config -v (13 tests pass). All fixtures/keys are synthetic in temporary directories; no real configuration touched. Logs: outputs/qa-integrations/voice-config-{red,green}.log.
+
+## Optional voice setup acceptance
+
+Offline tests use only synthetic keys and temporary config/project/state directories.
+Commands: .venv/bin/python -m unittest tests.integrations.test_voice_config tests.integrations.test_voice_setup_cli -v
+Full regression: .venv/bin/python -m unittest discover -s tests -v
+Readiness: .venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready
+Logs: outputs/qa-integrations/voice-config-red.log, voice-cli-red.log,
+voice-compat-red.log, voice-cli-green.log and voice-setup-regression.log.
+
+Verified offline: Configure/Skip during initial setup with/without --start; no prompt
+for existing-user startup; later configuration/replacement/check/removal without Telegram
+credentials/API/poller; Enter keeps saved key; atomic write failure preserves old file;
+600/700 modes; reject insecure/symlink/Git/project storage; secret-free malformed config,
+repr, prompt and parser diagnostics; environment precedence; invalid optional config
+keeps text Telegram operational; no environment mutation; native auth regression retained.
+Real temporary SQLite/credential fixture hashes remain identical for jobs, users, media,
+pairing and exact native UUID through standalone configuration/update/check/removal.
+Existing /voice tests still verify text and matching audio and durable retry behavior.
+
+For an operator's later manual acceptance (NOT RUN here): choose Skip during first setup
+and confirm Telegram works; configure voice later using only the hidden local prompt;
+check local status and permissions without opening/catting the key file; replace/remove
+and check status again. Confirm command output explains graceful restart and never
+prints the key. Do not repeat setup/pairing or launch another bot. Only an explicitly
+approved later restart applies changes to a running bot. Live API key validity/audio
+playback is not claimed by these local checks and was not requested for this task.
+
+Final voice setup evidence: exact source commit fa9c20963ec146339c1c409573255b667b571c33; 210 total tests PASS and 26 setup/config tests PASS. Scope/diff PASS. Final readiness command recorded in delivery.json; records-only commit follows. No live API/auth/audio acceptance or restart claimed.
+
+## Current voice-only acceptance (supersedes earlier dual-output checks)
+
+TDD: voice-only success, no acknowledgement, upload-failure/missing-file fallback,
+restart-after-fallback, interrupted-finalization and no-key cases failed before changes.
+Current expected checks after separately approved integration/restart:
+1. /voice QUESTION -> one voice note; no text acknowledgement or answer transcript.
+2. /voice after a successful answer -> one voice note; no repeated transcript.
+3. Missing speech config/generation/upload failure -> answer in text.
+4. A fallback-text retry never regenerates speech or later adds voice.
+5. Normal questions, images and explicit /result still work; revoked users receive nothing.
+Offline fixtures cover these plus legacy partially sent text completion without audio.
+Logs: outputs/qa-integrations/voice-only-{red,green,regression}.log and voice-no-key-red.log.
+Live API/audio checks NOT RUN; no production process/state was touched.
+
+Final voice-only verification: c858952a171916d28ed34941417c5ce56e4a4baf, 216 regression tests PASS and 23 voice tests PASS. Exact log: outputs/qa-integrations/voice-only-regression.log. Readiness metadata now records this source commit. No live playback/restart performed.

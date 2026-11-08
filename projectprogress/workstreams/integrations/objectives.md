@@ -16,3 +16,12 @@
 
 - [x] /voice question and latest-answer voice requests, optional speech client and durable upload.
 - [ ] Live image generation/photo delivery and AI voice playback acceptance after integration.
+
+- [x] Protected optional voice-key storage and hidden setup primitives.
+- [ ] Wire standalone commands and initial Telegram offer, verify compatibility.
+
+- [x] Initial optional setup and standalone configure/update/check/remove.
+- [x] Protected persistence, secret redaction, existing-user/state/auth compatibility.
+- [x] Feature documentation and restart guidance; audio/text behavior unchanged.
+
+- [x] /voice audio only on success, text fallback on unavailability/failure, durable format choice and legacy partial-text compatibility.

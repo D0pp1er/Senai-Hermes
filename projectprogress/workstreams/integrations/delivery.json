@@ -12,7 +12,8 @@
     "senai.telegram.runner",
     "senai.telegram.service",
     "senai.telegram.speech",
-    "senai.telegram.store"
+    "senai.telegram.store",
+    "senai.telegram.voice_config"
   ],
   "public_api": [
     {
@@ -27,7 +28,7 @@
     },
     {
       "name": "MediaOutbox",
-      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); add_voice(job_id, content); record_voice_request(job_id, job, *, reuse=False); voice_mode(job); deliver(job, api, *, authorized)",
+      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); add_voice(job_id, content); record_voice_request(job_id, job, *, reuse=False); voice_mode(job); deliver(job, api, *, authorized, skip_voice=False); has_voice(job_id) -> bool; deliver_voice(job, api, *, authorized) -> str",
       "purpose": "Persist voice intent, bounded media snapshots and upload progress separately from Telegram jobs."
     },
     {
@@ -49,13 +50,41 @@
       "name": "BotAPI.send_voice",
       "signature": "send_voice(chat_id, path)",
       "purpose": "Upload bounded MP3 voice with AI disclosure."
+    },
+    {
+      "name": "speech_from_configuration",
+      "signature": "speech_from_configuration(project, *, environ=None) -> OpenAISpeech | None",
+      "purpose": "Resolve dedicated env, protected saved voice key, then existing generic env without changing native auth."
+    },
+    {
+      "name": "manage_voice",
+      "signature": "manage_voice(project, action, *, stdout, stderr, prompt=None, environ=None) -> int",
+      "purpose": "Local configure/update/check/remove without Telegram setup, network or a bot restart."
+    },
+    {
+      "name": "offer_voice_setup",
+      "signature": "offer_voice_setup(project, *, stdout, choice=None, prompt=None, environ=None) -> bool",
+      "purpose": "Optional initial Configure/Skip with hidden key input and non-fatal voice setup."
+    },
+    {
+      "name": "voice credential storage",
+      "signature": "default_voice_file(project, *, environ=None) -> Path; write_voice_key(project, key, *, environ=None); read_voice_key(project, *, environ=None) -> str | None; remove_voice_key(project, *, environ=None) -> bool",
+      "purpose": "Protected version-1 voice JSON with atomic replacement and private modes, separate from Telegram credentials."
+    },
+    {
+      "name": "resolve_voice_key",
+      "signature": "resolve_voice_key(project, *, environ=None) -> VoiceKey | None",
+      "purpose": "Return secret-free-repr selection with source; no environment mutation or network."
     }
   ],
   "commands": [
     ".venv/bin/python -m senai telegram --help",
-    "Telegram /voice QUESTION: one spoken answer plus text",
-    "Telegram /voice: read the latest successful answer in this private chat",
-    "Telegram text request: generate/select images for actual photo attachment"
+    "Telegram /voice QUESTION: audio only on success; text fallback",
+    "Telegram /voice: read the latest successful answer as audio; text fallback",
+    "Telegram text request: generate/select images for actual photo attachment",
+    "senai telegram --project PROJECT --voice-configure",
+    "senai telegram --project PROJECT --voice-check",
+    "senai telegram --project PROJECT --voice-remove"
   ],
   "executor_contract": {
     "interface": "CommandRunner.__call__(job) -> tuple[str, str]",
@@ -71,24 +100,26 @@
     "development": []
   },
   "storage": {
-    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB",
+    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git",
     "schema_version": 1,
-    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion."
+    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration. Additive voice_delivery(job_id,outcome) table in media.sqlite3 records audio/fallback decisions; existing jobs/media/text cursors and protected voice JSON untouched."
   },
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
-      ".venv/bin/python -m unittest tests.integrations.test_telegram_media tests.integrations.test_telegram_voice -v",
-      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
+      ".venv/bin/python -m unittest tests.integrations.test_telegram_voice -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready",
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 184,
-    "tested_commit": "a78aa29447c62fac8f60377eb1b3b74a9f8a67dd",
+    "offline_test_count": 216,
+    "tested_commit": "c858952a171916d28ed34941417c5ce56e4a4baf",
     "live_result": "not-run",
     "evidence_logs": [
-      "outputs/qa-integrations/regression.log",
-      "outputs/qa-integrations/media-voice.log"
+      "outputs/qa-integrations/voice-only-red.log",
+      "outputs/qa-integrations/voice-no-key-red.log",
+      "outputs/qa-integrations/voice-only-green.log",
+      "outputs/qa-integrations/voice-only-regression.log"
     ]
   },
   "integration": {
@@ -96,15 +127,15 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Live image generation, Telegram uploads/playback and speech API authorization/quality not tested.",
-    "PNG/JPEG images in configured outputs only; max 4, 10 MiB each.",
-    "Speech max 4000 characters and 10 MiB; missing speech config/failure falls back to text.",
-    "Crash between remote send and local cursor save may duplicate an item.",
-    "No incoming voice transcription or media resend through /result; Discord deferred."
+    "--voice-check verifies local availability/permissions only, not API authorization/billing/audio quality.",
+    "Changes apply at startup; a running bot needs an operator-managed graceful restart. No restart/merge was performed.",
+    "Existing image/media limits and at-least-once delivery behavior remain unchanged.",
+    "Voice upload failures choose text fallback; fatal authorization errors cannot deliver either format.",
+    "Remote acceptance followed by network/local-cursor failure can remain ambiguous; no exactly-once guarantee."
   ],
-  "delivery_scope": "Telegram image attachments and explicit outbound /voice replies; Discord deferred.",
+  "delivery_scope": "Voice-only /voice success with durable text fallback; optional protected key setup retained.",
   "external_services": [
-    "Optional OpenAI Speech API: local SENAI_TTS_API_KEY (fallback OPENAI_API_KEY), API billing, default gpt-4o-mini-tts/coral",
+    "Optional OpenAI Speech API: dedicated env key, saved protected voice file, then generic OpenAI env key; local setup/check makes no network call.",
     "Installed Codex built-in image generation when available; no image API client/key added"
   ]
 }

@@ -47,14 +47,14 @@ class VoiceTests(unittest.TestCase):
         Path(command[command.index("--output-last-message") + 1]).write_text("Python is a programming language.")
         return subprocess.CompletedProcess(command, 0)
 
-    def test_voice_question_keeps_text_and_uploads_an_ai_disclosed_voice_note(self):
+    def test_voice_question_uploads_only_an_ai_disclosed_voice_note(self):
         self.router.handle(update())
         with patch.dict("os.environ", {"SENAI_TTS_API_KEY": "fake-speech-key"}), patch(
                 "senai.telegram.runner.subprocess.run", side_effect=self.execute):
             self.service.run_one()
         self.speech.assert_called_once_with("Python is a programming language.")
         self.service.deliver_results()
-        self.api.send_message.assert_called_once_with(7, "Python is a programming language.")
+        self.api.send_message.assert_not_called()
         self.api.send_voice.assert_called_once()
         self.assertEqual(self.api.send_voice.call_args.args[0], 7)
         self.assertEqual(Path(self.api.send_voice.call_args.args[1]).read_bytes(), AUDIO)
@@ -71,6 +71,7 @@ class VoiceTests(unittest.TestCase):
         self.speech.assert_called_once_with("Hello there.")
         self.service.deliver_results()
         self.api.send_voice.assert_called_once()
+        self.api.send_message.assert_not_called()
 
     def test_voice_is_single_reply_not_a_global_or_per_user_mode(self):
         self.router.handle(update())
@@ -78,10 +79,29 @@ class VoiceTests(unittest.TestCase):
         self.router.handle(update(2, "Normal text"))
         self.assertEqual(self.store.claim_next()["prompt"], "Normal text")
 
-    def test_missing_credentials_explains_unavailability_without_enqueuing(self):
+    def test_missing_credentials_uses_normal_text_execution_as_fallback(self):
+        router = Router(self.store, {7}, "test_bot", voice_enabled=False, media=self.media)
+        router.handle(update())
+        with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute_text):
+            self.service.run_one()
+        self.service.deliver_results()
+        self.api.send_message.assert_called_once_with(7, "Python is a programming language.")
+        self.speech.assert_not_called()
+        self.api.send_voice.assert_not_called()
+
+    def execute_text(self, command, **kwargs):
+        kwargs["stdout"].write(json.dumps({"type": "thread.started", "thread_id":
+                                 "11111111-1111-4111-8111-111111111111"}))
+        Path(command[command.index("--output-last-message") + 1]).write_text("Python is a programming language.")
+        return subprocess.CompletedProcess(command, 0)
+
+    def test_bare_voice_without_credentials_falls_back_to_latest_text(self):
+        self.store.consume(1, {"chat_id": 7, "user_id": 7, "prompt": "Hi"})
+        self.store.claim_next()
+        self.store.finish(1, "succeeded", "Hello there.")
+        self.store.mark_delivered(1)
         router = Router(self.store, {7}, "test_bot", voice_enabled=False)
-        response = router.handle(update())
-        self.assertIn("not configured", response[0][1])
+        self.assertEqual(router.handle(update(2, "/voice")), [(7, "Hello there.")])
         self.assertIsNone(self.store.claim_next())
 
     def test_unauthorized_duplicate_and_busy_voice_requests_do_not_execute(self):
@@ -107,20 +127,74 @@ class VoiceTests(unittest.TestCase):
         self.assertIn("could not generate", text)
         self.api.send_voice.assert_not_called()
 
-    def test_retry_and_restart_do_not_regenerate_speech_or_repeat_text(self):
+    def test_upload_failure_falls_back_to_text_without_regenerating_or_late_audio(self):
         self.router.handle(update())
         with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute):
             self.service.run_one()
         self.api.send_voice.side_effect = TelegramError("offline")
-        with self.assertRaises(TelegramError):
-            self.service.deliver_results()
+        self.service.deliver_results()
+        self.api.send_message.assert_called_once_with(7, "Python is a programming language.")
+        self.api.send_voice.assert_called_once()
         self.api.send_voice.side_effect = None
         restarted = BotService(self.api, JobStore(self.store.path), self.router,
                                self.runner, media=MediaOutbox(self.root / "outputs", self.state))
         restarted.deliver_results()
         self.speech.assert_called_once()
-        self.api.send_message.assert_called_once()
+        self.api.send_voice.assert_called_once()
         self.assertEqual(self.store.pending_results(), [])
+
+    def test_failed_text_fallback_retries_only_text_after_restart(self):
+        self.router.handle(update())
+        with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute):
+            self.service.run_one()
+        self.api.send_voice.side_effect = TelegramError("offline")
+        self.api.send_message.side_effect = TelegramError("offline too")
+        with self.assertRaises(TelegramError):
+            self.service.deliver_results()
+        self.api.send_message.side_effect = None
+        self.api.send_voice.side_effect = None
+        restarted = BotService(self.api, JobStore(self.store.path), self.router,
+                               self.runner, media=MediaOutbox(self.root / "outputs", self.state))
+        restarted.deliver_results()
+        self.api.send_voice.assert_called_once()
+        self.speech.assert_called_once()
+        self.assertEqual(self.store.pending_results(), [])
+
+    def test_missing_audio_snapshot_falls_back_to_full_answer(self):
+        self.router.handle(update())
+        with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute):
+            self.service.run_one()
+        (self.state / "media/1/voice.mp3").unlink()
+        self.service.deliver_results()
+        self.api.send_voice.assert_not_called()
+        self.api.send_message.assert_called_once_with(7, "Python is a programming language.")
+
+    def test_successful_voice_is_not_repeated_if_job_finalization_retries(self):
+        self.router.handle(update())
+        with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute):
+            self.service.run_one()
+        with patch.object(self.store, "mark_delivered", side_effect=OSError("interrupted")):
+            with self.assertRaises(OSError):
+                self.service.deliver_results()
+        self.service.deliver_results()
+        self.api.send_voice.assert_called_once()
+        self.api.send_message.assert_not_called()
+
+    def test_legacy_partial_text_reply_finishes_as_text_without_adding_audio(self):
+        self.router.handle(update())
+        with patch("senai.telegram.runner.subprocess.run", side_effect=self.execute):
+            self.service.run_one()
+        self.store.delivery_snapshot(1, ["Previously sent text", "Remaining text"])
+        self.store.mark_part_sent(1)
+        self.service.deliver_results()
+        self.api.send_message.assert_called_once_with(7, "Remaining text")
+        self.api.send_voice.assert_not_called()
+
+    def test_voice_command_does_not_send_a_text_acknowledgement(self):
+        self.router.acknowledge = Mock(return_value="Working on it.")
+        self.assertEqual(self.router.handle(update()), [])
+        self.router.acknowledge.assert_not_called()
+        self.assertIsNotNone(self.store.claim_next())
 
     def test_queued_voice_intent_survives_restart_without_changing_session_policy(self):
         self.router.handle(update())
