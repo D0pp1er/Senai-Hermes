@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "cron",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.cron.store",
     "senai.cron.worker",
@@ -59,11 +59,22 @@
       "name": "Store.misfires",
       "signature": "misfires() -> list[dict]",
       "purpose": "Read durable skip/coalescing history; count_capped marks lower-bound counts"
+    },
+    {
+      "name": "Store.get",
+      "signature": "get(ident) -> dict",
+      "purpose": "Inspect schedule, revision and next_due_local in stored timezone"
+    },
+    {
+      "name": "Store.update",
+      "signature": "update(ident, *, expected_revision, **changes) -> dict",
+      "purpose": "Atomic validated edit; reject stale revision and active/retry work; preserve project/scope and historical snapshots"
     }
   ],
   "commands": [
-    ".venv/bin/python -m senai.cron --project <directory> {create,list,runs,deliveries,misfires,dry-run,pause,resume,delete,interrupt}",
-    "create supports --cron EXPR or --every SECONDS; --misfire coalesce|skip; --grace-seconds N; --timezone IANA; aware --at required"
+    ".venv/bin/python -m senai.cron --project <directory> {create,show,edit,list,runs,deliveries,misfires,dry-run,pause,resume,delete,interrupt}",
+    "create supports --cron EXPR or --every SECONDS; --misfire coalesce|skip; --grace-seconds N; --timezone IANA; aware --at required",
+    "show ID; edit ID --expected-revision N [--prompt TEXT] [--at ISO] [--cron EXPR|--every SECONDS|--once] [other supported create fields except project/scope]"
   ],
   "executor_contract": {
     "interface": "executor(run: dict) -> str; send(item: dict) -> None",
@@ -87,8 +98,8 @@
   },
   "storage": {
     "namespace": "<project>/outputs/.senai-cron/cron.db",
-    "schema_version": 3,
-    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes."
+    "schema_version": 4,
+    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes. Add revision INTEGER NOT NULL DEFAULT 1; old records preserved. Due advance, retry claims, pause/resume and edits increment revision."
   },
   "verification": {
     "offline_commands": [

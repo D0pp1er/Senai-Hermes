@@ -7,3 +7,5 @@
 - [x] Unknown outcomes blocked; certified transient retries bounded.
 - [x] Calendar cron, explicit misfire controls, missed-occurrence history.
 - [ ] Coordinator chat/delivery integration and authorized live acceptance.
+- [x] Inspect local next run and safely edit schedules without overwriting active/stale work.
+- [x] Provide exact safe management contract for later chat integration.

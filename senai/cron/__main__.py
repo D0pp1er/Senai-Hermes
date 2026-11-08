@@ -28,6 +28,23 @@ def main(argv=None):
     create.add_argument('--retry-delay', type=int, default=60)
     for command in ('list', 'runs', 'deliveries', 'misfires', 'dry-run'):
         sub.add_parser(command)
+    sub.add_parser('show').add_argument('id')
+    edit = sub.add_parser('edit', argument_default=argparse.SUPPRESS)
+    edit.add_argument('id')
+    edit.add_argument('--expected-revision', type=int, required=True,
+                      help='revision from show; stale changes are rejected')
+    for flag in ('name', 'prompt', 'timezone'):
+        edit.add_argument('--'+flag)
+    edit.add_argument('--at', type=datetime.fromisoformat)
+    edit.add_argument('--delivery-target', type=json.loads)
+    edit.add_argument('--misfire', choices=('coalesce','skip'))
+    for flag in ('grace-seconds','retries','retry-delay'):
+        edit.add_argument('--'+flag, type=int)
+    edit_recurrence = edit.add_mutually_exclusive_group()
+    edit_recurrence.add_argument('--every', type=int)
+    edit_recurrence.add_argument('--cron')
+    edit_recurrence.add_argument('--once', action='store_true',
+                                 help='switch to one-shot; requires --at')
     for command in ('pause', 'resume', 'delete', 'interrupt'):
         sub.add_parser(command).add_argument('id')
     args = parser.parse_args(argv)
@@ -41,6 +58,18 @@ def main(argv=None):
                 at=datetime.fromisoformat(args.at), project=project, timezone=args.timezone,
                 every=args.every, retries=args.retries, retry_delay=args.retry_delay, delivery_target=args.delivery_target,
                 cron=args.cron, misfire=args.misfire, grace_seconds=args.grace_seconds)
+        elif args.command == 'show':
+            result = store.get(args.id)
+        elif args.command == 'edit':
+            changes = {key: value for key,value in vars(args).items()
+                       if key not in ('command','project','id','expected_revision')}
+            if changes.pop('once', False):
+                changes.update(every=None, cron=None)
+            elif 'cron' in changes:
+                changes['every'] = None
+            elif 'every' in changes:
+                changes['cron'] = None
+            result = store.update(args.id, expected_revision=args.expected_revision, **changes)
         elif args.command == 'list':
             result = store.list()
         elif args.command == 'misfires':

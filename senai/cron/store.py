@@ -42,7 +42,8 @@ class Store:
             columns = {r['name'] for r in db.execute("PRAGMA table_info(schedules)")}
             additions = {'delivery_target': 'TEXT', 'cron': 'TEXT',
                          'misfire': "TEXT NOT NULL DEFAULT 'coalesce'",
-                         'grace_seconds': 'INTEGER NOT NULL DEFAULT 120'}
+                         'grace_seconds': 'INTEGER NOT NULL DEFAULT 120',
+                         'revision': 'INTEGER NOT NULL DEFAULT 1'}
             for name, definition in additions.items():
                 if name not in columns:
                     db.execute(f"ALTER TABLE schedules ADD COLUMN {name} {definition}")
@@ -64,6 +65,20 @@ class Store:
     def create(self, *, name, prompt, project, scope, at, timezone="Asia/Dhaka",
                every=None, retries=0, retry_delay=60, delivery_target=None,
                cron=None, misfire="coalesce", grace_seconds=120):
+        values = self._validated_values(name=name, prompt=prompt, project=project, scope=scope,
+            at=at, timezone=timezone, every=every, retries=retries, retry_delay=retry_delay,
+            delivery_target=delivery_target, cron=cron, misfire=misfire, grace_seconds=grace_seconds)
+        ident = uuid.uuid4().hex
+        values.update(id=ident, enabled=1)
+        with self.connection() as db:
+            columns = ','.join(values)
+            placeholders = ','.join('?' for _ in values)
+            db.execute(f"INSERT INTO schedules ({columns}) VALUES ({placeholders})", tuple(values.values()))
+        return ident
+
+    @staticmethod
+    def _validated_values(*, name, prompt, project, scope, at, timezone,
+                          every, retries, retry_delay, delivery_target, cron, misfire, grace_seconds):
         try:
             ZoneInfo(timezone)
         except (ZoneInfoNotFoundError, TypeError) as exc:
@@ -90,12 +105,57 @@ class Store:
         project = str(Path(project).resolve(strict=True))
         if not Path(project).is_dir():
             raise ValueError("project must be a directory")
-        ident = uuid.uuid4().hex
+        return dict(name=name, prompt=prompt, project=project, scope=scope, timezone=timezone,
+                    next_due=due, every=every, retries=retries, retry_delay=retry_delay,
+                    delivery_target=delivery_target, cron=cron, misfire=misfire, grace_seconds=grace_seconds)
+
+    @staticmethod
+    def _present_schedule(row):
+        result = dict(row)
+        result['next_due_local'] = (None if result['next_due'] is None else
+            datetime.fromtimestamp(result['next_due'], ZoneInfo(result['timezone'])).isoformat())
+        return result
+
+    def get(self, ident):
         with self.connection() as db:
-            db.execute("INSERT INTO schedules (id,name,prompt,project,scope,timezone,enabled,next_due,every,retries,retry_delay,delivery_target,cron,misfire,grace_seconds) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (ident, name, prompt, project, scope, timezone, 1, due,
-                        every, retries, retry_delay, delivery_target, cron, misfire, grace_seconds))
-        return ident
+            row = db.execute("SELECT * FROM schedules WHERE id=?", (ident,)).fetchone()
+            if row is None:
+                raise KeyError(ident)
+            return self._present_schedule(row)
+
+    def update(self, ident, *, expected_revision, **changes):
+        allowed = {'name', 'prompt', 'at', 'timezone', 'every', 'cron', 'retries',
+                   'retry_delay', 'delivery_target', 'misfire', 'grace_seconds'}
+        if not changes or set(changes)-allowed:
+            raise ValueError('provide editable schedule fields only; project/scope are immutable')
+        if type(expected_revision) is not int or expected_revision < 1:
+            raise ValueError('expected_revision must be a positive integer')
+        if {'timezone', 'every', 'cron'} & changes.keys() and 'at' not in changes:
+            raise ValueError('changing recurrence or timezone requires an explicit aware at')
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT * FROM schedules WHERE id=?", (ident,)).fetchone()
+            if row is None:
+                raise KeyError(ident)
+            old = dict(row)
+            if old['revision'] != expected_revision:
+                raise ValueError('schedule changed; read it again before editing')
+            active = db.execute("SELECT 1 FROM runs WHERE schedule_id=? AND status IN ('running','retry')", (ident,)).fetchone()
+            if active:
+                raise ValueError('cannot edit while a run is active or waiting to retry')
+            values = {key: old[key] for key in allowed-{'at'}}
+            values['project'], values['scope'] = old['project'], old['scope']
+            values['delivery_target'] = json.loads(old['delivery_target']) if old['delivery_target'] else None
+            anchor = old['next_due'] if old['next_due'] is not None else timestamp(self.clock())
+            values['at'] = datetime.fromtimestamp(anchor, dt_timezone.utc)
+            values.update(changes)
+            validated = self._validated_values(**values)
+            if 'at' not in changes:
+                validated['next_due'] = old['next_due']
+            setters = ','.join(f'{key}=?' for key in validated)
+            db.execute(f"UPDATE schedules SET {setters},revision=revision+1 WHERE id=?",
+                       (*validated.values(), ident))
+            return self._present_schedule(db.execute("SELECT * FROM schedules WHERE id=?", (ident,)).fetchone())
 
     def list(self):
         with self.connection() as db:
@@ -113,7 +173,7 @@ class Store:
 
     def _enabled(self, ident, enabled):
         with self.connection() as db:
-            if not db.execute("UPDATE schedules SET enabled=? WHERE id=?", (enabled, ident)).rowcount:
+            if not db.execute("UPDATE schedules SET enabled=?,revision=revision+1 WHERE id=?", (enabled, ident)).rowcount:
                 raise KeyError(ident)
 
     def delete(self, ident):
@@ -130,6 +190,7 @@ class Store:
                 ORDER BY r.ready_at LIMIT 1""", (now,)).fetchone()
             if retry:
                 db.execute("UPDATE runs SET status='running', attempt=attempt+1 WHERE id=?", (retry['id'],))
+                db.execute("UPDATE schedules SET revision=revision+1 WHERE id=?", (retry['schedule_id'],))
                 row = dict(retry)
                 row.update(status='running', attempt=row['attempt']+1)
                 return row
@@ -141,7 +202,7 @@ class Store:
                 due = job['next_due']
                 next_due, count, capped = advance(job, now)
                 skip = job['misfire'] == 'skip' and now-due > job['grace_seconds']
-                db.execute("UPDATE schedules SET next_due=? WHERE id=?", (next_due, job['id']))
+                db.execute("UPDATE schedules SET next_due=?,revision=revision+1 WHERE id=?", (next_due, job['id']))
                 if skip or count > 1 or now-due > job['grace_seconds']:
                     db.execute("INSERT INTO misfires VALUES (?,?,?,?,?,?,?)",
                         (uuid.uuid4().hex, job['id'], due, now, count if skip else count-1,

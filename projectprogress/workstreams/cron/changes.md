@@ -19,3 +19,9 @@
 - Add pinned feature-only calendar dependency; no global or shared packaging edits.
 
 - aaae7f6: calendar/misfire implementation; 171 offline tests pass on exact commit.
+
+2026-11-09 safe management:
+- TDD red: get/update APIs absent, then show/edit CLI absent.
+- Atomic revision-checked edits reject stale editors and active/retry work; expose local next
+  time; preserve paused/consumed schedules and historical delivery snapshots.
+- Additive revision migration; shared validation for create/edit. No dependency changes.

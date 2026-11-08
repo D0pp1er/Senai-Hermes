@@ -37,3 +37,25 @@ class CLITests(unittest.TestCase):
             self.assertEqual(preview['due'],[])
             self.assertEqual(store.list(),before)
             self.assertEqual(store.misfires(),[])
+
+    def test_show_edit_and_stale_revision(self):
+        import json
+        from senai.cron import Store
+        from datetime import datetime, timezone
+        with tempfile.TemporaryDirectory() as tmp:
+            store=Store(Path(tmp)/'outputs/.senai-cron/cron.db')
+            ident=store.create(name='edit-demo',prompt='old',project=tmp,scope='qa',
+                at=datetime(2030,1,1,tzinfo=timezone.utc))
+            args=['--project',tmp]
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(main(args+['show',ident]),0)
+            shown=json.loads(output.getvalue())
+            self.assertEqual(shown['next_due_local'],'2030-01-01T06:00:00+06:00')
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(args+['edit',ident,'--expected-revision',str(shown['revision']),
+                    '--prompt','new','--at','2030-01-02T00:00:00+06:00','--cron','0 9 * * *']),0)
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(main(args+['edit',ident,'--expected-revision',str(shown['revision']),
+                    '--prompt','stale']),2)
+            self.assertEqual(store.get(ident)['prompt'],'new')
+            self.assertEqual(store.get(ident)['next_due_local'],'2030-01-02T09:00:00+06:00')

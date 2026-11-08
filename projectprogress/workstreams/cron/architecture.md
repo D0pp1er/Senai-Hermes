@@ -37,3 +37,15 @@ Pause blocks future claims including retries, without cancelling active executio
 Delivery adapters must enforce current authorization at send time. CLI management and advisory
 dry-run start no executor. Dry-run shows due, would_skip and ready retries without reserving work.
 No chat/production adapter or always-on scheduler is integrated; shared CLI wiring is coordinator-owned.
+
+## Safe schedule management
+Store.get(id) returns the saved row plus next_due_local (ISO instant in its IANA zone).
+Store.update(id, *, expected_revision, **changes) uses a single write transaction to check
+revision, reject active/retry work, validate all fields and update atomically. Creation starts
+at revision 1; pause/resume, due advance, retry claim and edits increment it. A stale editor
+must read again. Project/scope/identity/enabled/DB fields cannot be edited through update.
+Temporal rule or timezone changes require an explicit aware at. Metadata-only edits preserve
+next_due exactly, including NULL for consumed one-shots, and preserve enabled state.
+Completed run snapshots and already queued destinations never change. Editing a destination
+changes future occurrences only. CLI show/edit expose these APIs; --expected-revision is
+required. --cron/--every/--once replace the recurrence kind, with --at required for a change.

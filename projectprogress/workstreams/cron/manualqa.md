@@ -45,3 +45,11 @@ https://github.com/pallets-eco/croniter/blob/main/README.rst .
 PASS: exact implementation commit aaae7f6, 171 tests. Offline CLI create/dry-run/runs
 smoke check completed in a temporary directory under outputs/qa-project; no executor invoked.
 Logs: outputs/cron-qa/calendar-tests.log and calendar-cli.log. Live checks remain not run.
+
+Safe management offline verification:
+.venv/bin/python -m unittest tests.cron.test_management tests.cron.test_cli -v
+Expected: all pass. show <ID> returns next_due_local and revision. To change text:
+.venv/bin/python -m senai.cron --project outputs/qa-project edit <ID> --expected-revision <REVISION> --prompt 'Updated reminder'
+Expected: revision increases; repeat using old revision returns exit 2 and changes nothing.
+To change recurrence, supply --at and one of --cron, --every or --once. show/edit operate only
+on saved records, never start execution. Automated CLI verification uses temporary directories.

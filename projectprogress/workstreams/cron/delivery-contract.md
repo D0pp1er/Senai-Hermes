@@ -37,3 +37,8 @@ time-sensitive reminders. Chat management remains coordinator integration work.
 Acceptance evidence: tests/cron/test_delivery.py covers restart, competing send claims,
 transaction rollback, unknown send, stopped sender token invalidation, bounded certified retry,
 old DB preservation, legacy callback recovery and no delivery before terminal execution.
+
+Safe editing: update requires the last observed revision and refuses in-flight/retry work.
+Completed runs and delivery destinations are immutable snapshots. Changing schedule text or
+destination never rewrites pending notifications from previous completed runs. Pause/resume
+remains separate from edit. A consumed reminder is rearmed only by explicitly setting at.

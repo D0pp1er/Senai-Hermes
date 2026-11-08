@@ -23,3 +23,14 @@ old records; misfires table added. Calendar dependency croniter==6.2.4 plus pinn
 python-dateutil/six/tzdata. Coordinator consolidates packaging later. Chat-created time-sensitive
 reminders should explicitly choose misfire='skip' with a user-appropriate grace; use coalesce
 for useful late reports. Show timezone and next run when confirming schedule creation.
+
+Safe edit API for chat adapters: get(schedule_id) -> schedule including revision and
+next_due_local; update(schedule_id, *, expected_revision, **changes) -> updated schedule.
+Authorize project/scope/owner before lookup and update. Carry revision from the user's viewed
+schedule; show conflicts and ask them to review fresh state instead of blindly retrying edits.
+Do not alter another user's project/scope/destination. Reject edits while running/retrying.
+Schedule confirmation should show name, local next time, timezone, recurrence, misfire policy,
+destination and revision. Rule/timezone changes require explicit aware at; metadata-only
+edits must not rearm completed one-shots. Existing results/delivery snapshots stay unchanged.
+Schema v4 adds revision INTEGER NOT NULL DEFAULT 1, preserving old data. No new dependencies.
+Shared chat routing is deliberately a coordinator proposal; this feature does not modify it.
