@@ -19,3 +19,5 @@ session resumes. Long response fallback gives an in-chat follow-up instruction.
 Image delivery milestone: 11 new offline tests, 164 total pass; scope guard passes. Actual model generation and Telegram upload remain live-unverified.
 
 Telegram media milestone: image commit cebfe57 plus /voice implementation, 183 offline tests (30 media/voice) pass. No live uploads/model/speech requests performed.
+
+Final media handoff: 184 tests pass at a78aa29, including 31 media/voice; independent speech key preserves native Codex API auth. Ready for coordinator review; live checks remain pending.

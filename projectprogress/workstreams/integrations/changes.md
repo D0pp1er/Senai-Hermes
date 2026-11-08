@@ -57,3 +57,14 @@ attachment of unrelated images. 11 media tests pass; full suite: 164 tests.
   voice-literal-red.log, media-boundary-red.log, media-voice.log, regression.log.
 
 Voice implementation commit: c6b930a. Follow-up native-auth regression preserves existing OPENAI_API_KEY for Codex, while filtering a dedicated SENAI_TTS_API_KEY from children. Expected full suite: 184 tests.
+
+## Final media handoff evidence
+
+- cebfe57: image attachments.
+- c6b930a: explicit /voice replies.
+- a78aa29: native Codex API authentication compatibility.
+- Exact tested source commit: a78aa29447c62fac8f60377eb1b3b74a9f8a67dd.
+- 184 full-suite tests and 31 focused media/voice tests pass; logs retained locally
+  under outputs/qa-integrations/. Scope guard and whitespace check pass.
+- Delivery status ready means ready for coordinator review of this media milestone,
+  not live acceptance, deployment or completion of Discord. No merge/push/restart.

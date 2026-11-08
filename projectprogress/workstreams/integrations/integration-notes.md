@@ -48,7 +48,7 @@ No automatic cleanup of historical artifacts is introduced.
 
 ## Verified and unverified
 
-183 deterministic offline tests pass, including 30 media/voice tests. Fake network,
+184 deterministic offline tests pass, including 31 media/voice tests. Fake network,
 fake model/speech and temporary fixtures only. Live Telegram photo/voice playback,
 image generation, actual TTS authorization/quality and production restart NOT RUN.
 Model response formatting/image manifest compliance remains runtime-dependent.

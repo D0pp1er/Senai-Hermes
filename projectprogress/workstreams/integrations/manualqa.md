@@ -84,3 +84,7 @@ Do not rerun pairing or configure a duplicate poller.
 Live acceptance NOT RUN; API billing/voice quality and real imagegen availability
 are not established by fake client tests. Voice configuration is documented in
 integration-notes.md; never paste credentials in chat or tracked config.
+
+Final rerun on a78aa29447c62fac8f60377eb1b3b74a9f8a67dd: PASS, 184 total tests,
+31 media/voice tests. Scope/diff checks PASS. Final evidence supersedes earlier counts.
+The remaining delivery-record commit changes no source/tests. Live acceptance NOT RUN.
