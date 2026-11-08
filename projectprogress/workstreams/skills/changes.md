@@ -17,3 +17,6 @@
 
 - 2026-11-09, a855c14: feature-local CLI and offline demo.
 - 2026-11-09, current reviewer step: evidence-bounded JSON reviewer, inactive/no-change results, read-only native Codex adapter and explicit CLI review. Twelve reviewer tests plus two new CLI tests; fake-executable transport and installed option checks.
+
+- 2026-11-09, e714f3c: evidence-guided Codex reviewer.
+- 2026-11-09, metadata step: bounded constructor-free YAML node reader, standard optional fields/nested Hermes declarations, preserved metadata.version, optional compatibility predicate, CLI metadata, pinned PyYAML dependency. Eight metadata tests plus one CLI test.

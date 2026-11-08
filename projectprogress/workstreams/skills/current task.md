@@ -3,10 +3,12 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Reviewer step implemented: review_skill(..., reviewer=...) accepts selected observed outcomes and stages evidence-linked proposals or returns no_change. review_with_codex uses the stable run_codex wrapper, read-only options and JSON Schema in a temporary project-local outputs workspace. CLI review NAME --outcome ID [--outcome ID] [--model MODEL] calls it explicitly. No validation/activation happens automatically.
+Metadata compatibility milestone implemented before public imports. YAML parser supports standard optional license/compatibility/allowed-tools/metadata fields, folded/quoted scalars, comments, nested inert Hermes metadata and metadata.version. Original documents are byte-preserved. Revisions preserve optional declarations. Optional compatibility_check(metadata) can reject select/execute; declarations grant no permissions.
 
-TDD: initial reviewer tests failed on missing review module, then passed. Twelve reviewer tests plus ten CLI tests pass; includes actual run_codex subprocess with fake codex executable and stale-base rejection. Installed codex exec --help advertises required flags. No live model review or real improvement check performed.
+New dependency PyYAML==6.0.3 is pinned in requirements-skills.txt and installed only in this checkout .venv. Rerun feature dependency installation in other environments; coordinator consolidates packaging. No root pyproject edit.
 
-Next step: broaden SKILL.md metadata compatibility and public-source imports with validation/provenance tests; add controlled real reuse/evaluation evidence once a suitable local workflow/checker is chosen. Normal execution/Telegram outcome hooks remain coordinator-owned and unapplied. End-to-end production integration still pending.
+Eight metadata tests and one additional CLI metadata test added; red tests exposed overly long descriptions and rejected valid YAML. Reviewer->proposal->validation->activation metadata preservation verified offline. No live skill execution.
 
-Reread MERGE_POLICY.md before each implementation step; scope/full suite required before commits. Final delivery remains draft.
+Next step: public GitHub repository source adapter with explicit pinned commit/path, bounded staged downloads, provenance and traversal/symlink rejection tests before network QA. Archive imports still rejected. Normal production execution/outcome/review hooks remain coordinator-owned and unapplied.
+
+Reread MERGE_POLICY.md before each implementation step. Full suite/scope required before commit; delivery draft.

@@ -94,3 +94,17 @@ For an explicitly desired live review, first inspect saved outcomes for the sele
 The review command uses installed Codex/auth and may consume model usage. Expected: no_change or an inactive proposal. Existing active skill remains unchanged; proposed revision has zero validation attempts. A proposal must be independently regression-checked before activation. Review of synthetic demo evidence is only a transport test, not proof of genuine improvement. No live reviewer or real model reuse has been run in this step.
 
 Reviewer-step full offline suite: PASS, 200 tests (64 skills tests). Ownership guard: PASS. Retained log outputs/skills-qa/review-suite.log. No live model/production checks performed.
+
+## Metadata compatibility step
+
+```bash
+.venv/bin/python -m pip install --only-binary=:all: -r requirements-skills.txt
+.venv/bin/python -m unittest tests.skills.test_metadata -v
+.venv/bin/python -m senai.skills metadata SKILL_NAME
+```
+
+Expected: eight metadata tests pass; metadata command prints validated optional declarations for an already imported skill. Missing names return 2. Pin is PyYAML==6.0.3; no global install is needed. CLI metadata behavior is covered offline as well.
+
+Tests verify folded descriptions/comments, optional standard fields, nested Hermes metadata/version, rejected tags/aliases/anchors/duplicates/merge keys, limits, blocked incompatible execution and preservation through model-reply fixture -> proposal -> validation -> activation. They do not prove real instruction safety/runtime compatibility. Initial red log: outputs/skills-qa/metadata-red.log; targeted integration log: metadata-integration.log. Public repository/network and live-model QA not performed in this milestone.
+
+Metadata-step full offline suite: PASS, 209 tests (73 skills tests). Scope guard: PASS. Log outputs/skills-qa/metadata-suite.log. No live/network skill acquisition tested.

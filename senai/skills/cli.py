@@ -19,7 +19,7 @@ def _parser():
     commands.add_parser("list", help="List active skills without loading their instructions into output")
     importer = commands.add_parser("import", help="Import a local SKILL.md package directory; never runs code")
     importer.add_argument("source")
-    for name in ("show", "versions", "history", "revisions", "outcomes"):
+    for name in ("show", "metadata", "versions", "history", "revisions", "outcomes"):
         command = commands.add_parser(name)
         command.add_argument("name")
     for name in ("validations", "activate"):
@@ -75,6 +75,8 @@ def main(argv=None, stdout=None, stderr=None):
                 result = [_record(skill, instructions=False) for skill in registry.list()]
             elif args.command == "show":
                 result = _record(registry.select([args.name])[0])
+            elif args.command == "metadata":
+                result = registry.metadata(args.name)
             elif args.command in {"versions", "history", "revisions", "outcomes"}:
                 result = [_record(value) for value in getattr(registry, args.command)(args.name)]
             elif args.command == "validations":

@@ -6,14 +6,16 @@
     "senai.skills",
     "senai.skills.cli",
     "senai.skills.demo",
-    "senai.skills.review"
+    "senai.skills.review",
+    "senai.skills.metadata",
+    "senai.skills.errors"
   ],
   "public_api": [
     "Registry(root)",
     "Registry.import_local(source) -> Skill",
     "Registry.list() -> list[Skill]",
-    "Registry.select(names) -> list[Skill]",
-    "Registry.execute(request, names, *, executor)",
+    "Registry.select(names, *, compatibility_check=None) -> list[Skill]",
+    "Registry.execute(request, names, *, executor, compatibility_check=None)",
     "Registry.record_outcome(name, *, digest, request, result, checks=(), correction=\"\") -> Outcome",
     "Registry.outcomes(name) -> list[Outcome]",
     "Check(name, passed, evidence)",
@@ -33,7 +35,8 @@
     "senai.skills.demo.run_demo(project) -> dict",
     "ReviewResult(status, reason, revision)",
     "review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult",
-    "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult"
+    "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult",
+    "Registry.metadata(name) -> dict"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -45,7 +48,8 @@
     "python -m senai.skills --project PROJECT activate REVISION_ID",
     "python -m senai.skills --project PROJECT rollback NAME --digest DIGEST --reason REASON",
     "python -m senai.skills --project PROJECT demo",
-    "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]"
+    "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]",
+    "python -m senai.skills --project PROJECT metadata NAME"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
@@ -61,7 +65,9 @@
     ]
   },
   "dependencies": {
-    "runtime": [],
+    "runtime": [
+      "PyYAML==6.0.3 (requirements-skills.txt)"
+    ],
     "development": []
   },
   "storage": {
@@ -75,8 +81,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 200 offline tests on reviewer-step working tree, including 64 feature tests. Scope guard passed. Native subprocess used fake Codex; installed flags checked. Log outputs/skills-qa/review-suite.log. Exact post-commit verification pending; delivery remains draft.",
-    "offline_test_count": 200,
+    "offline_result": "PASS: 209 offline tests on metadata-step working tree, including 73 feature tests. Scope guard passed. Log outputs/skills-qa/metadata-suite.log. PyYAML 6.0.3 installed only in assigned .venv. Exact post-commit verification pending; delivery draft.",
+    "offline_test_count": 209,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -89,11 +95,12 @@
   "limitations": [
     "Draft partial delivery: broader/public imports and normal CLI/production outcome/review wiring pending. Reviewer is explicit, not automatic.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
-    "Restricted frontmatter; not full Hermes compatibility.",
+    "Bounded YAML subset; Hermes metadata inert, no full runtime compatibility or source-folder/name conformance claim.",
     "No live model checks.",
     "Proposals modify SKILL.md only; supporting files preserved unchanged.",
     "Live reviewer quality and actual skill improvement unverified.",
     "No-change review results are returned but do not have a separate durable attempt log.",
-    "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation."
+    "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
+    "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions."
   ]
 }

@@ -8,6 +8,8 @@ from .outcomes import Check, _decode
 from .revisions import Revision
 from .validation import Validation
 from .activation import Activation
+from .errors import SkillError
+from .metadata import parse_document as _parse, policy_metadata
 from hashlib import sha256
 from pathlib import Path
 import re
@@ -15,10 +17,6 @@ import shutil
 import sqlite3
 import tempfile
 import uuid
-
-
-class SkillError(ValueError):
-    """An import or selection failed validation."""
 
 
 @dataclass(frozen=True)
@@ -37,43 +35,6 @@ def _name(value):
     if not isinstance(value, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", value) or len(value) > 64:
         raise SkillError("Invalid skill name")
     return value
-
-
-def _parse(data):
-    try:
-        text = data.decode("utf-8")
-    except UnicodeDecodeError as exc:
-        raise SkillError("SKILL.md must be UTF-8") from exc
-    lines = text.splitlines(keepends=True)
-    if not lines or lines[0].strip() != "---":
-        raise SkillError("Missing metadata header")
-    metadata = {}
-    for index, line in enumerate(lines[1:], 1):
-        if line.strip() == "---":
-            break
-        key, sep, value = line.partition(":")
-        if not sep or key not in {"name", "description", "version"} or key in metadata:
-            raise SkillError("Unsupported or duplicate metadata")
-        value = value.strip()
-        if not value or value[0] in "[{>|&*!" or value in {"null", "~"}:
-            raise SkillError("Metadata requires scalar text")
-        if value[0] in "\"'":
-            if len(value) < 2 or value[-1] != value[0]:
-                raise SkillError("Unterminated metadata string")
-            value = value[1:-1]
-        metadata[key] = value
-    else:
-        raise SkillError("Unterminated metadata header")
-    if not metadata.get("description") or not metadata.get("name"):
-        raise SkillError("Name and description required")
-    _name(metadata["name"])
-    version = metadata.setdefault("version", "1")
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", version):
-        raise SkillError("Invalid version")
-    instructions = "".join(lines[index + 1:])
-    if not instructions.strip():
-        raise SkillError("Instructions required")
-    return metadata, instructions
 
 
 def _snapshot(source):
@@ -196,7 +157,7 @@ class Registry:
             names = [row[0] for row in db.execute("SELECT name FROM skills ORDER BY name")]
         return self.select(names)
 
-    def select(self, names):
+    def select(self, names, *, compatibility_check=None):
         selected = []
         with self._connect() as db:
             for name in names:
@@ -204,13 +165,18 @@ class Registry:
                 row = db.execute("SELECT name, version, description, source, digest, directory FROM skills WHERE name=?", (name,)).fetchone()
                 if row is None:
                     raise SkillError("Skill is not registered: " + name)
-                selected.append(self._skill(row))
+                skill = self._skill(row)
+                if compatibility_check is not None:
+                    metadata, _ = _parse(skill.path.read_bytes())
+                    if compatibility_check(metadata) is not True:
+                        raise SkillError("Skill is incompatible with the selected execution context: " + name)
+                selected.append(skill)
         return selected
 
-    def execute(self, request, names, *, executor):
+    def execute(self, request, names, *, executor, compatibility_check=None):
         if not isinstance(request, str) or not request.strip():
             raise SkillError("Request must be nonempty")
-        return executor(request, tuple(self.select(names)))
+        return executor(request, tuple(self.select(names, compatibility_check=compatibility_check)))
 
     def record_outcome(self, name, *, digest, request, result, checks=(), correction=""):
         """Persist adapter-observed evidence; this never activates a revision.
@@ -247,6 +213,9 @@ class Registry:
         if not isinstance(document, str) or len(document.encode("utf-8")) > 1024 * 1024:
             raise SkillError("Candidate document must be UTF-8 text up to 1 MiB")
         metadata, instructions = _parse(document.encode("utf-8"))
+        original_metadata, _ = _parse(skill.path.read_bytes())
+        if policy_metadata(metadata) != policy_metadata(original_metadata):
+            raise SkillError("Instruction revision must preserve optional metadata declarations")
         if metadata["name"] != name or metadata["version"] == skill.version:
             raise SkillError("Revision requires the same name and a distinct version")
         if instructions.strip() == skill.instructions.strip():
@@ -453,3 +422,9 @@ class Registry:
                 raise SkillError("Skill is not registered: " + name)
             rows = db.execute("SELECT id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at FROM activation_history WHERE skill_name=? ORDER BY rowid", (name,)).fetchall()
         return [Activation(*row) for row in rows]
+
+    def metadata(self, name):
+        """Return validated inert declarations; allowed-tools grants no permissions."""
+        skill = self.select([name])[0]
+        metadata, _ = _parse(skill.path.read_bytes())
+        return metadata

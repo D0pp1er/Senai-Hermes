@@ -18,3 +18,5 @@ Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invoca
 - [x] Feature-local CLI and offline synthetic lifecycle demo. Actual model-backed reuse demonstration still pending.
 
 - [x] Injected Codex-compatible reviewer and explicit CLI review; model-backed behavioral reuse verification remains pending.
+
+- [x] Broader metadata compatibility and optional caller-defined compatibility checks; public source acquisition remains pending.

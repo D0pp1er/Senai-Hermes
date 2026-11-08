@@ -39,7 +39,7 @@ A model's success prose is not verification. Failure evidence shows a problem bu
 is not proof that your proposed fix works. Separate regression checks happen later.
 If no useful change is supported, return action no_change and an empty document.
 Otherwise return action revise with the COMPLETE SKILL.md, same name and supplied
-target_version. Keep only supported name/description/version frontmatter fields.
+target_version. Preserve optional license/compatibility/allowed-tools/metadata declarations.\nUpdate metadata.version too if present; do not alter other metadata.
 Return exactly one JSON object with string fields action, reason, document. No fences.
 """
 

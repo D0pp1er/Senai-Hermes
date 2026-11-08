@@ -41,3 +41,11 @@ Exports: ReviewResult(status, reason, revision); review_skill(registry, name, *,
 CLI: python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]. Native installed Codex/auth required only for this explicit command. Output contains proposed Revision or no_change. Shared router/normal execution/session mappings unchanged. No new dependencies or DB migration.
 
 Coordinator may call review after independently verified outcomes, but should not infer checks from model success prose or promote proposals without independent regression cases. Native Codex option/config semantics apply. Live reviewer output quality, actual behavioral improvement and production wiring remain unverified.
+
+## Metadata/dependency integration
+
+Install `.venv/bin/python -m pip install --only-binary=:all: -r requirements-skills.txt` in a feature environment. Runtime pin: PyYAML==6.0.3. Only this worktree venv was changed. Coordinator should consolidate the dependency into shared packaging; no root metadata/lock edits here.
+
+Additive API: Registry.metadata(name) -> dict; CLI metadata NAME. select(names, *, compatibility_check=None) and execute(request, names, *, executor, compatibility_check=None) preserve old calls. Optional trusted compatibility_check(metadata) -> bool must return True to permit selection. It does not grant tools or install requirements; coordinator decides runtime compatibility policy.
+
+No DB migration. Stricter frontmatter checks may reject previously accepted overlong descriptions or ambiguous YAML; do not alter historical bytes to bypass hashes. Full official-spec compliance is not claimed: legacy source-folder/name mismatch remains supported, aliases/tags disallowed, and nested Hermes metadata is treated as inert data. Public source acquisition remains next, not implemented by this compatibility change.

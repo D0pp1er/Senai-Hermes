@@ -121,3 +121,12 @@ class SkillsCliTests(unittest.TestCase):
         self.assertEqual(out, "")
         self.assertNotIn("Traceback", err)
         run.assert_not_called()
+
+    def test_metadata_cli_exposes_optional_declarations(self):
+        path = self.fixture / "SKILL.md"
+        path.write_text(path.read_text().replace("version: 1", "version: 1\nlicense: MIT\ncompatibility: Requires Python"))
+        self.call("import", str(self.fixture))
+        code, out, err = self.call("metadata", "example")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out)["license"], "MIT")
+        self.assertEqual(json.loads(out)["compatibility"], "Requires Python")
