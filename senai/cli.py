@@ -1,6 +1,7 @@
 """Codex CLI wrapper: write/edit requests, interactive work, and native commands."""
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,7 @@ def build_parser():
     )
     parser.add_argument('request', nargs='?', help='Quoted request, or - to read stdin.')
     parser.add_argument('--project', '-C', '--cd', default='.', help='Parent project directory; code goes in its outputs/ folder.')
+    parser.add_argument('--installation', default=os.environ.get('SENAI_INSTALLATION_ROOT'), help='Explicit single-owner memory installation root; defaults to SENAI_INSTALLATION_ROOT.')
     parser.add_argument('-m', '--model', help='Codex model override.')
     parser.add_argument('-p', '--profile', help='Codex configuration profile.')
     parser.add_argument('-c', '--config', action='append', default=[], metavar='KEY=VALUE', help='Repeatable Codex configuration override.')
@@ -38,6 +40,16 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     stderr = stderr if stderr is not None else sys.stderr
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'memory':
+        from contextlib import redirect_stdout, redirect_stderr
+        from .memory.__main__ import main as memory_main
+        arguments = argv[1:]
+        if '--installation' not in arguments and '--project' not in arguments:
+            root = os.environ.get('SENAI_INSTALLATION_ROOT')
+            if root:
+                arguments = ['--installation', root, *arguments]
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            return memory_main(arguments)
     if argv and argv[0] == 'telegram':
         from .telegram.cli import telegram_main
         return telegram_main(argv[1:], stdout, stderr)
@@ -77,7 +89,13 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
             output_last_message=destination, json=args.json,
         )
         streams = {'stdout': stdout, 'stderr': stderr} if options.json else {}
-        response = run_codex(prompt, workspace, options=options, **streams)
+        if args.installation:
+            from .memory_runtime import InstallationRuntime
+            response = InstallationRuntime(args.installation).execute(
+                request, workspace, executor=run_codex, options=options,
+                skills=tuple(args.skill), **streams)
+        else:
+            response = run_codex(prompt, workspace, options=options, **streams)
         if not options.json:
             print(response, file=stdout)
         return 0
