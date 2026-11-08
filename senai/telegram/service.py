@@ -54,7 +54,14 @@ class BotService:
             if not self.router.is_authorized(job['user_id']):
                 self.store.mark_delivered(job['id'])
                 continue
-            parts = self.delivery_parts(result_text(job))
+            parts = self.store.delivery_snapshot(job['id'])
+            if parts is None:
+                # Earlier releases sent a status header; retain its chunk boundaries.
+                text = ('Request #{}: {}\n\n{}'.format(job['id'], job['status'], job['result'])
+                        if job['parts_sent'] else result_text(job))
+                parts = self.store.delivery_snapshot(job['id'], self.delivery_parts(text))
+            if job['parts_sent'] > len(parts):
+                raise ValueError('Saved Telegram delivery cursor exceeds its payload.')
             for part in parts[job['parts_sent']:]:
                 self.api.send_message(job['chat_id'], part)
                 self.store.mark_part_sent(job['id'])
