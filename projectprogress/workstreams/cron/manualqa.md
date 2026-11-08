@@ -30,3 +30,14 @@ All send callbacks use fakes and temporary DBs. Inspect queue with:
 .venv/bin/python -m senai.cron --project outputs/qa-project deliveries
 No transport/daemon is started. CLI create supports --delivery-target as a JSON object;
 this is stored routing data, not proof of permission. Unknown sends require operator review.
+
+Calendar/misfire offline check:
+.venv/bin/python -m pip install -r requirements-cron.txt
+.venv/bin/python -m unittest tests.cron.test_calendar tests.cron.test_cli -v
+Expected: all pass; fakes/temp DBs only. No live execution.
+Feature CLI supports --cron '0 9 * * *' --timezone Asia/Dhaka --misfire skip --grace-seconds 120.
+Keep --at offset-aware; for calendar schedules it is an inclusive start boundary. dry-run
+shows would_skip separately; misfires command shows only already committed skip/coalesce events.
+Earlier elapsed-only statements in this QA history describe previous milestones; calendar
+behavior is defined in current architecture.md. Source reference for parser usage:
+https://github.com/pallets-eco/croniter/blob/main/README.rst .

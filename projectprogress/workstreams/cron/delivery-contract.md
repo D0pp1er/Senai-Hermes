@@ -29,9 +29,10 @@ its callbacks now use the outbox, including idle ticks after restart. New adapte
 DeliveryWorker(store, send) to receive target + run + stable delivery ID explicitly.
 A legacy untargeted callback needs the same explicit destination configuration after restart.
 
-Remaining scheduling work: calendar cron expressions, explicit catch-up/skip/grace policy,
-missed-occurrence accounting and chat management. Existing elapsed recurrence always coalesces;
-one-shots currently remain due indefinitely. This milestone does not claim those gaps are fixed.
+Calendar/misfire milestone: five-field cron, explicit coalesce/skip with grace_seconds, and durable
+misfire records are now implemented. See architecture.md for DST, bounded counting and exact
+policy. Compatibility default coalesce still allows indefinitely late one-shots; use skip for
+time-sensitive reminders. Chat management remains coordinator integration work.
 
 Acceptance evidence: tests/cron/test_delivery.py covers restart, competing send claims,
 transaction rollback, unknown send, stopped sender token invalidation, bounded certified retry,

@@ -1,36 +1,39 @@
 # Cron architecture
-Store owns an independent SQLite database; schedules carry canonical project, explicit scope,
-prompt, timezone (default Asia/Dhaka), UTC due instant and enabled flag. Runs retain a
-schedule snapshot even after deletion. BEGIN IMMEDIATE serializes claims across processes.
-Worker.tick claims at most one run and invokes injected executor/run-result delivery callbacks.
 
-Recurring schedules use elapsed seconds, not calendar cron expressions. UTC instants avoid
-host timezone dependence; callers must supply aware start datetimes (DST fold explicit).
-Missed intervals coalesce into one oldest due occurrence; the next due remains on the original
-interval grid strictly after claim time. One-shot schedules are consumed at claim.
-Running/retry rows block overlapping occurrences of that schedule. Pause prevents new claims
-including retries; delete preserves run history. Already running work is not cancelled.
-Retries default to zero; opt-in 0..10 additional attempts use a fixed positive delay, with the
-same durable run ID and incrementing attempt. Retry may repeat external effects.
+Store owns a feature-local SQLite DB under <project>/outputs/.senai-cron/. Importing modules
+creates no DB, threads or schedules. Store construction additively upgrades its own tables;
+BEGIN IMMEDIATE serializes migration column checks and all execution/delivery claims.
 
-Crash recovery is deliberately manual: no lease expiry automatically re-executes work.
-After proving the old worker stopped, interrupt marks a running row interrupted. A consumed
-one-shot is not retried; recurring schedules can subsequently claim the next due occurrence.
-SQLite claims are atomic, but arbitrary executor effects are not exactly once. A crash after
-an external effect and before saving success leaves an ambiguous running run. Delivery is
-best effort after durable completion; failure is recorded, without re-execution or automatic
-redelivery. A crash before delivery can lose notification; consumers can inspect run history.
+Schedules carry canonical project, explicit scope, prompt, IANA zone (default Asia/Dhaka),
+enabled flag and UTC next_due. Runs retain immutable snapshots after schedule deletion.
+Worker invokes injected execution; DeliveryWorker invokes injected transport independently.
+Completion and delivery enqueue are one transaction. See delivery-contract.md for send recovery.
 
-No dependencies beyond Python standard library/system IANA zoneinfo data. This is a new
-feature-local database, not a migration of Telegram state. Shared CLI routing remains unwired.
+Calendar helper uses pinned croniter over local naive wall clocks, then explicitly resolves
+fold=0 and validates by a UTC round trip. Nonexistent wall times are skipped; repeated wall
+minutes run once at their earlier occurrence. --at is an aware lower bound for cron (inclusive),
+a due instant for one-shots/intervals. --cron and --every cannot coexist. Five-field cron supports
+ordinary ranges/lists/steps and month/weekday names; DOM and DOW use standard OR semantics.
+Seconds/year fields, macros, hashed/random fields and special L/W/# syntax are rejected.
+Calendar matching searches at most eight years and 1500 wall candidates; unreachable dates
+are rejected before creation. Elapsed intervals preserve duration independently of DST.
 
-CLI: .venv/bin/python -m senai.cron --project <directory> <command>.
-Management and dry-run only; does not invoke Codex. Dry-run is an advisory snapshot,
-not a reservation. Create requires an offset-aware ISO start; timezone is persisted metadata.
+Claim atomically creates the run and moves next_due strictly after the injected clock.
+Running/retry rows block overlap for that schedule. Execution retries are opt-in (0..10), fixed
+positive delay, same run ID and incremented attempt. Unknown execution effects are never
+reclaimed automatically. Operator interrupt requires verifying the old worker has stopped.
 
-## Durable delivery update
-Supersedes the earlier best-effort delivery paragraph: finish atomically inserts an outbox
-request for targeted tasks or legacy callback execution. DeliveryWorker uses independent
-pending/delivering/delivered/failed/unknown states. See delivery-contract.md for transitions,
-recovery and compatibility. Default send attempts: three total with a 60-second fixed delay;
-only explicit RetryDelivery certifies safe retry. No implicit replay of unknown sends.
+Misfire policy is coalesce (compatibility default) or skip. Skip suppresses a due occurrence
+when now-first_due > grace_seconds; equality still runs. Grace is 0..86400 seconds, default 120.
+A recurring backlog is always collapsed, never replayed. Coalesce executes the oldest due
+occurrence once and records other collapsed slots. Skip executes none and records the gap.
+A skipped one-shot is retired (next_due=NULL) without execution/delivery. Schedule advance,
+misfire event and optional run insertion commit atomically. Events retain history after deletion.
+Intervals count exactly; calendar enumeration stops at 1000 due slots, with count_capped=1
+meaning missed_count is a lower bound (999 collapsed, or 1000 skipped). A late single catch-up
+can record missed_count=0 because it ran. Claim examines at most 100 schedules per call.
+
+Pause blocks future claims including retries, without cancelling active execution or delivery.
+Delivery adapters must enforce current authorization at send time. CLI management and advisory
+dry-run start no executor. Dry-run shows due, would_skip and ready retries without reserving work.
+No chat/production adapter or always-on scheduler is integrated; shared CLI wiring is coordinator-owned.

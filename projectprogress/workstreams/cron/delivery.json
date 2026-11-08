@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
   "feature": "cron",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.cron.store",
     "senai.cron.worker",
     "senai.cron.delivery",
-    "senai.cron.__main__"
+    "senai.cron.__main__",
+    "senai.cron.calendar"
   ],
   "public_api": [
     {
@@ -16,8 +17,8 @@
     },
     {
       "name": "Store.create",
-      "signature": "create(*, name, prompt, project, scope, at, timezone=\"Asia/Dhaka\", every=None, retries=0, retry_delay=60, delivery_target=None)",
-      "purpose": "Persist one-shot or elapsed-interval schedule and JSON destination"
+      "signature": "create(*, name, prompt, project, scope, at, timezone=\"Asia/Dhaka\", every=None, retries=0, retry_delay=60, delivery_target=None, cron=None, misfire=\"coalesce\", grace_seconds=120)",
+      "purpose": "Persist one-shot, elapsed interval or five-field calendar schedule with explicit misfire policy"
     },
     {
       "name": "Store.claim",
@@ -53,10 +54,16 @@
       "name": "RetryDelivery",
       "signature": "RetryDelivery(message)",
       "purpose": "Only raise when transport certifies no acceptance; allows safe retry"
+    },
+    {
+      "name": "Store.misfires",
+      "signature": "misfires() -> list[dict]",
+      "purpose": "Read durable skip/coalescing history; count_capped marks lower-bound counts"
     }
   ],
   "commands": [
-    ".venv/bin/python -m senai.cron --project <directory> {create,list,runs,deliveries,dry-run,pause,resume,delete,interrupt}"
+    ".venv/bin/python -m senai.cron --project <directory> {create,list,runs,deliveries,misfires,dry-run,pause,resume,delete,interrupt}",
+    "create supports --cron EXPR or --every SECONDS; --misfire coalesce|skip; --grace-seconds N; --timezone IANA; aware --at required"
   ],
   "executor_contract": {
     "interface": "executor(run: dict) -> str; send(item: dict) -> None",
@@ -70,13 +77,18 @@
     ]
   },
   "dependencies": {
-    "runtime": [],
+    "runtime": [
+      "croniter==6.2.4",
+      "python-dateutil==3.0.0",
+      "six==1.17.0",
+      "tzdata==2026.6"
+    ],
     "development": []
   },
   "storage": {
     "namespace": "<project>/outputs/.senai-cron/cron.db",
-    "schema_version": 2,
-    "migration_notes": "Add deliveries table and nullable schedules.delivery_target; existing tasks/runs preserved and no historical sends backfilled. Initialize upgrade before workers start. No Telegram migration."
+    "schema_version": 3,
+    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes."
   },
   "verification": {
     "offline_commands": [
@@ -96,12 +108,13 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Elapsed interval only; calendar cron and configurable catch-up/grace pending",
-    "Consumed one-shots remain due indefinitely until claimed; no expiration policy yet",
-    "Unknown execution/send outcomes require operator review, never automatic reclaim",
-    "Destination JSON is routing metadata, not authorization; adapters must enforce current access",
-    "Delivery retries require consistent configured policy across worker restarts",
-    "No live channel/model/daemon checks; no exactly-once external effects",
-    "Chat management and combined pipeline remain coordinator integration work"
+    "Calendar: five-field standard syntax only; no macros, seconds/year, special L/W/# or random/hashed fields",
+    "DST gaps skipped, repeated wall minutes execute once at earlier fold; no per-job alternative DST policy",
+    "Calendar search bounded to eight years and 1500 wall candidates; calendar missed counts above 1000 slots are lower bounds",
+    "Compatibility default coalesce allows late one-shots indefinitely; choose skip/grace for time-sensitive reminders",
+    "At most 100 due schedules examined per claim; call tick again after a large skipped backlog",
+    "Unknown execution/send outcomes require operator review; external effects are not exactly once",
+    "Destination JSON is metadata; adapters must enforce current authorization and preserve session policy",
+    "No live channel/model/daemon checks; chat management and combined pipeline remain coordinator integration work"
   ]
 }

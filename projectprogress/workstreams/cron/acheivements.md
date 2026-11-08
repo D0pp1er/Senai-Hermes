@@ -9,3 +9,8 @@
 - No additional dependencies, shared-file patches, or existing-state migrations required.
 
 - 8335f7c: transactional outbox and recovery; full offline suite 154 tests passed on exact commit 8335f7c97916363b41808b8de4e378f879507b10. Log: outputs/cron-qa/offline-tests.log. Live checks not run.
+
+- Calendar/misfire TDD milestone: 171 full offline tests passed, including 35 cron tests.
+- Coverage includes spring gap, earlier fall fold only, wall-clock hour stability, restart,
+  competing skip claims, failed-history rollback, bounded backlog counts and old DB defaults.
+- pip check passes; dependencies installed only in this worktree .venv. No live checks.

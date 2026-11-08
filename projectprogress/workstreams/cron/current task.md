@@ -1,6 +1,5 @@
 # Current task
 
-Feature/cron, assigned WSL worktree. Durable outbox milestone implemented.
-Next: timezone-aware calendar recurrence and explicit misfire policies, followed by coordinator
-chat/execution/delivery adapters. See integration-notes.md and delivery-contract.md.
-No merge, daemon, OS schedule or production adapter has been enabled.
+Feature/cron: durable outbox plus timezone-aware calendar/misfire milestone implemented.
+Next: coordinator review and chat/execution/delivery adapters. No live schedules or production
+checks enabled. Unknown effects still require manual review. See delivery.json for tested commit.

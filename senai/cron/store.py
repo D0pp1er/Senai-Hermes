@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from .calendar import next_after, advance
 
 
 def timestamp(value):
@@ -37,9 +38,18 @@ class Store:
                     attempt INTEGER NOT NULL DEFAULT 0, ready_at REAL NOT NULL,
                     token TEXT, error TEXT);
             """)
+            db.execute("BEGIN IMMEDIATE")
             columns = {r['name'] for r in db.execute("PRAGMA table_info(schedules)")}
-            if 'delivery_target' not in columns:
-                db.execute("ALTER TABLE schedules ADD COLUMN delivery_target TEXT")
+            additions = {'delivery_target': 'TEXT', 'cron': 'TEXT',
+                         'misfire': "TEXT NOT NULL DEFAULT 'coalesce'",
+                         'grace_seconds': 'INTEGER NOT NULL DEFAULT 120'}
+            for name, definition in additions.items():
+                if name not in columns:
+                    db.execute(f"ALTER TABLE schedules ADD COLUMN {name} {definition}")
+            db.execute("""CREATE TABLE IF NOT EXISTS misfires (
+                id TEXT PRIMARY KEY, schedule_id TEXT NOT NULL, first_due REAL NOT NULL,
+                observed_at REAL NOT NULL, missed_count INTEGER NOT NULL,
+                count_capped INTEGER NOT NULL, reason TEXT NOT NULL)""")
 
     @contextmanager
     def connection(self):
@@ -52,7 +62,8 @@ class Store:
             db.close()
 
     def create(self, *, name, prompt, project, scope, at, timezone="Asia/Dhaka",
-               every=None, retries=0, retry_delay=60, delivery_target=None):
+               every=None, retries=0, retry_delay=60, delivery_target=None,
+               cron=None, misfire="coalesce", grace_seconds=120):
         try:
             ZoneInfo(timezone)
         except (ZoneInfoNotFoundError, TypeError) as exc:
@@ -62,6 +73,14 @@ class Store:
                 raise ValueError("delivery_target must be a nonempty JSON object")
             delivery_target = json.dumps(delivery_target, allow_nan=False)
         due = timestamp(at)
+        if misfire not in ('coalesce', 'skip'):
+            raise ValueError('misfire must be coalesce or skip')
+        if type(grace_seconds) is not int or not 0 <= grace_seconds <= 86400:
+            raise ValueError('grace_seconds must be an integer from 0 to 86400')
+        if cron is not None:
+            if every is not None:
+                raise ValueError('cron and every are mutually exclusive')
+            due = next_after(cron, timezone, due-0.000001)
         if not all(isinstance(x, str) and x.strip() for x in (name, prompt, scope)):
             raise ValueError("name, prompt and scope are required")
         if every is not None and (not isinstance(every, int) or every < 1):
@@ -73,9 +92,9 @@ class Store:
             raise ValueError("project must be a directory")
         ident = uuid.uuid4().hex
         with self.connection() as db:
-            db.execute("INSERT INTO schedules (id,name,prompt,project,scope,timezone,enabled,next_due,every,retries,retry_delay,delivery_target) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            db.execute("INSERT INTO schedules (id,name,prompt,project,scope,timezone,enabled,next_due,every,retries,retry_delay,delivery_target,cron,misfire,grace_seconds) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                        (ident, name, prompt, project, scope, timezone, 1, due,
-                        every, retries, retry_delay, delivery_target))
+                        every, retries, retry_delay, delivery_target, cron, misfire, grace_seconds))
         return ident
 
     def list(self):
@@ -114,20 +133,31 @@ class Store:
                 row = dict(retry)
                 row.update(status='running', attempt=row['attempt']+1)
                 return row
-            job = db.execute("""SELECT * FROM schedules s WHERE enabled=1 AND next_due<=?
+            jobs = db.execute("""SELECT * FROM schedules s WHERE enabled=1 AND next_due<=?
                 AND NOT EXISTS (SELECT 1 FROM runs r WHERE r.schedule_id=s.id
-                    AND r.status IN ('running','retry')) ORDER BY next_due LIMIT 1""", (now,)).fetchone()
-            if job is None:
-                return None
-            job = dict(job)
-            due = job['next_due']
-            next_due = None if job['every'] is None else due + (int((now-due)//job['every'])+1)*job['every']
-            db.execute("UPDATE schedules SET next_due=? WHERE id=?", (next_due, job['id']))
-            row = dict(id=uuid.uuid4().hex, schedule_id=job['id'], scheduled_at=due,
-                       snapshot=json.dumps(job), status='running', attempt=1, ready_at=now,
-                       result=None, error=None, delivery_error=None)
-            db.execute("INSERT INTO runs VALUES (:id,:schedule_id,:scheduled_at,:snapshot,:status,:attempt,:ready_at,:result,:error,:delivery_error)", row)
-            return row
+                    AND r.status IN ('running','retry')) ORDER BY next_due LIMIT 100""", (now,)).fetchall()
+            for job in jobs:
+                job = dict(job)
+                due = job['next_due']
+                next_due, count, capped = advance(job, now)
+                skip = job['misfire'] == 'skip' and now-due > job['grace_seconds']
+                db.execute("UPDATE schedules SET next_due=? WHERE id=?", (next_due, job['id']))
+                if skip or count > 1 or now-due > job['grace_seconds']:
+                    db.execute("INSERT INTO misfires VALUES (?,?,?,?,?,?,?)",
+                        (uuid.uuid4().hex, job['id'], due, now, count if skip else count-1,
+                         int(capped), 'skip' if skip else 'coalesce'))
+                if skip:
+                    continue
+                row = dict(id=uuid.uuid4().hex, schedule_id=job['id'], scheduled_at=due,
+                           snapshot=json.dumps(job), status='running', attempt=1, ready_at=now,
+                           result=None, error=None, delivery_error=None)
+                db.execute("INSERT INTO runs VALUES (:id,:schedule_id,:scheduled_at,:snapshot,:status,:attempt,:ready_at,:result,:error,:delivery_error)", row)
+                return row
+            return None
+
+    def misfires(self):
+        with self.connection() as db:
+            return [dict(r) for r in db.execute("SELECT * FROM misfires ORDER BY rowid")]
 
     def finish(self, ident, *, result=None, error=None, enqueue_delivery=False):
         now = timestamp(self.clock())
