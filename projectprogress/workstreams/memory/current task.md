@@ -1,8 +1,5 @@
 # Current task
 
-Branch: feature/memory
-Worktree: /home/rk/SentiensHermes/senai-memory
-
-Status: prepared; awaiting the assigned feature chat.
-
-Next: verify branch/environment, read the handoff, and write the first failing behavior test.
+Branch feature/memory; assigned WSL .venv verified. Storage milestone complete.
+Next: bounded snapshots and injectable executor, then reviewed outcome candidates.
+Shared CLI/prompts/Telegram files remain coordinator-owned.
