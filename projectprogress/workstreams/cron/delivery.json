@@ -7,7 +7,9 @@
     "senai.cron.worker",
     "senai.cron.delivery",
     "senai.cron.__main__",
-    "senai.cron.calendar"
+    "senai.cron.calendar",
+    "senai.cron_supervisor",
+    "senai.processes"
   ],
   "public_api": [
     {
@@ -69,12 +71,29 @@
       "name": "Store.update",
       "signature": "update(ident, *, expected_revision, **changes) -> dict",
       "purpose": "Atomic validated edit; reject stale revision and active/retry work; preserve project/scope and historical snapshots"
+    },
+    {
+      "name": "Store.uncertain",
+      "signature": "uncertain(ident, error)",
+      "purpose": "Record unknown execution, pause future occurrences and queue a durable notification without retry."
+    },
+    {
+      "name": "UncertainExecution",
+      "signature": "UncertainExecution(message)",
+      "purpose": "Signal uncertain external execution separately from ordinary opt-in failures."
+    },
+    {
+      "name": "Supervisor",
+      "signature": "Supervisor(manager, *, interval=1, status_interval=5); run(stdout, *, once=False, signals=False) -> int",
+      "purpose": "Supervise separate bounded-execution and durable-delivery loops with visible status and graceful stop."
     }
   ],
   "commands": [
     ".venv/bin/python -m senai.cron --project <directory> {create,show,edit,list,runs,deliveries,misfires,dry-run,pause,resume,delete,interrupt}",
     "create supports --cron EXPR or --every SECONDS; --misfire coalesce|skip; --grace-seconds N; --timezone IANA; aware --at required",
-    "show ID; edit ID --expected-revision N [--prompt TEXT] [--at ISO] [--cron EXPR|--every SECONDS|--once] [other supported create fields except project/scope]"
+    "show ID; edit ID --expected-revision N [--prompt TEXT] [--at ISO] [--cron EXPR|--every SECONDS|--once] [other supported create fields except project/scope]",
+    "senai cron worker --project PROJECT --telegram-account BOT_ID [--once] [--execution-timeout SECONDS] [--interval SECONDS] [--status-interval SECONDS]",
+    "senai cron worker-status --project PROJECT --telegram-account BOT_ID"
   ],
   "executor_contract": {
     "interface": "executor(run: dict) -> str; send(item: dict) -> None",
@@ -99,7 +118,7 @@
   "storage": {
     "namespace": "<project>/outputs/.senai-cron/cron.db",
     "schema_version": 4,
-    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes. Add revision INTEGER NOT NULL DEFAULT 1; old records preserved. Due advance, retry claims, pause/resume and edits increment revision."
+    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes. Add revision INTEGER NOT NULL DEFAULT 1; old records preserved. Due advance, retry claims, pause/resume and edits increment revision. Additive unknown execution status: transaction pauses schedule and optionally queues its notification; existing TEXT status columns require no DDL migration. Protected worker-status.json and worker.lock are account-local. Telegram DB schema remains unchanged."
   },
   "verification": {
     "offline_commands": [
@@ -132,9 +151,9 @@
   "coordinator_integration": {
     "merge_commit": "6a50762",
     "wiring_commit": "7e6cf18",
-    "combined_test_count": 299,
+    "combined_test_count": 312,
     "combined_result": "passed",
-    "coordinator_test_count": 16,
+    "coordinator_test_count": 29,
     "dependency_check": "passed",
     "installed_cli_qa": "passed",
     "live_operation_enabled": false,
@@ -142,7 +161,14 @@
     "evidence": [
       "outputs/cron-combined-regression.log",
       "outputs/cron-integration-green.log",
-      "outputs/cron-integration-qa/acceptance.json"
-    ]
+      "outputs/cron-integration-qa/acceptance.json",
+      "outputs/cron-supervised-regression.log",
+      "outputs/cron-supervisor-green.log",
+      "outputs/cron-supervisor-qa/acceptance.json"
+    ],
+    "supervision_commit": "58109c0",
+    "supervisor_test_count": 13,
+    "offline_worker_acceptance": "passed",
+    "live_worker_acceptance": "not-run; requires later explicit instruction"
   }
 }

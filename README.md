@@ -253,3 +253,7 @@ The old bot was user-verified live; new setup/pairing still needs manual accepta
 
 See [parallel workstreams](projectprogress/parallel/README.md) for four isolated WSL
 worktrees/environments, ownership rules, and the four self-contained chat prompts.
+
+## Supervised cron worker (2026-11-09)
+
+Added explicit senai cron worker / worker-status commands in 58109c0. Execution and delivery loops are independent; scheduled native execution has a configurable process-group deadline. Unknown execution pauses the schedule and bypasses retries; ambiguous sends remain unknown. Singleton locking preserves Telegram's exact shared-session policy. Existing bot --enable-cron mode also drains delivery independently. All 312 tests passed, including disposable offline pipeline/authorized-delivery and restart acceptance. Live acceptance remains pending explicit instruction; production services/state were not used. Startup, shutdown and recovery: projectprogress/cron.md.
