@@ -127,6 +127,22 @@
     "At most 100 due schedules examined per claim; call tick again after a large skipped backlog",
     "Unknown execution/send outcomes require operator review; external effects are not exactly once",
     "Destination JSON is metadata; adapters must enforce current authorization and preserve session policy",
-    "No live channel/model/daemon checks; chat management and combined pipeline remain coordinator integration work"
-  ]
+    "Coordinator CLI/chat/execution/delivery integration is wired and offline tested; live channel/model/daemon scheduling checks remain unperformed"
+  ],
+  "coordinator_integration": {
+    "merge_commit": "6a50762",
+    "wiring_commit": "7e6cf18",
+    "combined_test_count": 299,
+    "combined_result": "passed",
+    "coordinator_test_count": 16,
+    "dependency_check": "passed",
+    "installed_cli_qa": "passed",
+    "live_operation_enabled": false,
+    "production_state_used": false,
+    "evidence": [
+      "outputs/cron-combined-regression.log",
+      "outputs/cron-integration-green.log",
+      "outputs/cron-integration-qa/acceptance.json"
+    ]
+  }
 }

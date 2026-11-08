@@ -34,3 +34,9 @@ destination and revision. Rule/timezone changes require explicit aware at; metad
 edits must not rearm completed one-shots. Existing results/delivery snapshots stay unchanged.
 Schema v4 adds revision INTEGER NOT NULL DEFAULT 1, preserving old data. No new dependencies.
 Shared chat routing is deliberately a coordinator proposal; this feature does not modify it.
+
+## Coordinator integration on main
+
+Merged feature/cron through 46e739d (6a50762); wiring 7e6cf18. Consolidated pinned dependencies, shared senai cron management, opt-in /cron management, existing serialized native-session execution, and currently authorized durable text delivery. All 299 combined tests passed; installed CLI fixture QA and dependency checks passed. Production state/services untouched; live scheduling remains disabled and unverified. See projectprogress/cron.md for usage and limits.
+
+Feature-local CLI main now accepts optional keyword-only store_factory for the shared --telegram-account store selector; prior callers retain their default behavior. Telegram activation requires --enable-cron. CommandRunner shares the existing native session store; the existing worker serializes foreground and cron execution. DeliveryWorker uses confirmed authorized text delivery with conservative unknown outcomes. Account-specific cron databases are additive and separate from Telegram state.

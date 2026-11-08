@@ -552,3 +552,7 @@ Evidence:
 - outputs/qa-memory-installation/first-session.jsonl
 - outputs/qa-memory-installation/final-fresh-session.jsonl
 - outputs/qa-memory-installation/final-resume.jsonl
+
+## Cron integration (2026-11-09)
+
+Merged feature/cron through 46e739d (6a50762); wiring 7e6cf18. Consolidated pinned dependencies, shared senai cron management, opt-in /cron management, existing serialized native-session execution, and currently authorized durable text delivery. All 299 combined tests passed; installed CLI fixture QA and dependency checks passed. Production state/services untouched; live scheduling remains disabled and unverified. See projectprogress/cron.md for usage and limits.
