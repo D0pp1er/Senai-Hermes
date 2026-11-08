@@ -7,3 +7,5 @@
 - Final full offline suite: 135 tests passed (126 baseline + 9 cron).
 - Feature-local CLI supports create/list/runs/pause/resume/delete/interrupt/dry-run.
 - No additional dependencies, shared-file patches, or existing-state migrations required.
+
+- 8335f7c: transactional outbox and recovery; full offline suite 154 tests passed on exact commit 8335f7c97916363b41808b8de4e378f879507b10. Log: outputs/cron-qa/offline-tests.log. Live checks not run.

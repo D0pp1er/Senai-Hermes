@@ -9,3 +9,5 @@
   References: https://github.com/NousResearch/hermes-agent/tree/main/cron and
   https://hermes-agent.nousresearch.com/docs/developer-guide/cron-internals .
   Source review only; Hermes was not installed or executed.
+
+- 8335f7c: completed outbox/recovery milestone; test and API contract in delivery.json.

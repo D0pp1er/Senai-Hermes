@@ -1,36 +1,107 @@
 {
   "schema_version": 1,
   "feature": "cron",
-  "status": "draft",
+  "status": "ready",
   "modules": [
-    "senai.cron"
+    "senai.cron.store",
+    "senai.cron.worker",
+    "senai.cron.delivery",
+    "senai.cron.__main__"
   ],
-  "public_api": [],
-  "commands": [],
+  "public_api": [
+    {
+      "name": "Store",
+      "signature": "Store(path, *, clock=None)",
+      "purpose": "Open isolated cron SQLite state; injected aware datetime clock"
+    },
+    {
+      "name": "Store.create",
+      "signature": "create(*, name, prompt, project, scope, at, timezone=\"Asia/Dhaka\", every=None, retries=0, retry_delay=60, delivery_target=None)",
+      "purpose": "Persist one-shot or elapsed-interval schedule and JSON destination"
+    },
+    {
+      "name": "Store.claim",
+      "signature": "claim() -> dict | None",
+      "purpose": "Atomic run claim with schedule advance; returns JSON snapshot"
+    },
+    {
+      "name": "Store.finish",
+      "signature": "finish(ident, *, result=None, error=None, enqueue_delivery=False)",
+      "purpose": "Persist terminal result and optional delivery atomically"
+    },
+    {
+      "name": "Store management",
+      "signature": "list(); runs(); pause(ident); resume(ident); delete(ident); interrupt(ident)",
+      "purpose": "Inspect/manage schedules and manually interrupt stopped executions"
+    },
+    {
+      "name": "Store delivery",
+      "signature": "deliveries(); claim_delivery(); finish_delivery(ident, token, *, status, error=None, retry_delay=60); abandon_delivery(ident)",
+      "purpose": "Inspect, claim, settle and manually fence abandoned sends"
+    },
+    {
+      "name": "Worker",
+      "signature": "Worker(store, executor, deliver=None); tick() -> dict | None",
+      "purpose": "Execute one due run; legacy delivery callback receives completed run"
+    },
+    {
+      "name": "DeliveryWorker",
+      "signature": "DeliveryWorker(store, send, *, max_attempts=3, retry_delay=60); tick() -> dict | None",
+      "purpose": "Drain one pending delivery independently from execution"
+    },
+    {
+      "name": "RetryDelivery",
+      "signature": "RetryDelivery(message)",
+      "purpose": "Only raise when transport certifies no acceptance; allows safe retry"
+    }
+  ],
+  "commands": [
+    ".venv/bin/python -m senai.cron --project <directory> {create,list,runs,deliveries,dry-run,pause,resume,delete,interrupt}"
+  ],
   "executor_contract": {
-    "interface": "",
-    "inputs": [],
-    "outputs": []
+    "interface": "executor(run: dict) -> str; send(item: dict) -> None",
+    "inputs": [
+      "run: id, schedule_id, scheduled_at, attempt, JSON snapshot with prompt/project/scope/timezone/delivery_target",
+      "send item: stable id, decoded target, completed run, attempt and token; adapter authorizes target at send time"
+    ],
+    "outputs": [
+      "executor string saved durably, exception triggers opt-in bounded execution retry",
+      "send returns after confirmed acceptance; RetryDelivery means definitely not accepted; other exceptions mean unknown"
+    ]
   },
   "dependencies": {
     "runtime": [],
     "development": []
   },
   "storage": {
-    "namespace": "",
-    "schema_version": null,
-    "migration_notes": ""
+    "namespace": "<project>/outputs/.senai-cron/cron.db",
+    "schema_version": 2,
+    "migration_notes": "Add deliveries table and nullable schedules.delivery_target; existing tasks/runs preserved and no historical sends backfilled. Initialize upgrade before workers start. No Telegram migration."
   },
   "verification": {
-    "offline_commands": [],
-    "offline_result": "not-run",
-    "offline_test_count": 0,
-    "tested_commit": "",
-    "live_result": "not-run"
+    "offline_commands": [
+      ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature cron"
+    ],
+    "offline_result": "passed",
+    "offline_test_count": 154,
+    "tested_commit": "8335f7c97916363b41808b8de4e378f879507b10",
+    "live_result": "not-run",
+    "log": "outputs/cron-qa/offline-tests.log"
   },
   "integration": {
-    "shared_file_changes": [],
+    "shared_file_changes": [
+      "Coordinator only: route main CLI to cron.__main__.main; inject authorized execution/session and delivery adapters"
+    ],
     "sibling_requirements": []
   },
-  "limitations": []
+  "limitations": [
+    "Elapsed interval only; calendar cron and configurable catch-up/grace pending",
+    "Consumed one-shots remain due indefinitely until claimed; no expiration policy yet",
+    "Unknown execution/send outcomes require operator review, never automatic reclaim",
+    "Destination JSON is routing metadata, not authorization; adapters must enforce current access",
+    "Delivery retries require consistent configured policy across worker restarts",
+    "No live channel/model/daemon checks; no exactly-once external effects",
+    "Chat management and combined pipeline remain coordinator integration work"
+  ]
 }
