@@ -11,7 +11,18 @@ ACKNOWLEDGEMENTS = (
 )
 
 CHAT_STYLE = (
-    "Reply for a Telegram messenger conversation. Prefer plain text. "
+    "The user is reading your reply in Telegram, not a terminal or desktop app. "
+    "They cannot open files on the bot's computer or server. "
+    "Do not present local filesystem paths, file:// links, sandbox links or desktop "
+    "preview links as something they can open in Telegram. Describe the result or "
+    "paste the useful content directly into the chat. Use real public links only "
+    "when known to be accessible; never invent a download link. If a local path is "
+    "explicitly requested or necessary for troubleshooting, label it as a server-only "
+    "path that is not accessible from Telegram. "
+    "Current delivery is text-only: images, files and voice notes are not attached "
+    "by this transport yet. Do not claim an image, file or voice note was sent "
+    "unless the delivery system confirms it. Explain any unavailable capability briefly. "
+    "Prefer plain text. "
     "Keep ordinary chat replies to 1-3 short sentences, answering directly. "
     "Avoid Markdown headings, bold markers, tables and code fences by default. "
     "Use more detail or code only when the user requests it or it is necessary "

@@ -43,3 +43,19 @@ necessary detail and explicitly requested code remain allowed.
 ## Merge review: pending delivery compatibility
 
 Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
+
+## Remote viewer context
+
+chat_request states the user reads only Telegram, cannot open host files, and needs
+inline content or a genuinely accessible link. File paths are not erased blindly;
+explicit troubleshooting paths remain possible when labeled server-only. Capability
+instructions are text-only until actual media delivery is implemented. They prohibit
+claiming that media was delivered without confirmation. These are model preferences,
+not a guarantee against all model-generated local-path references. Long-response and
+empty-response runner fallbacks also avoid inaccessible host log links in chat mode.
+
+Media roadmap (not implemented): explicit authorized artifact selection inside the
+configured outputs workspace, photo/file upload, and an outbound voice path with an
+injected speech generator. Image generation and speech synthesis are distinct from
+Telegram transport; neither is supplied by this patch. No inbound transcription is
+requested. Retain text replies and short status messages alongside future media.

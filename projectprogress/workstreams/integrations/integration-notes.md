@@ -31,3 +31,12 @@ Discord remains pending outside this ready Telegram milestone.
 ## Merge review: pending delivery compatibility
 
 Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
+
+## Viewer-context update and next media scope
+
+No additional shared hooks, runtime dependencies or migrations for this change.
+Media remains unimplemented. User wants newly generated/existing images delivered
+in Telegram and outbound voice replies; inbound voice transcription is not requested.
+Official API references: https://core.telegram.org/bots/api#sendphoto and
+https://core.telegram.org/bots/api#sendvoice. Transport upload and model media generation
+must be wired separately with offline injectable tests and live acceptance later.

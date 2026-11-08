@@ -56,8 +56,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 151,
-    "tested_commit": "7487862",
+    "offline_test_count": 153,
+    "tested_commit": "working-tree: Telegram viewer-context change; commit recorded in git history",
     "live_result": "not-run"
   },
   "integration": {
@@ -65,9 +65,10 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Discord is excluded from this delivered Telegram milestone and remains backlog.",
-    "Live Telegram/model response style unverified.",
-    "Plain-text brevity is a model preference, not a hard output filter."
+    "Discord and media delivery pending; delivery remains draft.",
+    "Live Telegram/model behavior unverified.",
+    "Viewer context and brevity are model instructions, not a path-redaction or formatting filter.",
+    "Image generation and outbound speech synthesis require separate runtime integration."
   ],
   "delivery_scope": "Telegram adapter and conversational chat milestone; Discord remains backlog."
 }

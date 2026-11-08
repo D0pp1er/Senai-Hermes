@@ -62,9 +62,12 @@ class CommandRunner:
         with path.open(encoding='utf-8', errors='replace') as stream:
             text = stream.read(60001)
         if not text.strip():
-            text = f'Local senai exited with code {result.returncode}. Inspect local logs in {directory}.'
+            text = (f'The request could not produce a reply (exit code {result.returncode}). Please ask the bot operator to check the server logs.'
+                    if self.chat_style else f'Local senai exited with code {result.returncode}. Inspect local logs in {directory}.')
         if len(text) > 60000:
-            text = text[:60000] + f'\n[Reply truncated; complete local output: {path}]'
+            suffix = ('\n[Reply shortened. Ask for the specific part you need.]' if self.chat_style
+                      else f'\n[Reply truncated; complete local output: {path}]')
+            text = text[:60000] + suffix
         return ('succeeded' if result.returncode == 0 else 'failed'), text.strip()
 
     def recover_session(self):

@@ -19,3 +19,15 @@ Maintain dated, feature-local changes and short commit IDs here. Root CHANGELOG.
 ## Merge review: pending delivery compatibility
 
 Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
+
+## 2026-11-09: Telegram viewer context
+
+- Prior conversational reply commit: 26d8da1.
+- Every chat-style turn now identifies the reader as a Telegram user without
+  access to the host filesystem; asks for useful inline content instead of local links.
+- Do not invent public links or claim undelivered image/file/voice attachments.
+- Current text-only capability stated explicitly. Necessary, requested troubleshooting
+  paths must be labeled server-only. This is response guidance, not a path-redaction filter.
+- Chat-style long-response/empty-response fallbacks no longer advertise local log paths.
+- TDD: two new tests failed before implementation; 7 chat tests and 153 total offline
+  tests now pass. Ownership guard and git diff --check pass.

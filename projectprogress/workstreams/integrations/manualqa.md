@@ -39,3 +39,12 @@ question to check variation (random selection can repeat). Check /status and
 /result; commands should respond directly, and /result should resend the answer.
 Request code explicitly to confirm necessary detail is still allowed.
 Live acceptance NOT RUN. This worktree's tests use only temporary state/fakes.
+
+## Viewer context regression
+
+PASS offline: 7 chat tests and 153 full-suite tests; scope guard and diff check pass.
+Logs: outputs/qa-integrations/viewer-tests.log and regression.log.
+After coordinator integration/restart, request a generated-file summary. Expect the
+useful content in chat, without a misleading host-only download link. Ask for an
+image/voice reply: while media is unavailable, expect an honest short explanation,
+not a false claim of attachment. Actual model behavior/live delivery NOT RUN.

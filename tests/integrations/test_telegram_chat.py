@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from senai.telegram.chat import ACKNOWLEDGEMENTS, acknowledgement
+from senai.telegram.chat import ACKNOWLEDGEMENTS, acknowledgement, chat_request
 from senai.telegram.router import Router, result_text
 from senai.telegram.runner import CommandRunner
 from senai.telegram.service import BotService
@@ -82,3 +82,31 @@ class TelegramChatTests(unittest.TestCase):
             self.assertIn("Markdown", prompt)
             self.assertTrue(prompt.endswith("Explain x*y and `code`"))
         self.assertEqual(commands[1][commands[1].index("--resume") + 1], sid)
+
+
+class TelegramViewerContextTests(unittest.TestCase):
+    def test_every_turn_describes_the_remote_telegram_viewer_and_actual_delivery(self):
+        prompt = chat_request("Show me the result")
+        self.assertIn("reading your reply in Telegram", prompt)
+        self.assertIn("cannot open files on the bot's computer or server", prompt)
+        self.assertIn("Do not present local filesystem paths", prompt)
+        self.assertIn("paste the useful content", prompt)
+        self.assertIn("Do not claim an image, file or voice note was sent", prompt)
+        self.assertIn("text-only", prompt)
+        self.assertTrue(prompt.endswith("Show me the result"))
+
+    def test_telegram_fallbacks_do_not_advertise_inaccessible_log_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = JobStore(root / "outputs/state/state.sqlite3")
+            store.bind_shared_session("11111111-1111-4111-8111-111111111111")
+            runner = CommandRunner(root, store.path.parent, store=store, chat_style=True)
+            def execute(command, **kwargs):
+                Path(command[command.index("--output-last-message") + 1]).write_text("x" * 60001)
+                return subprocess.CompletedProcess(command, 0)
+            with patch("senai.telegram.runner.subprocess.run", side_effect=execute):
+                status, text = runner({"id": 1, "prompt": "Long answer"})
+            self.assertEqual(status, "succeeded")
+            self.assertNotIn(str(root), text)
+            self.assertIn("shortened", text)
+            self.assertTrue((store.path.parent / "jobs/1/response.txt").exists())

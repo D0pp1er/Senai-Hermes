@@ -11,3 +11,7 @@
 - No dependencies, migration, production polling or live platform checks introduced.
 
 2026-11-09: Telegram chat improvement verified with 5 new tests; 149 total offline tests pass. Scope guard passes. No live bot change.
+
+2026-11-09: Telegram-viewer context added on every model turn, including existing
+session resumes. Long response fallback gives an in-chat follow-up instruction.
+153 offline tests pass. Live model/path behavior remains unverified.
