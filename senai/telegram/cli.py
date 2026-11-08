@@ -8,6 +8,7 @@ from .api import BotAPI, TelegramError
 from .config import load_credentials, default_env_file
 from .connection import identify_bot, state_directory
 from .router import Router
+from ..integrations.telegram import TelegramAdapter
 from .pairing import PairingManager
 from .runner import CommandRunner
 from .service import BotService, instance_lock
@@ -86,11 +87,14 @@ def telegram_main(argv, stdout, stderr):
             return 0
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
-            router = Router(store, users, identity['username'], max_pending=args.max_pending)
+            router = TelegramAdapter(
+                Router(store, users, identity['username'], max_pending=args.max_pending),
+                api, project=args.project, account=str(identity['id']),
+            )
             runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill))
             runner.recover_session()
             store.recover_interrupted()
-            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout)
+            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router)
             service.skip_pending()
             code = PairingManager(store).issue()
             print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout, flush=True)

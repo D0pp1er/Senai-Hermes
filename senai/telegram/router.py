@@ -1,6 +1,7 @@
 """Authorize private updates before routing text into the durable request queue."""
 
 from .pairing import PairingManager
+from ..integrations.telegram import parse_private_update
 
 HELP = (
     'Send a code request as text, or /run your request.\n'
@@ -33,20 +34,12 @@ class Router:
         identifier = update.get('update_id') if isinstance(update, dict) else None
         if type(identifier) is not int or identifier < 0:
             return []
-        message = update.get('message')
-        message = message if isinstance(message, dict) else {}
-        sender, chat = message.get('from', {}), message.get('chat', {})
-        sender = sender if isinstance(sender, dict) else {}
-        chat = chat if isinstance(chat, dict) else {}
-        eligible = (
-            type(sender.get('id')) is int and sender['id'] > 0
-            and sender.get('is_bot') is not True and chat.get('type') == 'private'
-            and type(chat.get('id')) is int and chat['id'] == sender['id']
-        )
-        text = message.get('text')
-        if not eligible or not isinstance(text, str):
+        parsed = parse_private_update(update)
+        if parsed is None:
             self.store.consume(identifier)
             return []
+        _, user_id, chat_id, text = parsed
+        sender, chat = {'id': user_id}, {'id': chat_id}
         text = text.strip()
         command, argument = '', ''
         if text.startswith('/'):

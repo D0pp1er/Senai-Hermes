@@ -1,7 +1,7 @@
 # Integrations objectives
 
-Follow the milestones in ../../parallel/prompts/01-integrations.md.
-
-- [ ] First verified milestone.
-- [ ] Feature-local CLI/demo and regression coverage.
-- [ ] Integration requirements and limitations documented.
+- [x] Minimal transport contract and Telegram-compatible adapter (first milestone).
+- [x] Preserve private authorization, pairing, durable queue and deliberate shared session.
+- [ ] Discord adapter, explicit user/channel authorization, bounded jobs and long replies.
+- [ ] Offline two-transport contract coverage and feature-local Discord entry point.
+- [ ] Live Discord acceptance after operator setup.

@@ -1,3 +1,11 @@
 # Integrations achievements
 
-- Isolated worktree/environment prepared. Feature implementation has not started.
+2026-11-09: first adapter milestone implemented on feature/integrations.
+
+- Verified .venv interpreter and senai import resolve inside this worktree.
+- Baseline: 126 offline tests passed.
+- RED: new contract tests failed with ModuleNotFoundError for senai.integrations.
+- GREEN: 8 adapter tests and all 126 baseline tests pass (134 total).
+- Telegram startup uses the adapter with verified bot ID and canonical project identity.
+- Existing SQLite schema, pairing/revocation, queue/executor and exact native session policy retained.
+- No dependencies, migration, production polling or live platform checks introduced.
