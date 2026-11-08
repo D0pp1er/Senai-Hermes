@@ -1,6 +1,10 @@
 """Strict local instruction package registry using only the standard library."""
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+import json
+
+from .outcomes import Check, _decode
 from hashlib import sha256
 from pathlib import Path
 import re
@@ -111,6 +115,9 @@ class Registry:
         with self._connect() as db:
             db.execute("CREATE TABLE IF NOT EXISTS skills (name TEXT PRIMARY KEY, version TEXT NOT NULL, description TEXT NOT NULL, source TEXT NOT NULL, digest TEXT NOT NULL, directory TEXT NOT NULL)")
 
+            db.execute("CREATE TABLE IF NOT EXISTS outcomes (id TEXT PRIMARY KEY, skill_name TEXT NOT NULL, skill_version TEXT NOT NULL, skill_digest TEXT NOT NULL, request TEXT NOT NULL, result TEXT NOT NULL, checks TEXT NOT NULL, correction TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('passed', 'failed', 'unverified')), created_at TEXT NOT NULL)")
+            db.execute("CREATE INDEX IF NOT EXISTS outcomes_skill ON outcomes(skill_name)")
+
     @contextmanager
     def _connect(self):
         db = sqlite3.connect(self.root / "registry.sqlite3")
@@ -173,3 +180,39 @@ class Registry:
         if not isinstance(request, str) or not request.strip():
             raise SkillError("Request must be nonempty")
         return executor(request, tuple(self.select(names)))
+
+    def record_outcome(self, name, *, digest, request, result, checks=(), correction=""):
+        """Persist adapter-observed evidence; this never activates a revision.
+
+        Callers must supply independently observed checks. Neither check labels nor
+        stored evidence authenticate a caller or prove a model's claims true.
+        """
+        skill = self.select([name])[0]
+        if digest != skill.digest:
+            raise SkillError("Outcome must identify the exact selected skill digest")
+        for label, value, limit, required in (("request", request, 32000, True), ("result", result, 64000, False), ("correction", correction, 16000, False)):
+            if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
+                raise SkillError("Invalid outcome " + label)
+        try:
+            checks = tuple(checks)
+        except TypeError as exc:
+            raise SkillError("Checks must be an iterable of Check records") from exc
+        if len(checks) > 100:
+            raise SkillError("At most 100 checks allowed")
+        for check in checks:
+            if not isinstance(check, Check) or type(check.passed) is not bool:
+                raise SkillError("Checks require a Check record and boolean result")
+            for value, limit in ((check.name, 200), (check.evidence, 16000)):
+                if not isinstance(value, str) or not value.strip() or len(value) > limit:
+                    raise SkillError("Each check requires a bounded name and observed evidence")
+        status = "unverified" if not checks else "passed" if all(check.passed for check in checks) else "failed"
+        row = (uuid.uuid4().hex, name, skill.version, digest, request, result, json.dumps([asdict(check) for check in checks]), correction, status, datetime.now(timezone.utc).isoformat())
+        with self._connect() as db:
+            db.execute("INSERT INTO outcomes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", row)
+        return _decode(row)
+
+    def outcomes(self, name):
+        """Return append-only evidence in insertion order for one registered skill."""
+        self.select([name])
+        with self._connect() as db:
+            return [_decode(row) for row in db.execute("SELECT id, skill_name, skill_version, skill_digest, request, result, checks, correction, status, created_at FROM outcomes WHERE skill_name=? ORDER BY rowid", (name,))]

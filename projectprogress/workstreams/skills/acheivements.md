@@ -6,3 +6,5 @@
 - Rejected malformed/unknown metadata, duplicate/conflicting names, symlink packages/content, non-directory archive input, missing selections and changed installed content.
 - Import copies scripts as inert bytes; nothing is executed or globally installed.
 - Full offline regression result recorded in manualqa.md.
+
+- Added outcome records and six red-to-green tests: restart identity, failed-check correction, unverified prose, invalid record atomicity, registry isolation and insertion order. No activation occurs.

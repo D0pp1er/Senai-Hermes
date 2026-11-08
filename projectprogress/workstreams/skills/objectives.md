@@ -6,3 +6,5 @@
 - [ ] Feature-local command interface and reuse demo.
 
 Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invocation remains unchanged.
+
+- [x] Learning step 1: outcome evidence persistence; revisions/regression/rollback remain pending.

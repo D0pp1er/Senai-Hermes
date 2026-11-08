@@ -11,3 +11,13 @@ Supported compatibility: deliberately restricted SKILL.md-style UTF-8 frontmatte
 Trust boundary: instruction text remains untrusted content; syntax validation and hashes do not prove safe instructions. Caller controls selection/execution. Registry/source directories must not be concurrently modified by untrusted processes: filesystem snapshotting is not an OS isolation boundary or a defense against hostile file-replacement races. No evidence-based revision claims are made yet.
 
 No third-party dependencies, downloaded references, authored reusable Codex skill, model calls, or sibling-feature imports used in this milestone. Remaining work is recorded in current task.md.
+
+## Learning architecture and current step
+
+Planned project layout: outputs/skills/registry.sqlite3 plus registry-owned package snapshot folders. Keep the existing package paths and import_local/list/select/execute contracts compatible. The SQLite outcomes table now stores immutable ID, skill name/version/digest, request, result, checks JSON, correction, derived status and UTC timestamp. outcomes(name) lists them in insertion order. No write happens merely by importing the Python package.
+
+Check(name, passed, evidence) is a frozen record supplied by a trusted adapter. record_outcome(name, *, digest, request, result, checks=(), correction="") validates bounded text, boolean check results and active content identity. No checks means unverified; all checks passing means passed; any failing check means failed. These labels describe supplied checks, not universal task correctness or authenticated evidence. Recording does not change selected instructions. No raw production transcript, credentials, or live state is gathered automatically.
+
+Future tables: immutable revision candidates with base digest and outcome links, regression evidence, active revision pointer and activation/rollback audit history. Future loop: select -> existing execution -> observed checks -> append outcome -> Codex-generated proposal -> isolated regression checks -> activate -> reuse. No model weights are changed. The coordinator owns insertion of shared post-execution hooks; this feature supplies injected interfaces only.
+
+Research sources read 2026-11-09: https://hermes-agent.nousresearch.com/docs/user-guide/features/skills ; https://hermes-agent.nousresearch.com/docs/user-guide/features/memory ; https://agentskills.io/specification . Hermes uses procedural skills, progressive disclosure and agent-managed/background revisions; our proposed explicit regression gate and immutable history are project design choices, not a claim to duplicate Hermes implementation. Metadata-only catalog/resource loading and broader frontmatter compatibility remain future work.
