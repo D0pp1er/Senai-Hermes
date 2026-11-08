@@ -2,8 +2,8 @@
 
 Operator-independent automated Telegram setup and one persistent shared Codex conversation.
 
-Branch: feature/telegram-sessions.
-Status: implemented and verified; documentation links/examples checked. New live Telegram onboarding
+Branch: main. Merged feature/telegram-sessions in commit 664539c on 2026-11-08.
+Status: implementation merged; all 126 regression tests passed before merge. New live onboarding acceptance remains an operator step. New live Telegram onboarding
 requires operator restart/setup, while the shared Codex session path is live-verified.
 
 User decisions: local-code pairing; all paired users share the same conversation.

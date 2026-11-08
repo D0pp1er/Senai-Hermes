@@ -215,3 +215,7 @@
 - Rewrote the Telegram guide around automated configuration and persistent shared context; updated architecture, feature guide, manual QA-20, requirements, and progress records.
 - Documented trusted local pairing, shared-history implications, compatibility, restart behavior, and pending live onboarding acceptance.
 - Final documentation check: local links and 69 Bash examples pass. The source branch remains feature/telegram-sessions; no merge or real-token migration was performed.
+
+## Telegram sessions merged
+- At user request, merged feature/telegram-sessions into main (664539c) on 2026-11-08.
+- All 126 regression tests passed before merge; existing live-token configuration was not read or changed.
