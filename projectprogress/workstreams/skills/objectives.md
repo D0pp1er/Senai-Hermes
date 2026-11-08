@@ -1,7 +1,8 @@
 # Skills objectives
 
-Follow the milestones in ../../parallel/prompts/04-skills.md.
+- [x] First milestone: local import, strict validation, explicit selection, durable version/provenance.
+- [ ] Public repository import after local validation hardening.
+- [ ] Verified outcome traces, candidate revisions, regression gates, activation and rollback.
+- [ ] Feature-local command interface and reuse demo.
 
-- [ ] First verified milestone.
-- [ ] Feature-local CLI/demo and regression coverage.
-- [ ] Integration requirements and limitations documented.
+Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invocation remains unchanged.
