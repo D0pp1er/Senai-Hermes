@@ -1,13 +1,15 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
     "senai.telegram.chat",
     "senai.telegram.router",
-    "senai.telegram.runner"
+    "senai.telegram.runner",
+    "senai.telegram.store",
+    "senai.telegram.service"
   ],
   "public_api": [
     {
@@ -45,7 +47,7 @@
   "storage": {
     "namespace": "Configured bot/project outputs Telegram state directory",
     "schema_version": 1,
-    "migration_notes": "No new migration; preserve existing JobStore schema and compatibility migrations."
+    "migration_notes": "Additive CREATE TABLE IF NOT EXISTS delivery_snapshots. Existing jobs, cursors, users, config and shared session mapping are retained. Legacy partial replies retain original status headers and chunk boundaries."
   },
   "verification": {
     "offline_commands": [
@@ -54,8 +56,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 149,
-    "tested_commit": "working-tree: Telegram chat change; commit recorded in git history",
+    "offline_test_count": 151,
+    "tested_commit": "7487862",
     "live_result": "not-run"
   },
   "integration": {
@@ -63,8 +65,9 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Discord pending; delivery remains draft.",
+    "Discord is excluded from this delivered Telegram milestone and remains backlog.",
     "Live Telegram/model response style unverified.",
     "Plain-text brevity is a model preference, not a hard output filter."
-  ]
+  ],
+  "delivery_scope": "Telegram adapter and conversational chat milestone; Discord remains backlog."
 }

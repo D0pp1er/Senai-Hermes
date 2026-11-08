@@ -39,3 +39,7 @@ request/status headers; failures remain explicit. The API already sends plain te
 without parse_mode. We prefer plain text through instructions rather than stripping
 Markdown characters and damaging code. Ordinary replies target 1-3 short sentences;
 necessary detail and explicitly requested code remain allowed.
+
+## Merge review: pending delivery compatibility
+
+Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.

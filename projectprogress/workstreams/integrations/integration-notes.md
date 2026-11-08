@@ -15,7 +15,7 @@ result_text(job) now returns only result for succeeded jobs; errors/interrupted
 results retain request/status context. This is the requested presentation change.
 
 ## Dependencies, storage and migration
-Standard library only; no dependency or schema migration. Stored user prompts,
+Standard library only; no new dependency; additive delivery snapshot table. Stored user prompts,
 shared native session UUID, authorization and result delivery cursor are unchanged.
 No sibling-feature imports or shared core/packaging edits.
 
@@ -26,4 +26,8 @@ Telegram/model verification performed, and no running bot was restarted.
 Acknowledgements use random choice; consecutive repeats are possible. Direct
 commands return their own response. Acknowledgement send failures retain existing
 queue behavior; acknowledgements are not a separately durable outbox.
-Discord remains pending; overall delivery manifest remains draft.
+Discord remains pending outside this ready Telegram milestone.
+
+## Merge review: pending delivery compatibility
+
+Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.

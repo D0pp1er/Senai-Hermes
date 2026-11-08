@@ -15,3 +15,7 @@ Maintain dated, feature-local changes and short commit IDs here. Root CHANGELOG.
 - RED: test_telegram_chat failed on missing chat module. GREEN: 5 new behavior tests,
   149 full-suite tests pass; ownership guard and diff whitespace check pass.
 - Logs: outputs/qa-integrations/regression.log and chat-tests.log (local, ignored).
+
+## Merge review: pending delivery compatibility
+
+Persist exact redacted message chunks before sending. Pre-upgrade partially sent replies retain legacy formatting; retries reuse saved chunks. The additive delivery_snapshots table does not rewrite jobs, offsets, authorization or shared sessions. Two regression tests failed before the fix and now pass. Full suite: 151 tests passed at 7487862. Live bot/config/state were not accessed.
