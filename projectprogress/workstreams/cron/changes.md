@@ -17,3 +17,5 @@
 - Add bounded five-field wall-clock matching, gap skip/fold=0 DST policy, skip/coalesce rules,
   atomic missed-slot history and non-mutating preview. Old schedule defaults are preserved.
 - Add pinned feature-only calendar dependency; no global or shared packaging edits.
+
+- aaae7f6: calendar/misfire implementation; 171 offline tests pass on exact commit.

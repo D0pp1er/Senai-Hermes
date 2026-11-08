@@ -41,3 +41,7 @@ shows would_skip separately; misfires command shows only already committed skip/
 Earlier elapsed-only statements in this QA history describe previous milestones; calendar
 behavior is defined in current architecture.md. Source reference for parser usage:
 https://github.com/pallets-eco/croniter/blob/main/README.rst .
+
+PASS: exact implementation commit aaae7f6, 171 tests. Offline CLI create/dry-run/runs
+smoke check completed in a temporary directory under outputs/qa-project; no executor invoked.
+Logs: outputs/cron-qa/calendar-tests.log and calendar-cli.log. Live checks remain not run.
