@@ -77,3 +77,5 @@ All four worktrees/environments have been created and validated:
 
 The prompts authorize scoped feature implementation when pasted into their respective
 new chats. Preparation itself did not implement the four new features.
+
+Mandatory additional guidance: [merge policy](MERGE_POLICY.md) and [ownership map](ownership.json). Fill the per-feature delivery.json and run the scope guard before committing or handing off.

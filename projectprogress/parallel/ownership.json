@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "coordinator_paths": [
+    "AGENTS.md",
+    "projectprogress/parallel/MERGE_POLICY.md",
+    "projectprogress/parallel/ownership.json",
+    "projectprogress/parallel/delivery-template.json",
+    "projectprogress/parallel/execution-contract.md",
+    "projectprogress/parallel/README.md",
+    "scripts/check_workstream_scope.py",
+    "tests/coordination/__init__.py",
+    "tests/coordination/test_scope_guard.py"
+  ],
+  "workstreams": {
+    "integrations": {
+      "branch": "feature/integrations",
+      "prefixes": [
+        "senai/integrations/",
+        "tests/integrations/",
+        "projectprogress/workstreams/integrations/",
+        "senai/telegram/"
+      ],
+      "files": [
+        "requirements-integrations.txt"
+      ]
+    },
+    "memory": {
+      "branch": "feature/memory",
+      "prefixes": [
+        "senai/memory/",
+        "tests/memory/",
+        "projectprogress/workstreams/memory/"
+      ],
+      "files": [
+        "requirements-memory.txt"
+      ]
+    },
+    "cron": {
+      "branch": "feature/cron",
+      "prefixes": [
+        "senai/cron/",
+        "tests/cron/",
+        "projectprogress/workstreams/cron/"
+      ],
+      "files": [
+        "requirements-cron.txt"
+      ]
+    },
+    "skills": {
+      "branch": "feature/skills",
+      "prefixes": [
+        "senai/skills/",
+        "tests/skills/",
+        "projectprogress/workstreams/skills/"
+      ],
+      "files": [
+        "requirements-skills.txt"
+      ]
+    }
+  }
+}
