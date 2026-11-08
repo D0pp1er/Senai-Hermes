@@ -2,7 +2,7 @@
 
 Merge the Telegram feature into main after user-confirmed live testing.
 
-Status: live operation confirmed by the user on 2026-11-08; final regression check and merge in progress.
+Status: complete. All 100 regression tests passed; feature/telegram-bot merged into main with merge commit 46b1b33 on 2026-11-08.
 
 Source branch: feature/telegram-bot. Target branch: main.
 Maintain the separate offline test evidence and the detailed manual QA checklist;

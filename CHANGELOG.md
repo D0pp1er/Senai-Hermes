@@ -187,3 +187,4 @@
 ## Telegram acceptance and merge
 - User confirmed live Telegram operation on 2026-11-08 and requested merge into main.
 - Updated setup/progress records to distinguish user-confirmed live operation from offline tests and individually unrecorded QA cases.
+- Verification: all 100 tests passed before merging; merge commit 46b1b33 integrates the feature into main.
