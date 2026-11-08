@@ -39,3 +39,7 @@ See CHANGELOG.md for chronological details and verification evidence.
 - On feature/telegram-sessions: local-code pairing, automated protected configuration, and one persistent shared conversation; 126 tests pass. Two real Codex turns retained the same ID/context after a runner/store restart across simulated users. New wizard/pairing awaits live acceptance.
 
 - Prepared four clean WSL worktrees with separate branches, isolated editable environments, and four self-contained handoffs. Each passed the 126-test baseline; the global senai install was unchanged.
+
+## Telegram integration merge (2026-11-09)
+
+Merged feature/integrations, including 26d8da1, in 2e50418. Review fix 7487862 preserves partial reply delivery across upgrades. Scope/readiness checks passed; all 151 regression tests passed on feature and merged main. No live Telegram configuration, state or session was accessed; bot was not restarted.

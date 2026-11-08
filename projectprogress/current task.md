@@ -15,3 +15,7 @@ Status: complete.
 Next: each active chat must reread AGENTS.md and parallel/MERGE_POLICY.md, maintain
 its own contract/records, and run the guard before commits and final delivery.
 Merge one module at a time with coordinator-owned shared integration changes.
+
+## Integration merge completed
+
+2e50418 includes 26d8da1 and reviewed pending-delivery fix 7487862. Scope/readiness passed; merged main passed 151 tests. Regression log: outputs/integrations-main-regression.log. Live QA remains optional and unperformed. Existing Telegram config/state/session were not accessed.

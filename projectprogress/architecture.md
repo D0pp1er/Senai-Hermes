@@ -376,3 +376,7 @@ Feature-local delivery.json describes public APIs, executor shape, dependencies,
 migrations, and test evidence; shared integration-notes.md proposals stay unapplied until
 coordinator integration. The scope guard checks Git ownership and declared readiness.
 The coordinator alone updates shared CLI/hooks/packaging/aggregate docs and merges sequentially.
+
+## Telegram integration merge (2026-11-09)
+
+Telegram now passes private updates through TelegramAdapter into the existing authorized queue and exact shared Codex session. Chat instructions enrich each request without changing saved prompts. Delivery snapshots persist exact redacted chunks; legacy partial replies preserve their original headers and boundaries. Storage migration only adds a table.

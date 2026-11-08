@@ -360,3 +360,7 @@ saved ID; later messages and restarts resume that exact session. /run, /status,
 --revoke-user removes access. Voice, attachments, downloads, and /cancel remain
 unimplemented. The new pairing/wizard needs live acceptance; session continuity
 has been checked with real Codex.
+
+## Telegram integration merge (2026-11-09)
+
+Telegram uses varied short acknowledgements and asks Codex for concise plain-text replies. Requested code and detail remain available; brevity is a preference, not a hard filter. Existing pairing, configuration and shared session are reused. Discord remains backlog.

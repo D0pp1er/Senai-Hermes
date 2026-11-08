@@ -510,3 +510,7 @@ bash scripts/setup_telegram.sh --project "$QA_ROOT"
 Record each result as PASS/FAIL/BLOCKED. Existing v1 bot operation was user-confirmed;
 the new onboarding/pairing steps still need this live acceptance. The real Codex
 session-resume path has been exercised independently in an isolated QA workspace.
+
+## Telegram integration merge (2026-11-09)
+
+After the active request finishes, stop the existing bot normally and restart with the same command/project. Do not rerun setup or reset state. Send a short question: expect a brief acknowledgement and conversational reply. Ask a follow-up referencing the previous conversation to verify shared-session continuity. Request code/detail to verify explicit formatting requests still work. Live QA has not been performed by this merge.
