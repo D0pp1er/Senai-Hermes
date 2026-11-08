@@ -40,6 +40,11 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     stderr = stderr if stderr is not None else sys.stderr
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'cron':
+        from contextlib import redirect_stdout, redirect_stderr
+        from .cron_runtime import manage_cli as cron_main
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            return cron_main(argv[1:])
     if argv and argv[0] == 'memory':
         from contextlib import redirect_stdout, redirect_stderr
         from .memory.__main__ import main as memory_main

@@ -8,7 +8,7 @@ from pathlib import Path
 from .store import Store, timestamp
 
 
-def main(argv=None):
+def main(argv=None, *, store_factory=None):
     parser = argparse.ArgumentParser(prog='python -m senai.cron')
     parser.add_argument('--project', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
@@ -52,7 +52,8 @@ def main(argv=None):
         project = args.project.resolve(strict=True)
         if not project.is_dir():
             raise ValueError('project must be a directory')
-        store = Store(project/'outputs/.senai-cron/cron.db')
+        store = (store_factory(project) if store_factory is not None else
+                 Store(project/'outputs/.senai-cron/cron.db'))
         if args.command == 'create':
             result = store.create(name=args.name, prompt=args.prompt, scope=args.scope,
                 at=datetime.fromisoformat(args.at), project=project, timezone=args.timezone,
