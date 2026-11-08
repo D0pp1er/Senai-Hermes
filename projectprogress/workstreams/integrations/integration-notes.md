@@ -31,10 +31,10 @@ installed Codex built-in tools; image_generation flag is enabled here, but a rea
 model/image invocation was not performed. Availability/account support may vary.
 /voice uses the OpenAI Speech API, which needs a local API key and API billing;
 ChatGPT/Codex sign-in alone is not used as speech authorization. No live API call
-was made. Set OPENAI_API_KEY in the bot process environment only; do not put it in
+was made. Set SENAI_TTS_API_KEY in the bot process environment only (OPENAI_API_KEY is a supported fallback); do not put it in
 chat, tracked files, Telegram credential env files (which accept only Telegram keys),
-or command arguments. OPENAI_API_KEY is omitted from Codex child environments:
-coordinator must check this if using API-key-based Codex login rather than native login.
+or command arguments. The dedicated SENAI_TTS_API_KEY is omitted from Codex child environments. Existing
+OPENAI_API_KEY/native Codex API authentication is preserved.
 Optional SENAI_TTS_MODEL and SENAI_TTS_VOICE customize the speech client.
 
 ## Migration and rollback

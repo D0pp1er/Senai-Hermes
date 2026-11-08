@@ -82,7 +82,7 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 183,
+    "offline_test_count": 184,
     "tested_commit": "voice milestone working tree before commit",
     "live_result": "not-run"
   },
@@ -99,7 +99,7 @@
   ],
   "delivery_scope": "Telegram image attachments and explicit outbound /voice replies; Discord deferred.",
   "external_services": [
-    "Optional OpenAI Speech API: local OPENAI_API_KEY, API billing, default gpt-4o-mini-tts/coral",
+    "Optional OpenAI Speech API: local SENAI_TTS_API_KEY (fallback OPENAI_API_KEY), API billing, default gpt-4o-mini-tts/coral",
     "Installed Codex built-in image generation when available; no image API client/key added"
   ]
 }

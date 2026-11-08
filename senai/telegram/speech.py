@@ -46,7 +46,7 @@ class OpenAISpeech:
 
 def speech_from_environment(environ=None):
     values = os.environ if environ is None else environ
-    key = values.get('OPENAI_API_KEY', '').strip()
+    key = (values.get('SENAI_TTS_API_KEY', '') or values.get('OPENAI_API_KEY', '')).strip()
     if not key:
         return None
     return OpenAISpeech(key, model=values.get('SENAI_TTS_MODEL', 'gpt-4o-mini-tts'),

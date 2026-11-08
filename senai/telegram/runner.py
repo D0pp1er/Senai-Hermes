@@ -54,7 +54,7 @@ class CommandRunner:
         if self.chat_style:
             prompt = chat_request(prompt, attachment_manifest=directory / 'attachments.json' if self.media is not None else None, voice_reply=voice)
         command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', prompt]
-        environment = {key: value for key, value in os.environ.items() if key not in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_ALLOWED_USER_IDS', 'OPENAI_API_KEY')}
+        environment = {key: value for key, value in os.environ.items() if key not in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_ALLOWED_USER_IDS', 'SENAI_TTS_API_KEY')}
         with stdout_path.open('w', encoding='utf-8') as stdout, stderr_path.open('w', encoding='utf-8') as stderr:
             result = subprocess.run(
                 command, cwd=self.workspace, stdin=subprocess.DEVNULL,

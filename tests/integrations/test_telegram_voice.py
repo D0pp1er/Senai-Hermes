@@ -41,7 +41,7 @@ class VoiceTests(unittest.TestCase):
     def execute(self, command, **kwargs):
         self.assertNotIn("/voice", command[-1])
         self.assertIn("spoken", command[-1])
-        self.assertNotIn("OPENAI_API_KEY", kwargs["env"])
+        self.assertNotIn("SENAI_TTS_API_KEY", kwargs["env"])
         kwargs["stdout"].write(json.dumps({"type": "thread.started", "thread_id":
                                  "11111111-1111-4111-8111-111111111111"}))
         Path(command[command.index("--output-last-message") + 1]).write_text("Python is a programming language.")
@@ -49,7 +49,7 @@ class VoiceTests(unittest.TestCase):
 
     def test_voice_question_keeps_text_and_uploads_an_ai_disclosed_voice_note(self):
         self.router.handle(update())
-        with patch.dict("os.environ", {"OPENAI_API_KEY": "fake-key"}), patch(
+        with patch.dict("os.environ", {"SENAI_TTS_API_KEY": "fake-speech-key"}), patch(
                 "senai.telegram.runner.subprocess.run", side_effect=self.execute):
             self.service.run_one()
         self.speech.assert_called_once_with("Python is a programming language.")
@@ -174,6 +174,7 @@ class SpeechClientTests(unittest.TestCase):
     def test_key_optional_and_errors_never_expose_credentials(self):
         self.assertIsNone(speech_from_environment({}))
         self.assertIsNotNone(speech_from_environment({"OPENAI_API_KEY": "fake"}))
+        self.assertIsNotNone(speech_from_environment({"SENAI_TTS_API_KEY": "speech-only-fake"}))
         def opener(request, **kwargs):
             raise OSError("fake-key sensitive error")
         with self.assertRaises(SpeechError) as error:
@@ -221,3 +222,21 @@ class LiteralRequestTests(unittest.TestCase):
             with patch("senai.telegram.runner.subprocess.run", side_effect=execute):
                 self.assertEqual(runner(job), ("succeeded", "Done."))
             speech.assert_not_called()
+
+
+class NativeCredentialCompatibilityTests(unittest.TestCase):
+    def test_speech_key_is_filtered_without_removing_native_codex_api_auth(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = JobStore(root / "outputs/state/state.sqlite3")
+            runner = CommandRunner(root, store.path.parent, store=store)
+            def execute(command, **kwargs):
+                self.assertEqual(kwargs["env"].get("OPENAI_API_KEY"), "native-fake-key")
+                self.assertNotIn("SENAI_TTS_API_KEY", kwargs["env"])
+                kwargs["stdout"].write(json.dumps({"type": "thread.started", "thread_id":
+                                         "11111111-1111-4111-8111-111111111111"}))
+                Path(command[command.index("--output-last-message") + 1]).write_text("Done.")
+                return subprocess.CompletedProcess(command, 0)
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "native-fake-key", "SENAI_TTS_API_KEY": "speech-fake-key"}), patch(
+                    "senai.telegram.runner.subprocess.run", side_effect=execute):
+                self.assertEqual(runner({"id": 1, "prompt": "Literal request"}), ("succeeded", "Done."))

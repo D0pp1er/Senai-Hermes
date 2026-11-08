@@ -51,12 +51,12 @@ changed by reading an existing answer aloud.
 
 OpenAISpeech(text) returns bounded MP3 bytes from the official OpenAI speech API.
 It is injected into CommandRunner; optional startup configuration reads local
-OPENAI_API_KEY, SENAI_TTS_MODEL (default gpt-4o-mini-tts), SENAI_TTS_VOICE (coral).
+SENAI_TTS_API_KEY (fallback OPENAI_API_KEY), SENAI_TTS_MODEL (default gpt-4o-mini-tts), SENAI_TTS_VOICE (coral).
 No credential lookup/network work occurs on import. Speech is requested only for
 /voice jobs; maximum 4000 text characters and 10 MiB audio, timeout 90 seconds.
 Speech failure preserves text. BotAPI sendVoice includes an AI-generated caption.
 Generated audio is snapshotted before job completion; delivery retries do not call
-Codex or speech generation again. OPENAI_API_KEY is removed from child environment.
+Codex or speech generation again. SENAI_TTS_API_KEY is removed from child environments; existing native OPENAI_API_KEY authentication is preserved.
 
 ## Storage and delivery
 

@@ -55,3 +55,5 @@ attachment of unrelated images. 11 media tests pass; full suite: 164 tests.
   reproduced before their implementations. Final: 183 tests, 30 media/voice tests.
 - Logs under outputs/qa-integrations/: voice-red.log, voice-green.log,
   voice-literal-red.log, media-boundary-red.log, media-voice.log, regression.log.
+
+Voice implementation commit: c6b930a. Follow-up native-auth regression preserves existing OPENAI_API_KEY for Codex, while filtering a dedicated SENAI_TTS_API_KEY from children. Expected full suite: 184 tests.
