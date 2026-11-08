@@ -1,9 +1,11 @@
 # Current task
 
-Branch feature/memory; own WSL .venv verified.
-Scoped SQLite and curated SOUL/USER/MEMORY files with frozen session snapshots complete.
-Code commit fa0a3c5: 167 full offline tests pass (126 original + 10 coordinator + 31 memory).
-Retained evidence and exact public API contract are in delivery.json.
-Disposable fresh-process CLI checks pass; no live model checks.
-Ready for coordinator review; shared routing/session lifecycle remain proposed.
-See integration-notes.md. No merge, push, production poller or state changes.
+Branch feature/memory; scoped implementation and offline executor transport verified.
+411d8b0 adds three tests using real run_codex and an isolated fake child executable.
+170 full offline tests pass: 126 original + 10 coordinator + 34 memory tests.
+Full exact-commit evidence: outputs/qa-project/memory-transport-tests.log.
+No live model, production state or Telegram poller used. Working APIs unchanged.
+
+Next: coordinator applies the proposed session lifecycle/CLI hooks in integration-notes.md,
+then runs cross-feature and separately authorized live acceptance checks.
+This feature chat must not edit shared files or merge under MERGE_POLICY.md.

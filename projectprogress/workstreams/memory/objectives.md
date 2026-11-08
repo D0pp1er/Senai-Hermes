@@ -8,3 +8,5 @@
 - [x] Feature-local CLI and deterministic TDD coverage.
 - [x] Final retained regression evidence and policy readiness check.
 - Coordinator-owned: native session lifecycle mapping and shared CLI/Telegram wiring.
+
+- [x] Offline memory-to-real-executor transport, exact resume forwarding and failure handling.

@@ -13,3 +13,7 @@
 
 - Delivery verification: tested fa0a3c5; 167 full offline tests pass, including
   31 memory tests and 10 coordinator scope-guard tests. Logs retained under outputs/qa-project.
+
+- 411d8b0: offline real-adapter transport tests. All curated sources plus relevant
+  SQLite facts reach the child, exact resume ID and frozen shared snapshot survive,
+  errors propagate, and no result is implicitly saved. 170 total / 34 memory pass.

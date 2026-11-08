@@ -20,3 +20,9 @@ Multifile extension, code commit fa0a3c5:
 - Existing SQLite APIs preserved; new APIs and CLI are additive, no dependencies.
 - 167 full offline tests pass: 126 original + 10 coordinator policy + 31 memory.
 - Disposable subprocess checks confirm multifile restart loading and user exclusion.
+
+Offline transport verification (411d8b0): real run_codex invokes a fake executable
+inside a temporary output workspace. Verified final response persistence, literal
+request transport, all memory sources, USER exclusion, frozen resumed context,
+exact native session ID and failure/no-retention behavior.
+170 total tests pass, including 34 memory tests. No live model claim.

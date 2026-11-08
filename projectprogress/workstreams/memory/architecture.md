@@ -69,3 +69,11 @@ context, namespace, optional user ID and file revisions. Curated overflow raises
 than truncates. The new execute_session bridge consumes a supplied snapshot without
 reloading; fresh/refresh decisions belong to the coordinator. Detailed limits, trust
 boundaries and lifecycle requirements are in integration-notes.md.
+
+## Executor transport evidence
+
+tests/memory/test_transport.py exercises the real core run_codex adapter through a
+fake executable, without replacing its subprocess call. Demonstrates both a fresh
+request with all sources and a resumed shared request with an existing snapshot.
+This verifies transport compatibility; it does not wire the production CLI or prove
+model behavior. Source APIs remain unchanged.

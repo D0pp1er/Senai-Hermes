@@ -67,3 +67,13 @@ SOUL proposals accept human origin only. Outcome proposals need --origin outcome
 Direct file edits are allowed, validated on load, and invalidate pending proposals.
 
 Live model/native session lifecycle/Telegram integration: NOT RUN and not wired here.
+
+## Real-adapter offline transport (2026-11-09)
+
+PASS: .venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v
+Three tests: curated + SQLite facts cross a real process boundary; resumed shared
+context stays frozen and excludes USER; fake child failure causes no retention.
+The child executable is a temporary fixture, never the installed live Codex.
+Code/test commit 411d8b0: full suite 170 PASS, memory suite 34 tests.
+Retained verbose evidence: outputs/qa-project/memory-transport-tests.log.
+Live model/Telegram wiring remains not run.

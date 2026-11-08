@@ -71,3 +71,11 @@ files; this is not a version-history or disaster-recovery system.
 Credential pattern filters are incomplete. Storage is unencrypted; deletion is not secure
 erasure and cannot retract previously supplied context. No live model test or session
 lifecycle integration has been performed.
+
+## Additional offline handoff evidence
+
+411d8b0 adds tests against real run_codex with a temporary fake executable. Fresh
+context transport, exact resume forwarding, frozen snapshots, shared USER exclusion,
+final-response saving and child failure/no-retention checks pass. No API changes.
+This supports the adapter proposal above; coordinator still owns routing, persistent
+native-session/snapshot mapping, cross-feature checks and live acceptance.
