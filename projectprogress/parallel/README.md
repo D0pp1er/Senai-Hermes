@@ -79,3 +79,5 @@ The prompts authorize scoped feature implementation when pasted into their respe
 new chats. Preparation itself did not implement the four new features.
 
 Mandatory additional guidance: [merge policy](MERGE_POLICY.md) and [ownership map](ownership.json). Fill the per-feature delivery.json and run the scope guard before committing or handing off.
+
+Git pull/push and recovery guidance: [GIT_WORKFLOW.md](GIT_WORKFLOW.md). Preserve reviewed main merge history; use fast-forward-only pulls.

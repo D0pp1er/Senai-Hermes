@@ -72,3 +72,7 @@ Stop if the tree is not clean or the branch is not feature/integrations. Then:
     python -m unittest discover -s tests -v
     python scripts/check_workstream_scope.py --feature integrations --ready
 Reinstalling in this worktree's .venv includes the cron dependencies now present on main; never use pip --user or reinstall globally. If fast-forward refuses because new feature commits were added, stop for coordinator review; do not reset or automatically rebase. These commands do not restart the bot or migrate live runtime state.
+
+## Git recovery completed (2026-11-09)
+
+Backed up and aborted an unnecessary interrupted main rebase; restored reviewed merge history at 80c9cb4. Set repository-local pull.rebase=false and pull.ff=only. Full regression: 345 tests passed (outputs/git-recovery-regression.log). Added projectprogress/parallel/GIT_WORKFLOW.md with normal push and recovery guidance. No application-code fix was needed. No push or production state changes performed.
