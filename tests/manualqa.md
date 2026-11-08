@@ -514,3 +514,11 @@ session-resume path has been exercised independently in an isolated QA workspace
 ## Telegram integration merge (2026-11-09)
 
 After the active request finishes, stop the existing bot normally and restart with the same command/project. Do not rerun setup or reset state. Send a short question: expect a brief acknowledgement and conversational reply. Ask a follow-up referencing the previous conversation to verify shared-session continuity. Request code/detail to verify explicit formatting requests still work. Live QA has not been performed by this merge.
+
+## Telegram media merge acceptance (2026-11-09)
+
+Merged feature/integrations through 477c17a in a601b95, including cebfe57, c6b930a and a78aa29. Scope/readiness and diff checks passed; full regression passed 184 tests on both feature and merged main. Logs: outputs/qa-integrations/review-regression.log and outputs/integrations-media-main-regression.log.
+
+Gracefully restarted the existing single bot with its original command/environment. Created a protected stopped-state backup under outputs/qa-integrations-live/. Existing jobs, paired users and exact shared session were compared and preserved. Telegram credential configuration was not modified.
+
+Live BotAPI.send_photo uploaded a valid PNG to an existing authorized private chat; Telegram returned a photo message successfully (sanitized evidence: outputs/qa-integrations-live/acceptance.json). User visual confirmation and model-to-manifest photo flow remain pending. /voice QUESTION and bare /voice live audio acceptance remain pending: the existing process has neither SENAI_TTS_API_KEY nor OPENAI_API_KEY. Configure speech locally; never provide secrets in chat. Bot currently runs with text/photo support and unconfigured-voice fallback. No live audio success is claimed.

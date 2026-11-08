@@ -364,3 +364,7 @@ has been checked with real Codex.
 ## Telegram integration merge (2026-11-09)
 
 Telegram uses varied short acknowledgements and asks Codex for concise plain-text replies. Requested code and detail remain available; brevity is a preference, not a hard filter. Existing pairing, configuration and shared session are reused. Discord remains backlog.
+
+## Telegram media
+
+Replies may attach up to four PNG/JPEG images from outputs/. With local speech configuration, /voice QUESTION returns text plus AI-generated audio; bare /voice reads the latest successful answer. Speech uses optional billed API access, configured locally through SENAI_TTS_API_KEY. Live audio acceptance remains pending.

@@ -380,3 +380,7 @@ The coordinator alone updates shared CLI/hooks/packaging/aggregate docs and merg
 ## Telegram integration merge (2026-11-09)
 
 Telegram now passes private updates through TelegramAdapter into the existing authorized queue and exact shared Codex session. Chat instructions enrich each request without changing saved prompts. Delivery snapshots persist exact redacted chunks; legacy partial replies preserve their original headers and boundaries. Storage migration only adds a table.
+
+## Telegram media outbox
+
+CommandRunner prepares selected image snapshots and optional speech; BotService sends durable text then MediaOutbox uploads snapshots with a separate media.sqlite3 cursor. Existing job/session/pairing tables are retained. Dedicated speech credentials are excluded from Codex child environments; native Codex API authentication remains available.
