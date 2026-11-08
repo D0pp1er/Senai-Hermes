@@ -27,3 +27,15 @@ can still duplicate that part; exactly-once remote delivery is not claimed.
 Adapters/stores are bound to one configured bot/project; normalized identity is
 metadata, not a new multi-platform database. Do not point two transport workers
 at the same legacy store. No schema migration or external dependency required.
+
+## Telegram conversational presentation
+
+chat.py holds five approved random acknowledgement options and a per-turn response
+style preamble. Telegram CLI opts into Router acknowledgement injection and
+CommandRunner(chat_style=True). Style instructions apply even when resuming old
+shared history; saved requests remain verbatim. Default direct constructor callers
+keep legacy acknowledgements/literal requests. Successful replies and /result omit
+request/status headers; failures remain explicit. The API already sends plain text
+without parse_mode. We prefer plain text through instructions rather than stripping
+Markdown characters and damaging code. Ordinary replies target 1-3 short sentences;
+necessary detail and explicitly requested code remain allowed.

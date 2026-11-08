@@ -3,34 +3,68 @@
   "feature": "integrations",
   "status": "draft",
   "modules": [
-    "senai.integrations"
+    "senai.integrations.contract",
+    "senai.integrations.telegram",
+    "senai.telegram.chat",
+    "senai.telegram.router",
+    "senai.telegram.runner"
   ],
-  "public_api": [],
-  "commands": [],
+  "public_api": [
+    {
+      "name": "Router",
+      "signature": "Router(store, allowed_users, username, *, max_pending=4, acknowledge=None)",
+      "purpose": "Authorize and queue Telegram requests, optionally selecting acknowledgement text."
+    },
+    {
+      "name": "CommandRunner",
+      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False)",
+      "purpose": "Run the existing CLI and exact shared session with opt-in chat style."
+    },
+    {
+      "name": "acknowledgement",
+      "signature": "acknowledgement() -> str",
+      "purpose": "Choose one of five approved replies."
+    }
+  ],
+  "commands": [
+    ".venv/bin/python -m senai telegram --help"
+  ],
   "executor_contract": {
-    "interface": "",
-    "inputs": [],
-    "outputs": []
+    "interface": "CommandRunner.__call__(job) -> tuple[str, str]",
+    "inputs": [
+      "job mapping with id and prompt; optional existing chat/user fields"
+    ],
+    "outputs": [
+      "status succeeded or failed and response text; exact native session retained"
+    ]
   },
   "dependencies": {
     "runtime": [],
     "development": []
   },
   "storage": {
-    "namespace": "",
-    "schema_version": null,
-    "migration_notes": ""
+    "namespace": "Configured bot/project outputs Telegram state directory",
+    "schema_version": 1,
+    "migration_notes": "No new migration; preserve existing JobStore schema and compatibility migrations."
   },
   "verification": {
-    "offline_commands": [],
-    "offline_result": "not-run",
-    "offline_test_count": 0,
-    "tested_commit": "",
+    "offline_commands": [
+      ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
+      "git diff --check"
+    ],
+    "offline_result": "passed",
+    "offline_test_count": 149,
+    "tested_commit": "working-tree: Telegram chat change; commit recorded in git history",
     "live_result": "not-run"
   },
   "integration": {
     "shared_file_changes": [],
     "sibling_requirements": []
   },
-  "limitations": []
+  "limitations": [
+    "Discord pending; delivery remains draft.",
+    "Live Telegram/model response style unverified.",
+    "Plain-text brevity is a model preference, not a hard output filter."
+  ]
 }

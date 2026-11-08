@@ -9,16 +9,18 @@ import sys
 
 from ..workspace import prepare_workspace
 from .store import JobStore
+from .chat import chat_request
 
 
 class CommandRunner:
-    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=()):
+    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False):
         self.project = Path(project).expanduser().resolve()
         self.workspace = prepare_workspace(self.project)
         self.state_dir = Path(state_dir).resolve()
         if not self.state_dir.is_relative_to(self.workspace):
             raise ValueError('Telegram state must remain inside outputs/.')
         self.store = store or JobStore(self.state_dir / 'state.sqlite3')
+        self.chat_style = chat_style
         self.flags = ['--ask-for-approval', 'never']
         if skip_git_repo_check:
             self.flags.append('--skip-git-repo-check')
@@ -39,7 +41,7 @@ class CommandRunner:
         response_path = directory / 'response.txt'
         session_id = self.store.shared_session()
         resume = ['--resume', session_id] if session_id else []
-        command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', job['prompt']]
+        command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', chat_request(job['prompt']) if self.chat_style else job['prompt']]
         environment = {key: value for key, value in os.environ.items() if key not in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_ALLOWED_USER_IDS')}
         with stdout_path.open('w', encoding='utf-8') as stdout, stderr_path.open('w', encoding='utf-8') as stderr:
             result = subprocess.run(

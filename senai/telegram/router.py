@@ -16,15 +16,18 @@ HELP = (
 
 
 def result_text(job):
+    if job['status'] == 'succeeded':
+        return job['result']
     return f'Request #{job["id"]}: {job["status"]}\n\n{job["result"]}'
 
 
 class Router:
-    def __init__(self, store, allowed_users, username, *, max_pending=4):
+    def __init__(self, store, allowed_users, username, *, max_pending=4, acknowledge=None):
         self.store = store
         self.allowed_users = allowed_users
         self.username = username.lower()
         self.max_pending = max_pending
+        self.acknowledge = acknowledge
 
     def is_authorized(self, user_id):
         status = self.store.user_status(user_id)
@@ -68,6 +71,8 @@ class Router:
         if outcome == 'busy':
             return [(chat['id'], 'Senai is busy; its request queue is full. Try again after /status.')]
         if outcome == 'queued':
+            if self.acknowledge is not None:
+                return [(chat['id'], self.acknowledge())]
             return [(chat['id'], f'Queued request #{identifier}. Use /status to check progress.')]
         if command == '/status':
             jobs = self.store.recent(chat['id'])

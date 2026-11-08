@@ -25,3 +25,17 @@ Unicode/redaction splitting and delivery retry without job re-execution.
 NOT RUN: live Telegram/pairing/Codex acceptance. No production state or token
 was accessed. Discord setup/live acceptance remains future work. Do not start
 production pollers for this verification.
+
+## Telegram chat improvement, 2026-11-09
+
+PASS offline: .venv/bin/python -m unittest tests.integrations.test_telegram_chat -v
+(5 tests), full unittest discovery (149 tests), scope guard, git diff --check.
+Evidence logs: outputs/qa-integrations/chat-tests.log and regression.log.
+
+After coordinator integration and an operator restart of the existing bot, send a
+normal short question. Expect one of the five approved acknowledgement messages,
+then a brief plain-text answer without a success-status header. Send another
+question to check variation (random selection can repeat). Check /status and
+/result; commands should respond directly, and /result should resend the answer.
+Request code explicitly to confirm necessary detail is still allowed.
+Live acceptance NOT RUN. This worktree's tests use only temporary state/fakes.

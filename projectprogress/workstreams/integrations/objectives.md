@@ -5,3 +5,5 @@
 - [ ] Discord adapter, explicit user/channel authorization, bounded jobs and long replies.
 - [ ] Offline two-transport contract coverage and feature-local Discord entry point.
 - [ ] Live Discord acceptance after operator setup.
+
+- [x] Telegram acknowledgement rotation and concise plain-text response preference.

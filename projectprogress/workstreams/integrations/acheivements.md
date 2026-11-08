@@ -9,3 +9,5 @@
 - Telegram startup uses the adapter with verified bot ID and canonical project identity.
 - Existing SQLite schema, pairing/revocation, queue/executor and exact native session policy retained.
 - No dependencies, migration, production polling or live platform checks introduced.
+
+2026-11-09: Telegram chat improvement verified with 5 new tests; 149 total offline tests pass. Scope guard passes. No live bot change.

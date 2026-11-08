@@ -8,6 +8,7 @@ from .api import BotAPI, TelegramError
 from .config import load_credentials, default_env_file
 from .connection import identify_bot, state_directory
 from .router import Router
+from .chat import acknowledgement
 from ..integrations.telegram import TelegramAdapter
 from .pairing import PairingManager
 from .runner import CommandRunner
@@ -88,10 +89,10 @@ def telegram_main(argv, stdout, stderr):
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
             router = TelegramAdapter(
-                Router(store, users, identity['username'], max_pending=args.max_pending),
+                Router(store, users, identity['username'], max_pending=args.max_pending, acknowledge=acknowledgement),
                 api, project=args.project, account=str(identity['id']),
             )
-            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill))
+            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True)
             runner.recover_session()
             store.recover_interrupted()
             service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router)
