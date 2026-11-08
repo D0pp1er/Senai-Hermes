@@ -27,10 +27,11 @@ def instance_lock(path):
 
 
 class BotService:
-    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None, media=None, idle_work=None):
+    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None, media=None, idle_work=None, idle_delivery=None):
         self.api, self.store, self.router, self.runner = api, store, router, runner
         self.media = media
         self.idle_work = idle_work
+        self.idle_delivery = idle_delivery
         self.transport = transport
         self.poll_timeout = poll_timeout
         self.stop = threading.Event()
@@ -73,6 +74,8 @@ class BotService:
 
     def poll_once(self):
         self.deliver_results()
+        if self.idle_delivery is not None:
+            self.idle_delivery()
         updates = self.api.get_updates(self.store.offset(), timeout=self.poll_timeout)
         updates = [item for item in updates if isinstance(item, dict) and type(item.get('update_id')) is int]
         for update in sorted(updates, key=lambda item: item['update_id']):

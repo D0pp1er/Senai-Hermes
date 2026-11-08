@@ -9,7 +9,7 @@ from .store import Store, timestamp
 
 
 def main(argv=None, *, store_factory=None):
-    parser = argparse.ArgumentParser(prog='python -m senai.cron')
+    parser = argparse.ArgumentParser(prog='python -m senai.cron', epilog='Shared CLI also supports senai cron worker and worker-status with --project and --telegram-account.')
     parser.add_argument('--project', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
     create = sub.add_parser('create')

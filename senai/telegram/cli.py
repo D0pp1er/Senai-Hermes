@@ -45,6 +45,7 @@ def telegram_main(argv, stdout, stderr):
     modes.add_argument('--pair-code', action='store_true', help='Print a new single-use local pairing code; works while the bot runs.')
     modes.add_argument('--revoke-user', type=int, metavar='ID', help='Locally revoke a paired or legacy allowed user.')
     modes.add_argument('--check', action='store_true', help='Check bot identity and webhook compatibility, without polling or execution.')
+    parser.add_argument('--cron-execution-timeout', type=float, default=300, help='Cron native-process deadline in seconds (1-3600; default 300).')
     parser.add_argument('--enable-cron', action='store_true', help='Explicitly enable /cron management and due work on the existing single worker.')
     parser.add_argument('--start', action='store_true', help='Start polling after --configure completes.')
     parser.add_argument('--skip-git-repo-check', action='store_true', help='Allow the selected non-Git project.')
@@ -100,7 +101,7 @@ def telegram_main(argv, stdout, stderr):
                 from ..cron_runtime import TelegramCron
                 scheduled_runner = CommandRunner(args.project, state, store=store,
                     skip_git_repo_check=args.skip_git_repo_check, model=args.model,
-                    profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True)
+                    profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, execution_timeout=args.cron_execution_timeout)
                 scheduler = TelegramCron(project=args.project, account=str(identity['id']),
                                          router=base_router, runner=scheduled_runner, api=api)
             router = TelegramAdapter(scheduler or base_router, api,
@@ -108,7 +109,7 @@ def telegram_main(argv, stdout, stderr):
             runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media, speech=speech)
             runner.recover_session()
             store.recover_interrupted()
-            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media, idle_work=scheduler.tick if scheduler else None)
+            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media, idle_work=scheduler.worker.tick if scheduler else None, idle_delivery=scheduler.sender.tick if scheduler else None)
             service.skip_pending()
             code = PairingManager(store).issue()
             print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout, flush=True)

@@ -8,10 +8,11 @@ from urllib.request import Request, urlopen
 
 
 class TelegramError(RuntimeError):
-    def __init__(self, message, *, status=None, retry_after=None):
+    def __init__(self, message, *, status=None, retry_after=None, not_accepted=False):
         super().__init__(message)
         self.status = status
         self.retry_after = retry_after
+        self.not_accepted = not_accepted is True
 
 
 class BotAPI:
@@ -47,7 +48,8 @@ class BotAPI:
             parameters = data.get('parameters', {}) if isinstance(data, dict) else {}
             delay = parameters.get('retry_after') if isinstance(parameters, dict) else None
             delay = delay if type(delay) is int and delay > 0 else None
-            raise TelegramError(f'Telegram {method} failed (status {code or "unknown"}).', status=code, retry_after=delay)
+            raise TelegramError(f'Telegram {method} failed (status {code or "unknown"}).', status=code, retry_after=delay,
+                                not_accepted=isinstance(data, dict) and data.get('ok') is False and code == 429)
         return data.get('result')
 
     def get_me(self):

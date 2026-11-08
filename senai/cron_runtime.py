@@ -7,7 +7,8 @@ from pathlib import Path
 import sqlite3
 
 from .cron.store import Store
-from .cron.worker import Worker
+from .cron.worker import Worker, UncertainExecution
+from .processes import ExecutionUncertain
 from .cron.delivery import DeliveryWorker, RetryDelivery
 from .integrations.telegram import parse_private_update
 from .telegram.api import TelegramError
@@ -70,7 +71,10 @@ class TelegramCron:
         # Same native runner/session store, called on the existing single worker only.
         job = dict(id="cron-" + run["id"] + "-" + str(run["attempt"]),
                    prompt=snapshot["prompt"], user_id=user, chat_id=target["chat_id"])
-        status, response = self.runner(job)
+        try:
+            status, response = self.runner(job)
+        except ExecutionUncertain as error:
+            raise UncertainExecution(str(error)) from None
         if status != "succeeded":
             raise RuntimeError(self.api.redact(response))
         return response
@@ -83,7 +87,9 @@ class TelegramCron:
         run = item["run"]
         text = ("Scheduled task: " + snapshot["name"] + "\n" +
                 (run["result"] if run["status"] == "succeeded" else
-                 "The scheduled request failed. Review local cron run history."))
+                 ("The scheduled request outcome is unknown; its schedule is paused for local review."
+                  if run["status"] == "unknown" else
+                  "The scheduled request failed. Review local cron run history.")))
         sent = 0
         for part in split_message(self.api.redact(text)):
             self.authorize(item["target"])
@@ -92,7 +98,7 @@ class TelegramCron:
             except TelegramError as error:
                 # Telegram 429 certifies rejection of this request. Retrying a partially
                 # sent multi-part result would duplicate earlier parts, so keep unknown.
-                if error.status == 429 and sent == 0:
+                if error.status == 429 and error.not_accepted and sent == 0:
                     raise RetryDelivery("Telegram rate-limited before accepting the result.") from None
                 raise
             if not isinstance(result, dict) or type(result.get("message_id")) is not int:
@@ -228,6 +234,20 @@ def telegram_store(project, account, *, clock=None):
 def manage_cli(argv):
     """Manage schedules through shared CLI without starting a worker."""
     from .cron.__main__ import main
+    routing = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
+    routing.add_argument("--project")
+    routing.add_argument("--telegram-account")
+    routing.add_argument("command", nargs="?")
+    route, extra = routing.parse_known_args(argv)
+    if route.command in ("worker", "worker-status"):
+        import sys
+        from .cron_supervisor import worker_main
+        arguments = list(extra)
+        if route.project is not None:
+            arguments += ["--project", route.project]
+        if route.telegram_account is not None:
+            arguments += ["--telegram-account", route.telegram_account]
+        return worker_main(arguments, sys.stdout, sys.stderr, status_only=route.command == "worker-status")
     parser = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     parser.add_argument("--telegram-account")
     args, remaining = parser.parse_known_args(argv)

@@ -11,16 +11,21 @@ from ..workspace import prepare_workspace
 from .store import JobStore
 from .chat import chat_request
 from .speech import SpeechError
+from ..processes import run_bounded, ExecutionUncertain
+import math
 
 
 class CommandRunner:
-    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None):
+    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None):
         self.project = Path(project).expanduser().resolve()
         self.workspace = prepare_workspace(self.project)
         self.state_dir = Path(state_dir).resolve()
         if not self.state_dir.is_relative_to(self.workspace):
             raise ValueError('Telegram state must remain inside outputs/.')
         self.store = store or JobStore(self.state_dir / 'state.sqlite3')
+        if execution_timeout is not None and (isinstance(execution_timeout, bool) or not math.isfinite(execution_timeout) or not 0 < execution_timeout <= 3600):
+            raise ValueError('Execution timeout must be positive and at most 3600 seconds.')
+        self.execution_timeout = execution_timeout
         self.speech = speech
         self.media = media
         self.chat_style = chat_style
@@ -55,17 +60,31 @@ class CommandRunner:
             prompt = chat_request(prompt, attachment_manifest=directory / 'attachments.json' if self.media is not None else None, voice_reply=voice)
         command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', prompt]
         environment = {key: value for key, value in os.environ.items() if key not in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_ALLOWED_USER_IDS', 'SENAI_TTS_API_KEY')}
+        uncertain = None
         with stdout_path.open('w', encoding='utf-8') as stdout, stderr_path.open('w', encoding='utf-8') as stderr:
-            result = subprocess.run(
-                command, cwd=self.workspace, stdin=subprocess.DEVNULL,
-                stdout=stdout, stderr=stderr, env=environment, check=False,
-            )
+            if self.execution_timeout is None:
+                result = subprocess.run(
+                    command, cwd=self.workspace, stdin=subprocess.DEVNULL,
+                    stdout=stdout, stderr=stderr, env=environment, check=False,
+                )
+            else:
+                try:
+                    result = run_bounded(command, cwd=self.workspace, stdout=stdout,
+                                         stderr=stderr, env=environment,
+                                         timeout=self.execution_timeout)
+                except ExecutionUncertain as error:
+                    uncertain = error
+                    result = subprocess.CompletedProcess(command, 124)
         emitted_session = session_from_events(stdout_path)
         if emitted_session:
             try:
                 self.store.bind_shared_session(emitted_session, job['id'])
             except ValueError as error:
+                if uncertain is not None:
+                    raise uncertain
                 return 'failed', str(error)
+        if uncertain is not None:
+            raise uncertain
         if result.returncode == 0 and not (session_id or emitted_session):
             return 'failed', 'No verified Codex session ID was captured. Inspect local job logs; this request will not be silently repeated as a one-off.'
         path = response_path if result.returncode == 0 else stderr_path

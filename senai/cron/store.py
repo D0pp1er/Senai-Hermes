@@ -238,6 +238,20 @@ class Store:
                 db.execute("INSERT INTO deliveries (id,run_id,target,status,ready_at) VALUES (?,?,?,'pending',?)",
                            (uuid.uuid4().hex, ident, target or '{}', now))
 
+    def uncertain(self, ident, error):
+        """Record uncertainty and pause future occurrences; require explicit review."""
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT * FROM runs WHERE id=? AND status='running'", (ident,)).fetchone()
+            if row is None:
+                raise ValueError("run is not running")
+            db.execute("UPDATE runs SET status='unknown',error=? WHERE id=?", (error, ident))
+            db.execute("UPDATE schedules SET enabled=0,revision=revision+1 WHERE id=?", (row['schedule_id'],))
+            target = json.loads(row['snapshot']).get('delivery_target')
+            if target:
+                db.execute("INSERT INTO deliveries (id,run_id,target,status,ready_at) VALUES (?,?,?,'pending',?)",
+                           (uuid.uuid4().hex, ident, target, timestamp(self.clock())))
+
     def interrupt(self, ident):
         # Operator must first establish the old worker has stopped.
         with self.connection() as db:

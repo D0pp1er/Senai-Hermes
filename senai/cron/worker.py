@@ -1,3 +1,7 @@
+class UncertainExecution(RuntimeError):
+    """External outcome is unknown; never apply ordinary execution retries."""
+
+
 class Worker:
     def __init__(self, store, executor, deliver=None):
         self.store, self.executor, self.deliver = store, executor, deliver
@@ -11,6 +15,8 @@ class Worker:
             return None
         try:
             result = self.executor(run)
+        except UncertainExecution as exc:
+            self.store.uncertain(run['id'], str(exc))
         except Exception as exc:
             self.store.finish(run['id'], error=str(exc), enqueue_delivery=self.deliver is not None)
         else:

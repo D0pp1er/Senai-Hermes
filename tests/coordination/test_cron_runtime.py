@@ -169,7 +169,7 @@ class CronRuntimeTests(unittest.TestCase):
 
     def test_safe_rate_limit_retries_are_bounded_without_execution_retry(self):
         self.create()
-        self.api.failure = TelegramError("rejected before acceptance", status=429)
+        self.api.failure = TelegramError("rejected before acceptance", status=429, not_accepted=True)
         for attempt in range(3):
             self.manager.store.clock = lambda attempt=attempt: NOW + timedelta(seconds=61 * attempt)
             self.manager.tick()
@@ -184,7 +184,7 @@ class CronRuntimeTests(unittest.TestCase):
         self.create()
         def send(chat, text):
             if self.api.sent:
-                raise TelegramError("second chunk rejected", status=429)
+                raise TelegramError("second chunk rejected", status=429, not_accepted=True)
             self.api.sent.append((chat, text))
             return {"message_id": 1}
         self.api.send_message = send
