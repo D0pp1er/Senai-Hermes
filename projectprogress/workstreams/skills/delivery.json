@@ -8,7 +8,8 @@
     "senai.skills.demo",
     "senai.skills.review",
     "senai.skills.metadata",
-    "senai.skills.errors"
+    "senai.skills.errors",
+    "senai.skills.live_demo"
   ],
   "public_api": [
     "Registry(root)",
@@ -36,7 +37,8 @@
     "ReviewResult(status, reason, revision)",
     "review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult",
     "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult",
-    "Registry.metadata(name) -> dict"
+    "Registry.metadata(name) -> dict",
+    "run_live_demo(project, *, executor=None, model=None, emit=None) -> dict"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -49,7 +51,8 @@
     "python -m senai.skills --project PROJECT rollback NAME --digest DIGEST --reason REASON",
     "python -m senai.skills --project PROJECT demo",
     "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]",
-    "python -m senai.skills --project PROJECT metadata NAME"
+    "python -m senai.skills --project PROJECT metadata NAME",
+    "python -m senai.skills --project PROJECT demo --live [--model MODEL]"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
@@ -81,10 +84,10 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 209 offline tests on metadata-step working tree, including 73 feature tests. Scope guard passed. Log outputs/skills-qa/metadata-suite.log. PyYAML 6.0.3 installed only in assigned .venv. Exact post-commit verification pending; delivery draft.",
-    "offline_test_count": 209,
+    "offline_result": "PASS: 215 offline tests on live-demo-step working tree, including 79 feature tests. Scope guard passed. Full log outputs/skills-qa/live-demo-suite.log. Separate native live CSV demo passed as recorded. Exact post-commit verification pending; final delivery draft.",
+    "offline_test_count": 215,
     "tested_commit": "",
-    "live_result": "not-run"
+    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification."
   },
   "integration": {
     "shared_file_changes": [
@@ -96,12 +99,12 @@
     "Draft partial delivery: broader/public imports and normal CLI/production outcome/review wiring pending. Reviewer is explicit, not automatic.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Bounded YAML subset; Hermes metadata inert, no full runtime compatibility or source-folder/name conformance claim.",
-    "No live model checks.",
+    "Live model checks passed only for the controlled CSV demo; normal production integration unverified.",
     "Proposals modify SKILL.md only; supporting files preserved unchanged.",
-    "Live reviewer quality and actual skill improvement unverified.",
+    "One controlled live correction/reuse passed; broad reviewer quality or general skill improvement unverified.",
     "No-change review results are returned but do not have a separate durable attempt log.",
     "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
     "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
-    "User-expanded scope: Obsidian inventory/origin/history projection and explicit learned-vs-imported provenance pending; see workplan.md. No export command exists yet."
+    "User deferred Obsidian export until LAST; accurate provenance and public imports remain backlog. No export command exists."
   ]
 }

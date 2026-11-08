@@ -112,3 +112,27 @@ Metadata-step full offline suite: PASS, 209 tests (73 skills tests). Scope guard
 ## Obsidian planning status
 
 NOT IMPLEMENTED/NOT RUN: export command and Obsidian UI check. Planned acceptance is to open generated outputs/skills-vault/ as an existing vault, inspect skill origin/history, refresh after accepted revision/rollback and verify personal notes preserved. Full plan in workplan.md. No personal vault has been accessed.
+
+## Working live demo (priority; Obsidian deferred)
+
+```bash
+cd /home/rk/SentiensHermes/senai-skills
+.venv/bin/python -m senai.skills demo --live
+```
+
+Makes up to four authenticated Codex calls; optional --model MODEL. Expected stderr stages 1/6 through 6/6; stdout status completed, baseline_passed false, validation_status passed, reuse_passed true, restored_version 1. It imports a controlled defective fixture into a unique project, not your main registry. No-change/failed/error statuses return 2 and must not be presented as success.
+
+Observed native live run PASS: project outputs/skills-live-demo/run-bv8i5d3a; source report outputs/skills-qa/live-demo-report.json (and that project's outputs/report.json). Actual baseline [[1,2],[10,20]]: only batch-count check passed (1/3 total). Actual regression [["001","002"],["10","20"],["003","9"]]: 4/4 checks. Actual held-out reuse [["007","000","42"]]: 2/2 checks. Activated revision r-86070275eba04b20a9107b6780ee0ffe, then restored v1. Audit import/activate/rollback. No live production state touched.
+
+Inspect retained skill/history from the same checkout:
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-live-demo/run-bv8i5d3a show csv-identifiers
+.venv/bin/python -m senai.skills --project outputs/skills-live-demo/run-bv8i5d3a revisions csv-identifiers
+.venv/bin/python -m senai.skills --project outputs/skills-live-demo/run-bv8i5d3a outcomes csv-identifiers
+.venv/bin/python -m senai.skills --project outputs/skills-live-demo/run-bv8i5d3a history csv-identifiers
+```
+
+Offline test command `.venv/bin/python -m unittest tests.skills.test_live_demo -v`: six tests use injected executors (not live calls). Red log outputs/skills-qa/live-demo-red.log. Live success above is actual separate verification, not inferred from those tests. Known defective fixture and predetermined checks limit the improvement claim to this example.
+
+Working-demo full offline suite: PASS, 215 tests (79 skills tests). Scope guard: PASS. Full log outputs/skills-qa/live-demo-suite.log. Separate actual live run PASS as detailed above.

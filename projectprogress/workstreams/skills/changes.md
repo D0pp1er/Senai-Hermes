@@ -23,3 +23,6 @@
 
 - 2026-11-09, 6d376ce: expanded validated metadata support.
 - 2026-11-09, planning update: prioritize Obsidian inventory, accurate origins and concise history before public imports; rough expanded-scope estimate 60%. No runtime changes.
+
+- 2026-11-09, 4992c6b: planned Obsidian inventory/history.
+- 2026-11-09, user reprioritization: defer export LAST; implement demo --live with actual observed checks and retained artifacts. Six red-to-green tests; actual four-call installed-Codex correction/regression/reuse/rollback passed.

@@ -53,3 +53,9 @@ No DB migration. Stricter frontmatter checks may reject previously accepted over
 ## Obsidian requirement (planned)
 
 New user requirement: export project skill inventory with imported/learned origin and a brief history to Obsidian-readable Markdown. Default separate folder outputs/skills-vault/; no personal vault path needed initially. No runtime API/CLI exists for export yet. Registry remains authoritative. Additive provenance migration may be needed; imported+revised is distinct from new learned_here packages. This introduces no shared coordinator patch until an optional export-refresh hook is proposed. No personal vault/settings changed.
+
+## Fast demonstration priority
+
+User deferred Obsidian export until last. Added feature-owned run_live_demo(project, *, executor=None, model=None, emit=None) -> dict and CLI demo --live [--model MODEL]. Uses existing stable execution/reviewer/registry APIs; shared core untouched. emit(message) receives stage progress; optional executor has run_codex signature. No new dependency or schema migration. Native runs consume up to four model calls; offline tests inject responses.
+
+Live isolated correction/reuse passed, with actual deterministic JSON checks. It is a deliberately lossy known CSV fixture, not normal production traffic. Existing ordinary CLI/Telegram routes still require coordinator integration. Keep production-readiness claims separate from this successful feature-local demo.

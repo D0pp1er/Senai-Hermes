@@ -22,3 +22,5 @@
 - Metadata milestone: standard/Hermes-style YAML imported with byte preservation and restart; malformed/unsafe YAML and excessive lengths rejected. Optional declarations preserved through reviewer/activation. New predicate blocks incompatible execution before executor call. PyYAML pin installed only in assigned .venv.
 
 - Recorded revised Obsidian workplan and weighted approximate 60% expanded-scope estimate. Obsidian export/UI and real learned-skill inventory are not implemented or verified yet.
+
+- Working live controlled demo PASSED: actual Codex baseline lost identifier zeros; reviewed instructions passed 4/4 regression checks and 2/2 held-out reuse checks; rollback preserved audit. Six new offline tests cover live-demo control flow and failure gates. Obsidian export deferred by user.

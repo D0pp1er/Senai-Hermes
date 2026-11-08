@@ -14,3 +14,6 @@ Scope follows ../../parallel/prompts/04-skills.md plus user-requested Obsidian v
 - [ ] Coordinator production wiring and final delivery verification.
 
 Approximate expanded-scope progress: 60%; not a production-readiness claim. Existing 209 offline tests passed. No live model-backed improvement verified.
+
+- [x] Fast live controlled terminal demo: actual Codex output checked through correction/reuse/rollback.
+- [ ] Obsidian export explicitly deferred until LAST by user; prioritize acquisition/usability and production wiring first.

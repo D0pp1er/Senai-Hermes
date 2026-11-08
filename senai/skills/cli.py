@@ -9,6 +9,7 @@ import sys
 from senai.workspace import prepare_workspace
 from .registry import Registry, SkillError
 from .demo import run_demo
+from .live_demo import run_live_demo
 from .review import review_with_codex
 
 
@@ -36,7 +37,9 @@ def _parser():
     review.add_argument("name")
     review.add_argument("--outcome", dest="outcome_ids", action="append", required=True)
     review.add_argument("--model", default=None)
-    commands.add_parser("demo", help="Run and retain an isolated synthetic offline lifecycle demo")
+    demo = commands.add_parser("demo", help="Run an isolated demo; --live uses installed Codex with actual output checks")
+    demo.add_argument("--live", action="store_true", help="Make up to four live Codex calls on a controlled fixture")
+    demo.add_argument("--model", default=None)
     return parser
 
 
@@ -60,7 +63,10 @@ def main(argv=None, stdout=None, stderr=None):
             raise SkillError("outputs must be a real directory, not a symlink")
         path = outputs / "skills"
         if args.command == "demo":
-            result = run_demo(project)
+            if args.live:
+                result = run_live_demo(project, model=args.model, emit=lambda message: print(message, file=err, flush=True))
+            else:
+                result = run_demo(project)
         elif args.command == "list" and not path.exists() and not path.is_symlink():
             result = []
         else:
@@ -92,7 +98,7 @@ def main(argv=None, stdout=None, stderr=None):
             else:
                 raise SkillError("Unsupported command")
         print(json.dumps(result, default=str, indent=2), file=out)
-        return 0
+        return 2 if args.command == "demo" and args.live and result.get("status") != "completed" else 0
     except (ValueError, OSError, sqlite3.Error) as exc:
         print("skills: " + str(exc), file=err)
         return 2
