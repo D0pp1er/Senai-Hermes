@@ -26,3 +26,6 @@
 
 - 2026-11-09, 4992c6b: planned Obsidian inventory/history.
 - 2026-11-09, user reprioritization: defer export LAST; implement demo --live with actual observed checks and retained artifacts. Six red-to-green tests; actual four-call installed-Codex correction/regression/reuse/rollback passed.
+
+- 2026-11-09, 5126e00: live checked skill reuse demo.
+- 2026-11-09, public-source step: pinned GitHub commit/tree/blob verification, bounded staged acquisition, shared atomic activation and import-github CLI. Thirteen offline tests plus real official-package acquisition/restart passed.

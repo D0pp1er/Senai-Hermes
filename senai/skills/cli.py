@@ -20,6 +20,10 @@ def _parser():
     commands.add_parser("list", help="List active skills without loading their instructions into output")
     importer = commands.add_parser("import", help="Import a local SKILL.md package directory; never runs code")
     importer.add_argument("source")
+    github = commands.add_parser("import-github", help="Import a public GitHub package pinned to an exact commit")
+    github.add_argument("repository", help="owner/repo (no URL or credentials)")
+    github.add_argument("--commit", required=True, help="Exact 40-character lowercase commit SHA")
+    github.add_argument("--path", required=True, help="Package directory inside repository, or . for root")
     for name in ("show", "metadata", "versions", "history", "revisions", "outcomes"):
         command = commands.add_parser(name)
         command.add_argument("name")
@@ -70,13 +74,15 @@ def main(argv=None, stdout=None, stderr=None):
         elif args.command == "list" and not path.exists() and not path.is_symlink():
             result = []
         else:
-            if args.command != "import" and not path.exists():
+            if args.command not in {"import", "import-github"} and not path.exists():
                 raise SkillError("No saved skills registry; import a local package first")
-            if args.command == "import":
+            if args.command in {"import", "import-github"}:
                 prepare_workspace(project)
             registry = Registry(path)
             if args.command == "import":
                 result = _record(registry.import_local(Path(args.source).expanduser()), instructions=False)
+            elif args.command == "import-github":
+                result = _record(registry.import_github(args.repository, commit=args.commit, path=args.path), instructions=False)
             elif args.command == "list":
                 result = [_record(skill, instructions=False) for skill in registry.list()]
             elif args.command == "show":

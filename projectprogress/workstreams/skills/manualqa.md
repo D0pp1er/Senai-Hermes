@@ -136,3 +136,34 @@ Inspect retained skill/history from the same checkout:
 Offline test command `.venv/bin/python -m unittest tests.skills.test_live_demo -v`: six tests use injected executors (not live calls). Red log outputs/skills-qa/live-demo-red.log. Live success above is actual separate verification, not inferred from those tests. Known defective fixture and predetermined checks limit the improvement claim to this example.
 
 Working-demo full offline suite: PASS, 215 tests (79 skills tests). Scope guard: PASS. Full log outputs/skills-qa/live-demo-suite.log. Separate actual live run PASS as detailed above.
+
+## Pinned public GitHub acquisition
+
+Offline verification:
+
+```bash
+.venv/bin/python -m unittest tests.skills.test_sources -v
+```
+
+Expected: thirteen tests pass. Covers commit/tree/blob identities, restart provenance, bad paths/metadata, symlink ancestors/submodules, truncated trees, corrupt downloads, no partial activation, aggregate/per-file limits, host/credential/redirect restrictions, repository-root packages, CLI routing and preservation of locally revised content. Initial red log outputs/skills-qa/sources-red.log.
+
+Real network CLI acquisition PASS, no model/script execution: source openai/skills at 49f948faa9258a0c61caceaf225e179651397431, path skills/.system/skill-creator. Imported seven files; registry reopened successfully. Package SHA-256 a617b59ca9bc4cf6e15744b6fe4896f1408eac4c1c2d072cc066f720148b59e0. Pin report outputs/skills-qa/github-pin.json; CLI report outputs/skills-qa/github-import-report.json.
+
+Inspect the retained real import:
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k list
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k show skill-creator
+```
+
+For a fresh chosen project (duplicate names are rejected), public import syntax is:
+
+```bash
+.venv/bin/python -m senai.skills --project YOUR_PROJECT import-github openai/skills --commit 49f948faa9258a0c61caceaf225e179651397431 --path skills/.system/skill-creator
+```
+
+Expected: source URL includes exact commit/path, validation passed and content digest present. This means format/content validation, not instruction safety or production execution. Public GETs are unauthenticated and may fail on rate limits/network availability. Native/global registries remain untouched.
+
+User independently confirmed actual live demo completed in outputs/skills-live-demo/run-k7msx0uu (baseline failure, passing update/reuse, rollback), separate from these acquisition-only checks.
+
+Public-source-step full offline suite: PASS, 228 tests (92 skills tests). Scope guard: PASS. Log outputs/skills-qa/sources-suite.log. Real public acquisition also passed as recorded above.

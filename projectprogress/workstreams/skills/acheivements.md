@@ -24,3 +24,5 @@
 - Recorded revised Obsidian workplan and weighted approximate 60% expanded-scope estimate. Obsidian export/UI and real learned-skill inventory are not implemented or verified yet.
 
 - Working live controlled demo PASSED: actual Codex baseline lost identifier zeros; reviewed instructions passed 4/4 regression checks and 2/2 held-out reuse checks; rollback preserved audit. Six new offline tests cover live-demo control flow and failure gates. Obsidian export deferred by user.
+
+- Public acquisition: thirteen offline tests pass. Real CLI imported openai/skills skill-creator at immutable commit 49f948faa9258a0c61caceaf225e179651397431 into isolated outputs registry; seven preserved files and pinned provenance survived restart. No scripts executed/global state changed.

@@ -127,7 +127,26 @@ class Registry:
         source = Path(source).absolute()
         if self.root == source.resolve() or self.root.is_relative_to(source.resolve()):
             raise SkillError("Source cannot contain registry")
-        files, digest = _snapshot(source)
+        files, _ = _snapshot(source)
+        return self._import_files(files, str(source.resolve()))
+
+    def import_github(self, repository, *, commit, path, fetch=None):
+        from .sources import import_github
+        return import_github(self, repository, commit=commit, path=path, fetch=fetch)
+
+    def _import_files(self, files, source):
+        from .sources import _path
+        if not isinstance(files, dict) or "SKILL.md" not in files or len(files) > 256:
+            raise SkillError("Package requires SKILL.md and at most 256 files")
+        total = 0
+        for name, data in files.items():
+            _path(name)
+            if not isinstance(data, bytes) or len(data) > 1024 * 1024:
+                raise SkillError("Package files must be bytes up to 1 MiB")
+            total += len(data)
+        if total > 8 * 1024 * 1024:
+            raise SkillError("Package exceeds 8 MiB")
+        digest = _digest(files)
         metadata, _ = _parse(files["SKILL.md"])
         directory = uuid.uuid4().hex
         target = self.root / directory
@@ -142,10 +161,10 @@ class Registry:
                 if db.execute("SELECT 1 FROM skills WHERE name=?", (metadata["name"],)).fetchone():
                     raise SkillError("Skill name already registered; explicit revisions required")
                 stage.rename(target)
-                row = (metadata["name"], metadata["version"], metadata["description"], str(source.resolve()), digest, directory)
+                row = (metadata["name"], metadata["version"], metadata["description"], source, digest, directory)
                 db.execute("INSERT INTO skills VALUES (?, ?, ?, ?, ?, ?)", row)
                 self._accept(db, row)
-                self._audit(db, row[0], "import", "", digest, reason="Validated local import")
+                self._audit(db, row[0], "import", "", digest, reason="Validated package import")
         except BaseException:
             shutil.rmtree(stage, ignore_errors=True)
             shutil.rmtree(target, ignore_errors=True)

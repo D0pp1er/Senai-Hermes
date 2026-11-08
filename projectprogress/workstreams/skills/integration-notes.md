@@ -59,3 +59,11 @@ New user requirement: export project skill inventory with imported/learned origi
 User deferred Obsidian export until last. Added feature-owned run_live_demo(project, *, executor=None, model=None, emit=None) -> dict and CLI demo --live [--model MODEL]. Uses existing stable execution/reviewer/registry APIs; shared core untouched. emit(message) receives stage progress; optional executor has run_codex signature. No new dependency or schema migration. Native runs consume up to four model calls; offline tests inject responses.
 
 Live isolated correction/reuse passed, with actual deterministic JSON checks. It is a deliberately lossy known CSV fixture, not normal production traffic. Existing ordinary CLI/Telegram routes still require coordinator integration. Keep production-readiness claims separate from this successful feature-local demo.
+
+## Public source contract
+
+Registry.import_github(repository, *, commit, path, fetch=None) -> Skill. repository is owner/repo, commit full lowercase 40-hex SHA, path POSIX relative directory or . . fetch(url, *, max_bytes) -> bytes is the injectable transport; no auth exposed. CLI import-github OWNER/REPO --commit SHA --path DIRECTORY. Existing local import source semantics preserved; common internal file-bundle activation centralizes integrity/atomicity checks.
+
+No new runtime dependency or DB migration. Canonical source URL contains exact commit/path; package digest and import audit retained. Public import cannot overwrite native/global skills or an existing registry name. No provider beyond allowed installed Codex is introduced. Arbitrary/private sources, archive extraction, automatic updates and native skill installation remain unsupported. Default transport ignores environment proxy credentials and refuses redirects; deployments requiring a proxy need an explicit adapter/policy later.
+
+Actual network QA imported official skill-creator into a separate outputs QA registry, with seven files/hash/provenance verified after restart; no script ran. This does not establish safety or compatibility of every public skill. Coordinator normal CLI/Telegram wiring remains unapplied. Obsidian export LAST.

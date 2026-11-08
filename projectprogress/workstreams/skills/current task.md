@@ -3,10 +3,10 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-User reprioritized working demo first; Obsidian export deferred until last. Added explicit `demo --live [--model MODEL]` alongside unchanged default synthetic demo. Six TDD tests cover success, failed regression, no-change, model error, failed held-out reuse with rollback and CLI progress. No export implementation.
+Pinned public GitHub acquisition implemented. Registry.import_github(repository, *, commit, path, fetch=None) and CLI import-github require a full immutable commit SHA and explicit package path. Commit/tree identities and every Git blob are verified; bounded downloads validated before atomic registry import. Symlinks/submodules/unsafe paths/truncated trees/duplicates/conflicts rejected; scripts copied as inert files, never run. Existing local importer uses the same atomic file-bundle path.
 
-Real installed Codex live demo PASSED. Isolated project: outputs/skills-live-demo/run-bv8i5d3a. Baseline lost zeros; candidate passed 4/4 regression checks; held-out reuse preserved 007,000,42 (2/2 checks); original restored; audit retained. Report: outputs/skills-qa/live-demo-report.json. Prompt/response/check artifacts retained under the reported outputs/evaluations directories. This uses a deliberately lossy known fixture, not universal improvement or production integration.
+Thirteen offline source tests pass. Actual unauthenticated CLI import PASS: openai/skills commit 49f948faa9258a0c61caceaf225e179651397431, skills/.system/skill-creator; seven preserved files, package SHA-256 a617b59ca9bc4cf6e15744b6fe4896f1408eac4c1c2d072cc066f720148b59e0. Retained QA project outputs/skills-import-demo/run-izmdpt0k. Report outputs/skills-qa/github-import-report.json. No imported scripts executed/global registries touched.
 
-Next: pinned public acquisition and user-task usability, accurate origin/new-skill authoring records, coordinator production integration; Obsidian export LAST. Full order in workplan.md. No normal shared CLI/Telegram hooks changed.
+User also independently confirmed live corrective-reuse demo status completed in outputs/skills-live-demo/run-k7msx0uu. Production routing still unimplemented. Next: actual user-task usability/native execution adapter and durable origin/new-skill authoring records, with coordinator integration proposals. Obsidian export remains LAST.
 
-Reread MERGE_POLICY.md before each implementation step; scope/full suite before commits; final delivery remains draft.
+Reread MERGE_POLICY.md before each implementation step. Scope/full suite before commit; delivery remains draft until complete evidence/--ready.

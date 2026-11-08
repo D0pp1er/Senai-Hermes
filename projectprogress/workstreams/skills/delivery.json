@@ -9,7 +9,8 @@
     "senai.skills.review",
     "senai.skills.metadata",
     "senai.skills.errors",
-    "senai.skills.live_demo"
+    "senai.skills.live_demo",
+    "senai.skills.sources"
   ],
   "public_api": [
     "Registry(root)",
@@ -38,7 +39,8 @@
     "review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult",
     "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult",
     "Registry.metadata(name) -> dict",
-    "run_live_demo(project, *, executor=None, model=None, emit=None) -> dict"
+    "run_live_demo(project, *, executor=None, model=None, emit=None) -> dict",
+    "Registry.import_github(repository, *, commit, path, fetch=None) -> Skill"
   ],
   "commands": [
     "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
@@ -52,7 +54,8 @@
     "python -m senai.skills --project PROJECT demo",
     "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]",
     "python -m senai.skills --project PROJECT metadata NAME",
-    "python -m senai.skills --project PROJECT demo --live [--model MODEL]"
+    "python -m senai.skills --project PROJECT demo --live [--model MODEL]",
+    "python -m senai.skills --project PROJECT import-github OWNER/REPO --commit SHA --path DIRECTORY"
   ],
   "executor_contract": {
     "interface": "executor(request, skills)",
@@ -84,10 +87,10 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 215 offline tests on live-demo-step working tree, including 79 feature tests. Scope guard passed. Full log outputs/skills-qa/live-demo-suite.log. Separate native live CSV demo passed as recorded. Exact post-commit verification pending; final delivery draft.",
-    "offline_test_count": 215,
+    "offline_result": "PASS: 228 offline tests on public-source-step working tree, including 92 feature tests. Scope guard passed. Full log outputs/skills-qa/sources-suite.log. Real unauthenticated public import separately passed as recorded. Exact post-commit verification pending; delivery draft.",
+    "offline_test_count": 228,
     "tested_commit": "",
-    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification."
+    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution."
   },
   "integration": {
     "shared_file_changes": [
@@ -96,7 +99,7 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: broader/public imports and normal CLI/production outcome/review wiring pending. Reviewer is explicit, not automatic.",
+    "Draft partial delivery: normal CLI/production outcome/review wiring and durable origin/new-skill authoring records pending. Reviewer explicit, not automatic.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Bounded YAML subset; Hermes metadata inert, no full runtime compatibility or source-folder/name conformance claim.",
     "Live model checks passed only for the controlled CSV demo; normal production integration unverified.",
@@ -105,6 +108,7 @@
     "No-change review results are returned but do not have a separate durable attempt log.",
     "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
     "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
-    "User deferred Obsidian export until LAST; accurate provenance and public imports remain backlog. No export command exists."
+    "User deferred Obsidian export until LAST; explicit imported/learned/unknown origin classification remains backlog. No export command exists.",
+    "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition."
   ]
 }
