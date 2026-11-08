@@ -14,3 +14,5 @@ Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invoca
 - [x] Learning step 3: injectable candidate regression validation and durable result history.
 
 - [x] Learning step 4: explicit validated activation, accepted version history and rollback.
+
+- [x] Feature-local CLI and offline synthetic lifecycle demo. Actual model-backed reuse demonstration still pending.

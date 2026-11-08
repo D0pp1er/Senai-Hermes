@@ -55,3 +55,11 @@ rollback(name, *, digest, reason) restores an intact accepted package for the sa
 Revision.status now reports proposed, active or accepted according to recorded acceptance and current selection. Individual revision lookup validates only the requested package, allowing intact revisions/rollback to work despite unrelated damaged proposals. Registry select/execute retain their signatures and supply the currently active package.
 
 No sandbox is introduced: registry directories remain trusted against hostile concurrent filesystem replacement. SQLite guards active-state updates but cannot provide an OS boundary around callbacks/files. No global Codex skills installed or shared execution/CLI code edited.
+
+## Feature-local terminal interface
+
+`python -m senai.skills --project EXISTING_PROJECT COMMAND` uses only that project's outputs/skills/ registry. Commands: import SOURCE_DIRECTORY, list, show NAME, context NAME REQUEST, outcomes NAME, versions NAME, history NAME, revisions NAME, validations REVISION_ID, activate REVISION_ID, rollback NAME --digest DIGEST --reason REASON, demo. Output is JSON; operational errors return 2 with a short stderr message. Help and listing a missing registry create no state. Import never executes code. Existing outputs symlinks are rejected through the stable workspace policy; global skills are untouched.
+
+list emits active metadata without instruction text. show emits selected instructions, paths and provenance. context exports a request and one selected Skill through the existing injected executor seam; it deliberately makes no model call. Actual Codex use still needs an adapter. Candidate authoring and regression checking are currently Python APIs rather than user-supplied CLI check-result flags.
+
+senai/skills/demo.py run_demo(project) creates a new retained outputs/skills-demo/run-*/ project, its fixture and its own outputs/skills registry. It records a synthetic failure, proposes instructions, injects a simulated passing regression, activates v2, restores v1 and reopens the registry. Mode and limitations are explicit in output. It never touches the normal project skill registry and never invokes a model/script. Repeated runs use separate folders. CLI entrypoint is senai/skills/__main__.py and main(argv=None, stdout=None, stderr=None) in cli.py. No shared console-entrypoint/package edits.

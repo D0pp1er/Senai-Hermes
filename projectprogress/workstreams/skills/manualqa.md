@@ -39,3 +39,36 @@ Validation-step complete offline suite: PASS, 167 tests. Scope guard: PASS. Reta
 Run `.venv/bin/python -m unittest tests.skills.test_activation -v`: expected eleven passing tests. Red failure log: outputs/skills-qa/activation-red.log. Feature suite now passes 42 tests. Fixtures/check callbacks are offline and temporary. Checks prove active selection switches only after latest pass, persists after restart, and rollback restores prior bytes while retaining audit/evidence. Live Codex execution and normal CLI/production integration NOT RUN.
 
 Activation-step full offline suite: PASS, 178 tests. Ownership guard: PASS. Log retained at outputs/skills-qa/activation-suite.log. No live/production checks performed.
+
+## Feature-local CLI manual commands
+
+From the assigned WSL worktree:
+
+```bash
+.venv/bin/python -m senai.skills --help
+.venv/bin/python -m senai.skills list
+.venv/bin/python -m senai.skills demo
+```
+
+Expected: help lists commands; an empty main registry lists []; demo returns mode offline-simulated, activated_version 2, restored_version 1 and actions import/activate/rollback. Demo prints its isolated project path. Inspect the retained fixture with:
+
+```bash
+.venv/bin/python -m senai.skills --project PRINTED_DEMO_PROJECT list
+.venv/bin/python -m senai.skills --project PRINTED_DEMO_PROJECT show demo-workflow
+.venv/bin/python -m senai.skills --project PRINTED_DEMO_PROJECT history demo-workflow
+```
+
+To acquire a real local skill package, explicitly choose its source directory:
+
+```bash
+.venv/bin/python -m senai.skills import /absolute/path/to/skill-package
+.venv/bin/python -m senai.skills list
+.venv/bin/python -m senai.skills show IMPORTED_NAME
+.venv/bin/python -m senai.skills context IMPORTED_NAME "Your request"
+```
+
+The import persists in outputs/skills/; subsequent calls list it. Unknown/duplicate/malformed inputs return 2. context only exports instructions and request; no model runs. There are no bundled permanent real skills in this feature. Strict metadata compatibility still applies.
+
+Observed offline CLI QA PASS: executed real module demo, then a separate CLI process listed saved demo-workflow v1. JSON logs: outputs/skills-qa/cli-demo-report.json and cli-demo-list.json. Eight CLI behavior tests pass; red log outputs/skills-qa/cli-red.log. No live model or production usage tested.
+
+CLI-step full offline suite: PASS, 186 tests (50 skills tests). Scope guard: PASS. Retained full log: outputs/skills-qa/cli-suite.log.

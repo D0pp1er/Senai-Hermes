@@ -27,3 +27,9 @@ Registry.activate_revision(revision_id) -> Skill; Registry.rollback(name, *, dig
 Migration: additive accepted_versions and activation_history tables; idempotent backfill of prior active rows as import baselines. Initial imports record acceptance/audit in the same transaction. No existing outcome/revision/validation records modified. All state stays in the explicit per-project registry. Standard library only. No sibling dependencies.
 
 Remaining production gates: feature-local CLI/demo, injected reviewer, broader import compatibility/public adapters, coordinator wiring and isolated end-to-end/live checks. Normal senai --skill continues its native installed-skill behavior. Do not interpret this module-only feature as production integration.
+
+## Terminal entrypoint
+
+Implemented `python -m senai.skills`, separately callable within this checkout's .venv. cli.main(argv=None, stdout=None, stderr=None) -> int. Uses stable senai.workspace.prepare_workspace; no sibling import. Per-project registry is outputs/skills/. demo.run_demo(project) -> dict retains synthetic evidence under outputs/skills-demo/.
+
+Coordinator may later dispatch `senai skills ...` to this feature-local main once merging. No dispatch or packaging patch applied here. The context command exports instructions and does not invoke Codex. Production execution/reviewer wiring still pending. No dependency/migration change in this step.

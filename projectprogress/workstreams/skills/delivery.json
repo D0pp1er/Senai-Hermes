@@ -3,7 +3,9 @@
   "feature": "skills",
   "status": "draft",
   "modules": [
-    "senai.skills"
+    "senai.skills",
+    "senai.skills.cli",
+    "senai.skills.demo"
   ],
   "public_api": [
     "Registry(root)",
@@ -25,9 +27,21 @@
     "Registry.rollback(name, *, digest, reason) -> Skill",
     "Registry.versions(name) -> list[Skill]",
     "Registry.history(name) -> list[Activation]",
-    "Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at)"
+    "Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at)",
+    "senai.skills.cli.main(argv=None, stdout=None, stderr=None) -> int",
+    "senai.skills.demo.run_demo(project) -> dict"
   ],
-  "commands": [],
+  "commands": [
+    "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
+    "python -m senai.skills --project PROJECT list",
+    "python -m senai.skills --project PROJECT show NAME",
+    "python -m senai.skills --project PROJECT context NAME REQUEST",
+    "python -m senai.skills --project PROJECT {outcomes,versions,history,revisions} NAME",
+    "python -m senai.skills --project PROJECT validations REVISION_ID",
+    "python -m senai.skills --project PROJECT activate REVISION_ID",
+    "python -m senai.skills --project PROJECT rollback NAME --digest DIGEST --reason REASON",
+    "python -m senai.skills --project PROJECT demo"
+  ],
   "executor_contract": {
     "interface": "executor(request, skills)",
     "inputs": [
@@ -53,8 +67,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 178 offline tests on activation-step working tree, including 42 feature tests. Scope guard passed. Log outputs/skills-qa/activation-suite.log. Exact post-commit verification pending; final delivery remains draft.",
-    "offline_test_count": 178,
+    "offline_result": "PASS: 186 offline tests on CLI-step working tree, including 50 feature tests. Scope guard passed. Separate-process demo/list passed. Logs outputs/skills-qa/cli-suite.log and cli-demo-report.json. Exact post-commit verification pending; delivery remains draft.",
+    "offline_test_count": 186,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -65,7 +79,7 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: feature-local CLI/demo, automatic Codex review, broader/public imports and normal CLI/production wiring pending. Checking uses injected callbacks.",
+    "Draft partial delivery: automatic Codex review, broader/public imports and normal CLI/production wiring pending. Context exports instructions only; demo checks are simulated.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Restricted frontmatter; not full Hermes compatibility.",
     "No live model checks.",

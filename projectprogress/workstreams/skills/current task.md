@@ -3,8 +3,10 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Learning step 4 implemented: explicit latest-pass-gated activation, accepted version snapshots, durable import/activation/rollback audit and rollback to intact previously accepted packages. Eleven tests first failed on missing APIs, then passed. All 42 feature tests pass. No automatic Codex review or normal CLI wiring is claimed.
+Feature-local CLI/demo implemented. Eight tests first failed on missing senai.skills.cli, then passed. Commands support permanent local import, metadata listing, instruction viewing/context export, outcomes/revisions/validations/versions/history inspection and explicit activation/rollback. No shared router change.
 
-Next TDD step: feature-local CLI/demo so users can import a permanent fixture into outputs/skills, list/view saved skills, inspect revisions/history, and demonstrate activation/rollback from terminal. A later injected Codex reviewer creates proposals; broaden import metadata and public sources after validation tests. Coordinator must wire normal senai/Telegram execution; no shared files edited here.
+Real offline subprocess demo PASS: retained isolated project in outputs/skills-demo/, synthetic update to v2 then restore v1, independently listed by a new CLI process. Evidence: outputs/skills-qa/cli-demo-report.json and cli-demo-list.json. This is simulated validation, not model improvement evidence.
 
-Read MERGE_POLICY.md before each new implementation step. Run ownership/full-suite checks before commit; keep delivery draft until all required evidence and final --ready validation exist. Production usage requires coordinator integration and isolated live end-to-end acceptance.
+Next TDD step: injectable Codex reviewer boundary to generate evidence-linked instruction proposals (never activate automatically). Then broaden metadata compatibility and public import adapters; coordinator wiring and real isolated end-to-end verification remain necessary before production claims. No automatic learner or normal senai integration yet.
+
+Reread MERGE_POLICY.md before each implementation step. Run scope/full suite before commits. Final delivery remains draft.

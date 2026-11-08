@@ -11,3 +11,6 @@
 
 - 2026-11-09, 753cba2: persisted candidate regression validation.
 - 2026-11-09, current activation step: eleven red-to-green tests; exact latest-pass activation, accepted-version history, idempotent old-registry backfill, audited rollback and corruption recovery.
+
+- 2026-11-09, 31ea486: validated activation and rollback.
+- 2026-11-09, current CLI step: module entrypoint, permanent local import/list/view/context and audit commands, isolated offline lifecycle demo, eight red-to-green tests and separate-process QA.

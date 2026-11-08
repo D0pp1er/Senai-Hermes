@@ -14,3 +14,5 @@
 - Learning step 3: eight red-to-green tests verify persisted checking context, failed results, invalid/empty result rejection, sanitized checker exceptions, tamper checks, unknown IDs and retained revalidation history.
 
 - Learning step 4: eleven red-to-green tests cover activation/reuse after restart, missing/failed/error validation gates, latest-failure rejection, stale siblings, candidate tampering, rollback/history, unaccepted targets, damaged current recovery, damaged target rejection, old version uniqueness and idempotent migration.
+
+- CLI milestone: eight red-to-green tests pass, including real `python -m senai.skills --help` in a separate cwd. Direct demo and independent list subprocess passed; retained isolated demo registry shows version 1 after activation/rollback.
