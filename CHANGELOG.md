@@ -183,3 +183,7 @@
 - Updated architecture, feature guide, README, master requirements, and manual QA (QA-19).
 - All 100 tests pass offline; no live Telegram connection or bot-controlled model call has been made.
 - Documentation verification: local links and 68 Bash examples checked; no live Telegram commands executed.
+
+## Telegram acceptance and merge
+- User confirmed live Telegram operation on 2026-11-08 and requested merge into main.
+- Updated setup/progress records to distinguish user-confirmed live operation from offline tests and individually unrecorded QA cases.

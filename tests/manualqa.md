@@ -464,8 +464,7 @@ project when starting the bot. Allow only your own numeric Telegram user ID.
 14. Inspect outputs/.senai-telegram/<bot-id>/ for job logs and durable state; ensure
     no real bot token is in Git. Never publish that state directory.
 
-Add PASS/FAIL/BLOCKED and evidence for each subcase to your results record. The live
-Telegram cases are currently unverified until you supply/configure your own bot.
+Add PASS/FAIL/BLOCKED and evidence for each subcase to your results record. The user confirmed live Telegram operation on 2026-11-08; this is not a claim that every subcase above has been individually executed. New installations still need local bot configuration.
 Offline coverage is in test_telegram_api.py, test_telegram_jobs.py,
 test_telegram_service.py, and test_telegram_integration.py.
 

@@ -236,4 +236,4 @@ the calling directory; generated output paths resolve from outputs/.
 
 Use `senai telegram` for authorized private, one-off requests while WSL stays online.
 Start with the [Telegram setup guide](projectprogress/telegram.md); credentials and
-a numeric user allowlist are required. No live bot connection has been verified yet.
+a numeric user allowlist are required. The user confirmed live Telegram operation on 2026-11-08.

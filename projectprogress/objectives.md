@@ -14,4 +14,4 @@ optional Hermes features, and their statuses are tracked in ../main task.md.
 Native accounts, tools, and workspace-relocating flags retain documented limits.
 
 - [x] Add Telegram transport around one-off senai execution, with private allowlist authorization, durable queue and replies.
-- [ ] Complete live Telegram acceptance after local bot-token/user-ID configuration.
+- [x] User confirmed live Telegram operation after local setup (2026-11-08); detailed regression cases remain available.

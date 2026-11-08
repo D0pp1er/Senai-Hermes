@@ -350,4 +350,4 @@ The [Telegram guide](telegram.md) walks through BotFather, hidden token input,
 user-ID discovery, local startup, /run, /status, /result, and restart behavior.
 Only allowlisted private users can execute; requests are one-off and queued serially.
 The bot must stay running in WSL. Voice, attachments, cancellation, and downloads
-are not implemented. Live connection setup still needs your token and user ID.
+are not implemented. The user confirmed live operation on 2026-11-08; new installations still need their own token and user ID.

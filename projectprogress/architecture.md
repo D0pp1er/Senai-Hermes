@@ -314,4 +314,4 @@ transport. Native workspace/config/tool security limits still apply.
 The bot needs outbound internet and a running WSL process, not an inbound webserver.
 The current Telegram verification is offline: API fixtures, store/router tests,
 real worker-thread tests, and an end-to-end real senai child with fake Codex.
-Live token/user-ID setup remains a separate manual acceptance step.
+The user confirmed live Telegram operation on 2026-11-08. The detailed manual acceptance checklist remains available for regression testing.

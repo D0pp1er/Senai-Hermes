@@ -1,7 +1,6 @@
 # Control senai from Telegram
 
-Status: implemented on `feature/telegram-bot`; verified offline. A real Telegram
-connection still requires your bot token and numeric user ID. No credentials are
+Status: implemented and verified offline; the user confirmed live Telegram operation on 2026-11-08. New installations still require a bot token and numeric user ID. No credentials are
 included in this repository.
 
 The selected setup runs independent one-off Codex requests against
@@ -215,6 +214,5 @@ senai telegram --help
 ```
 
 All 100 current tests pass offline. Telegram API calls use fixtures in tests, and
-an integration test uses a real senai child plus fake Codex. No live Telegram
-connection or bot-controlled model request has been verified yet.
+an integration test uses a real senai child plus fake Codex. The user confirmed live Telegram operation on 2026-11-08; individual manual QA subcases have not all been independently recorded.
 See [manualqa.md](../tests/manualqa.md) for live Telegram acceptance checks.
