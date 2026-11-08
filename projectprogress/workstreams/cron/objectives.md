@@ -1,7 +1,5 @@
 # Cron objectives
-
-Follow the milestones in ../../parallel/prompts/03-cron.md.
-
-- [ ] First verified milestone.
-- [ ] Feature-local CLI/demo and regression coverage.
-- [ ] Integration requirements and limitations documented.
+- [x] Durable one-shot/elapsed-interval schedules with explicit timezone, project and scope.
+- [x] Atomic claims, bounded retries, overlap protection and explicit recovery.
+- [x] Injectable executor/delivery and durable results.
+- [ ] Feature-local CLI and operational verification.
