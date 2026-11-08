@@ -82,3 +82,11 @@ TDD: missing voice_config module reproduced, then 13 tests passed for private fi
 - Standalone commands never touch Telegram credentials, DBs or a bot process.
 - Regression fixtures verify old state/session byte hashes and native API authentication.
 - /voice text-plus-matching-audio behavior unchanged. No merge or production restart.
+
+## Voice setup delivery evidence
+
+- b57379a: protected optional voice credentials.
+- fa9c209: optional initial offer and standalone voice commands.
+- Exact tested implementation: fa9c20963ec146339c1c409573255b667b571c33.
+- 210 full regression tests and 26 new setup/config tests PASS. Scope/diff PASS.
+- Readiness metadata updated for coordinator review; no merge/restart/API/live activity.

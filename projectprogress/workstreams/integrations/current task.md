@@ -1,7 +1,14 @@
 # Current task
 
-Optional voice setup implemented on feature/integrations. Storage commit b57379a;
-CLI/setup commit next. Verify final full regression and --ready metadata, then hand off
-the tested commit to the coordinator. No merge or live bot restart is authorized.
-All verification uses temporary fixtures and synthetic keys; no production state touched.
-/voice continues to send text plus matching audio. Live API/audio checks not performed.
+Optional voice API-key setup is ready for coordinator review on feature/integrations.
+Storage commit: b57379a. Tested implementation: fa9c20963ec146339c1c409573255b667b571c33.
+210 full-suite tests pass, including 26 new optional-setup tests. Scope/diff checks pass.
+Final delivery metadata records the exact tested commit; subsequent edits are records only.
+
+Initial setup offers Configure/Skip. Standalone --voice-configure/--voice-check/--voice-remove
+work without Telegram setup, credentials, polling or process changes. Protected config
+loads on startup; environment support/native Codex auth remain. /voice still sends both
+text and matching audio. No new runtime dependencies or database migrations.
+
+No merge, live restart, real key entry, API call, production state change or live playback
+test performed. Next: coordinator reviews handoff and reruns readiness/regression checks.

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -65,6 +65,16 @@
       "name": "offer_voice_setup",
       "signature": "offer_voice_setup(project, *, stdout, choice=None, prompt=None, environ=None) -> bool",
       "purpose": "Optional initial Configure/Skip with hidden key input and non-fatal voice setup."
+    },
+    {
+      "name": "voice credential storage",
+      "signature": "default_voice_file(project, *, environ=None) -> Path; write_voice_key(project, key, *, environ=None); read_voice_key(project, *, environ=None) -> str | None; remove_voice_key(project, *, environ=None) -> bool",
+      "purpose": "Protected version-1 voice JSON with atomic replacement and private modes, separate from Telegram credentials."
+    },
+    {
+      "name": "resolve_voice_key",
+      "signature": "resolve_voice_key(project, *, environ=None) -> VoiceKey | None",
+      "purpose": "Return secret-free-repr selection with source; no environment mutation or network."
     }
   ],
   "commands": [
@@ -90,24 +100,27 @@
     "development": []
   },
   "storage": {
-    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB",
+    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git",
     "schema_version": 1,
     "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration."
   },
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
-      ".venv/bin/python -m unittest tests.integrations.test_telegram_media tests.integrations.test_telegram_voice -v",
-      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
+      ".venv/bin/python -m unittest tests.integrations.test_voice_config tests.integrations.test_voice_setup_cli -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready",
       "git diff --check"
     ],
-    "offline_result": "in-progress",
+    "offline_result": "passed",
     "offline_test_count": 210,
-    "tested_commit": "CLI/setup working tree pending commit",
+    "tested_commit": "fa9c20963ec146339c1c409573255b667b571c33",
     "live_result": "not-run",
     "evidence_logs": [
-      "outputs/qa-integrations/regression.log",
-      "outputs/qa-integrations/media-voice.log"
+      "outputs/qa-integrations/voice-setup-regression.log",
+      "outputs/qa-integrations/voice-setup-focused.log",
+      "outputs/qa-integrations/voice-config-red.log",
+      "outputs/qa-integrations/voice-cli-red.log",
+      "outputs/qa-integrations/voice-compat-red.log"
     ]
   },
   "integration": {

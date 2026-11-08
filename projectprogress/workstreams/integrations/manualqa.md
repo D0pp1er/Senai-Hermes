@@ -117,3 +117,5 @@ and check status again. Confirm command output explains graceful restart and nev
 prints the key. Do not repeat setup/pairing or launch another bot. Only an explicitly
 approved later restart applies changes to a running bot. Live API key validity/audio
 playback is not claimed by these local checks and was not requested for this task.
+
+Final voice setup evidence: exact source commit fa9c20963ec146339c1c409573255b667b571c33; 210 total tests PASS and 26 setup/config tests PASS. Scope/diff PASS. Final readiness command recorded in delivery.json; records-only commit follows. No live API/auth/audio acceptance or restart claimed.

@@ -88,3 +88,5 @@ from native authentication. Removing the saved key does not unset environment va
 or instantly disable a running bot; messages explain the restart/env behavior.
 /voice still sends text plus matching audio. No real key, Telegram API, speech API,
 production state, merge, bot stop/start or live restart was used for this task.
+
+Coordinator handoff: review feature/integrations with tested implementation fa9c209 plus final records. Rerun --ready and 210 tests; no shared source patches, dependencies or migrations required. Do not restart the live bot as part of this task. Existing credentials/state/native UUID and text-plus-audio semantics are preserved.

@@ -25,3 +25,5 @@ Final media handoff: 184 tests pass at a78aa29, including 31 media/voice; indepe
 Optional voice setup storage increment: 13 behavior tests pass with synthetic keys only.
 
 Optional voice setup: initial Skip/configure, standalone management and automatic load implemented. New tests cover state preservation and redaction; no real credentials or live services accessed.
+
+Optional voice setup verified at fa9c209: 210 regression tests, 26 setup/config tests, scope/whitespace checks pass. Ready metadata prepared; all real credentials and live processes untouched.
