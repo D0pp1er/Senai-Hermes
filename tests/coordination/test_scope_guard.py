@@ -91,3 +91,9 @@ class ScopeGuardTests(unittest.TestCase):
     def test_ready_manifest_requires_evidence_and_contract(self):
         self.write('projectprogress/workstreams/memory/delivery.json', json.dumps({'schema_version': 1, 'feature': 'memory', 'status': 'ready'}))
         self.assertEqual(self.check('--ready').returncode, 1)
+
+    def test_complete_ready_contract_passes(self):
+        manifest = {'schema_version': 1, 'feature': 'memory', 'status': 'ready', 'modules': ['senai.memory'], 'public_api': [{'name': 'MemoryStore', 'signature': 'MemoryStore(path)', 'purpose': 'Scoped durable memory'}], 'commands': ['python -m senai.memory --help'], 'executor_contract': {'interface': 'injected callback', 'inputs': ['prompt', 'scope'], 'outputs': ['response']}, 'dependencies': {'runtime': [], 'development': []}, 'storage': {'namespace': 'outputs/.memory', 'schema_version': 1, 'migration_notes': 'New isolated store; no old rows removed.'}, 'verification': {'offline_commands': ['python -m unittest'], 'offline_result': 'passed', 'offline_test_count': 1, 'tested_commit': self.git('rev-parse', 'HEAD').stdout.strip()}, 'integration': {'shared_file_changes': [], 'sibling_requirements': []}, 'limitations': ['fixture only']}
+        self.write('projectprogress/workstreams/memory/delivery.json', json.dumps(manifest))
+        result = self.check('--ready')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
