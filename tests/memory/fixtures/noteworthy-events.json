@@ -1,0 +1,39 @@
+[
+  {
+    "event_id": "user-1",
+    "kind": "preference",
+    "text": "Prefers concise replies",
+    "source": "user",
+    "verified": true
+  },
+  {
+    "event_id": "user-2",
+    "kind": "preference",
+    "text": "Prefers concise replies",
+    "source": "user",
+    "verified": true
+  },
+  {
+    "event_id": "user-3",
+    "kind": "preference",
+    "text": "Prefers concise replies",
+    "source": "user",
+    "verified": true,
+    "confirmed": true
+  },
+  {
+    "event_id": "release-check",
+    "kind": "milestone",
+    "text": "Completed the first release",
+    "source": "validator",
+    "verified": true,
+    "significant": true
+  },
+  {
+    "event_id": "ordinary-output",
+    "kind": "ordinary",
+    "text": "Task finished",
+    "source": "model",
+    "verified": false
+  }
+]

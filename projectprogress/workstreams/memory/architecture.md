@@ -88,3 +88,13 @@ remember appends validated exact-deduplicated facts only on real user request or
 trusted verified noteworthy decision, with conflict rejection and no SOUL learning.
 Legacy scoped APIs remain unchanged. See current integration-notes.md for authoritative
 storage/lifecycle/learning policy; earlier sections describe the compatibility APIs.
+
+## Noteworthy proposal evaluator
+
+noteworthy.py adds immutable MemoryEvent and NoteworthyProposal and pure
+evaluate_noteworthy. It applies category/source/verification/confirmation/significance
+rules, normalized within-target duplicate suppression, input/output/capacity budgets
+and content validation. No history or new storage. USER categories require explicit
+retention confirmation even after repeated observations; verified significant milestones
+may qualify without user confirmation. Existing InstallationRuntime learning callback
+can adapt proposals to LearningDecision; this feature does not wire evidence collection.

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "memory",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.memory.store",
     "senai.memory.context",
@@ -9,7 +9,8 @@
     "senai.memory.profiles",
     "senai.memory.session",
     "senai.memory.__main__",
-    "senai.memory.installation"
+    "senai.memory.installation",
+    "senai.memory.noteworthy"
   ],
   "public_api": [
     {
@@ -141,6 +142,21 @@
       "name": "senai.memory.InstallationMemory.remember",
       "signature": "InstallationMemory.remember(self, name, text, *, user_requested=False, noteworthy=False, verified=False)",
       "purpose": "Append a validated fact on user request or trusted noteworthy-event judgment."
+    },
+    {
+      "name": "senai.memory.MemoryEvent",
+      "signature": "MemoryEvent(event_id: str, kind: str, text: str, source: str, verified: bool = False, confirmed: bool = False, significant: bool = False) -> None",
+      "purpose": "App evidence. confirmed means explicit user approval to retain this user fact."
+    },
+    {
+      "name": "senai.memory.NoteworthyProposal",
+      "signature": "NoteworthyProposal(name: str, text: str, reason: str, evidence_id: str, noteworthy: bool = True, verified: bool = True) -> None",
+      "purpose": "NoteworthyProposal(name: str, text: str, reason: str, evidence_id: str, noteworthy: bool = True, verified: bool = True)"
+    },
+    {
+      "name": "senai.memory.evaluate_noteworthy",
+      "signature": "evaluate_noteworthy(events, *, existing=None, max_candidates=5, max_chars=1200)",
+      "purpose": "Propose confirmed user facts or validator-verified significant milestones."
     }
   ],
   "commands": [
@@ -151,7 +167,8 @@
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-show NAME",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-apply PROPOSAL_JSON --approve",
-    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]"
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]",
+    "python -m senai.memory --installation REPO evaluate-events EVENTS_JSON [--max-candidates N] [--max-chars N]"
   ],
   "executor_contract": {
     "interface": "executor(prompt, workspace, **executor_kwargs) -> str (synchronous run_codex signature)",
@@ -200,7 +217,8 @@
     "shared_file_changes": [
       "Supersedes earlier multi-user proposal: configure one explicit installation root and use InstallationMemory.snapshot for fresh sessions across projects",
       "Coordinator wires user-request/noteworthy/verified judgments into InstallationMemory.remember; SOUL remains human-only",
-      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md"
+      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md",
+      "New extension: trusted structured evidence + explicit user confirmation -> evaluate_noteworthy -> existing LearningDecision callback; see latest integration-notes.md"
     ],
     "sibling_requirements": []
   },
@@ -211,7 +229,11 @@
     "Legacy scoped data is preserved but not automatically migrated or loaded",
     "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
     "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
-    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context"
+    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context",
+    "New evaluator uses structured app evidence; no NLP classifier, observation-history retention or confirmation UI",
+    "User categories require explicit retention confirmation; repeated statements do not qualify",
+    "Evaluator proposals are not automatically activated; source/confirmation callbacks remain coordinator-owned",
+    "Normalized textual deduplication only; no semantic deduplication/persistent event ledger"
   ],
   "coordinator_integration": {
     "merge_commit": "0f0c979",

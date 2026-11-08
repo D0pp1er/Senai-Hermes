@@ -8,3 +8,12 @@
 - [x] Separate installation isolation, compatibility with old scoped APIs and no silent import.
 - [x] Final current-revision regression/readiness evidence.
 - Coordinator-owned: shared CLI/configuration, event judgment and native session wiring.
+
+## Noteworthy extension
+
+- [x] Explicit-confirmation-only user preferences/habits/likes/dislikes/choices.
+- [x] Validator-verified significant milestones, no SOUL learning.
+- [x] Bounded pure proposals, duplicate filtering and existing-content preservation.
+- [x] Dry-run CLI and integrated success-only callback behavior tests.
+- [ ] Exact-commit regression and readiness evidence.
+- Coordinator-owned: evidence collection, confirmation UI and callback activation.

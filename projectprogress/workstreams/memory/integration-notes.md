@@ -1,3 +1,67 @@
+# Noteworthy evaluator extension (current handoff)
+
+This extends the already integrated installation runtime; it does not replace it.
+User decision: preferences/habits/likes/dislikes require explicit confirmation to retain.
+Repeated observations NEVER replace confirmation. Significant choices also require
+confirmation; only validator-verified significant milestones may qualify automatically.
+
+New API:
+    proposals = evaluate_noteworthy(events, existing={
+        "USER.md": runtime.memory.profiles.read("USER.md").text,
+        "MEMORY.md": runtime.memory.profiles.read("MEMORY.md").text,
+    })
+
+events are MemoryEvent values supplied by trusted app evidence:
+- event_id: stable local evidence identifier (max 200 chars, validated).
+- kind: preference/habit/like/dislike/choice/milestone; unknown kinds are ignored.
+- text: concise single-line fact, max 240 characters.
+- source: user for confirmed user facts, validator for checked milestones.
+- verified: actual source/result validation, not a model's success assertion.
+- confirmed: explicit user approval to retain this user fact, not repetition/inference.
+- significant: required for choice and milestone; decided by trusted app validation.
+
+Coordinator callback adaptation (proposal only; core files unchanged):
+    def learning(request, response, workspace):
+        events = trusted_evidence_for_this_successful_run(request, response, workspace)
+        proposals = evaluate_noteworthy(events, existing=current_global_profiles())
+        return [LearningDecision(p.name, p.text, noteworthy=p.noteworthy,
+                                 verified=p.verified) for p in proposals]
+
+Existing InstallationRuntime.execute(..., learning=learning) saves decisions only
+after successful execution. Tests exercise this integrated callback. The coordinator
+must implement/choose actual evidence sourcing and the confirmation interaction;
+arbitrary uploaded JSON/model output must not populate trusted flags.
+
+The evaluator itself is pure: no DB/file writes, observation history, hidden retention,
+classifier service, model calls or import side effects. It returns immutable proposals
+with name/text/reason/evidence ID plus noteworthy=True, verified=True.
+Targets are USER.md/MEMORY.md only; no SOUL target can be proposed.
+
+Input bound 100 events; default at most 5 candidates and 1200 candidate text characters.
+Per-target estimated size cannot exceed the existing 4000-char profile limit.
+Known facts and batch duplicates are compared with Unicode normalization, case folding,
+whitespace normalization and terminal-period removal, within the same target.
+Duplicate event IDs are ignored within a batch. This is not semantic deduplication or
+persistent event idempotency. Existing-file checks suppress normal repeat proposals.
+Different facts or corrections need existing explicit reviewed edit/delete paths.
+
+Credential-looking, empty, multiline and oversized facts are skipped without echoing
+their contents in diagnostics. Malformed decision flags/batch limits raise ValueError.
+Budget/capacity skips do not evict or modify existing facts. Final saving revalidates
+through InstallationMemory.remember; concurrent changes can still cause a conflict.
+
+Dry run:
+    python -m senai.memory --installation QA_ROOT evaluate-events tests/memory/fixtures/noteworthy-events.json
+
+Expected two proposals (confirmed preference + verified milestone), no fact writes.
+CLI may initialize normal installation storage/locks while reading current profiles;
+the pure function performs no I/O. No new dependencies or schema migration.
+This extension does not change interactive chat, Telegram, snapshot lifecycle, shared
+core files, or the already integrated explicit remember command.
+
+---
+The sections below document the previously integrated installation memory baseline.
+
 # Current memory integration: one owner per installation
 
 This supersedes the earlier multi-user/project-private integration proposal.
