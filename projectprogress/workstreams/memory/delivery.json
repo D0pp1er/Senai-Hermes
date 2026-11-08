@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "feature": "memory",
+  "status": "draft",
+  "modules": [
+    "senai.memory"
+  ],
+  "public_api": [],
+  "commands": [],
+  "executor_contract": {
+    "interface": "",
+    "inputs": [],
+    "outputs": []
+  },
+  "dependencies": {
+    "runtime": [],
+    "development": []
+  },
+  "storage": {
+    "namespace": "",
+    "schema_version": null,
+    "migration_notes": ""
+  },
+  "verification": {
+    "offline_commands": [],
+    "offline_result": "not-run",
+    "offline_test_count": 0,
+    "tested_commit": "",
+    "live_result": "not-run"
+  },
+  "integration": {
+    "shared_file_changes": [],
+    "sibling_requirements": []
+  },
+  "limitations": []
+}

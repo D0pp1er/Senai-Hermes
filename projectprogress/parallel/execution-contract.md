@@ -53,3 +53,5 @@ that preserve existing data. Defaults must not silently mix different projects.
 All tests belong under tests/<feature>/. Feature progress and manual QA belong under
 projectprogress/workstreams/<feature>/. The original baseline has 126 tests; retain them.
 This document defines engineering ownership, not a claim of full Hermes feature parity.
+
+Mandatory additional guidance: [merge policy](MERGE_POLICY.md) and [ownership map](ownership.json). Fill the per-feature delivery.json and run the scope guard before committing or handing off.
