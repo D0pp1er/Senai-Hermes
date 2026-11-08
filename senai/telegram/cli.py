@@ -7,6 +7,7 @@ import secrets
 from .api import BotAPI, TelegramError
 from .config import load_credentials
 from .router import Router
+from .pairing import PairingManager
 from .runner import CommandRunner
 from .service import BotService, instance_lock
 from .store import JobStore
@@ -36,6 +37,8 @@ def telegram_main(argv, stdout, stderr):
     parser.add_argument('--env-file', help='Optional local token/user-ID assignments; never a shell script.')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--setup', action='store_true', help='Discover your numeric user ID without executing requests.')
+    modes.add_argument('--pair-code', action='store_true', help='Print a new single-use local pairing code; works while the bot runs.')
+    modes.add_argument('--revoke-user', type=int, metavar='ID', help='Locally revoke a paired or legacy allowed user.')
     modes.add_argument('--check', action='store_true', help='Check bot identity and webhook compatibility, without polling or execution.')
     parser.add_argument('--skip-git-repo-check', action='store_true', help='Allow the selected non-Git project.')
     parser.add_argument('-m', '--model', help='Fixed Codex model for requests.')
@@ -49,7 +52,7 @@ def telegram_main(argv, stdout, stderr):
     try:
         if not 1 <= args.max_pending <= 100 or not 1 <= args.poll_timeout <= 30:
             raise ValueError('Use --max-pending between 1 and 100 and --poll-timeout between 1 and 30.')
-        token, users = load_credentials(env_file=args.env_file, require_users=not (args.setup or args.check))
+        token, users = load_credentials(env_file=args.env_file, require_users=False)
         api = BotAPI(token)
         identity = api.get_me()
         if not isinstance(identity, dict) or identity.get('is_bot') is not True or type(identity.get('id')) is not int or identity['id'] <= 0 or not isinstance(identity.get('username'), str):
@@ -58,7 +61,7 @@ def telegram_main(argv, stdout, stderr):
         if not isinstance(info, dict) or info.get('url'):
             raise ValueError('This bot has an active webhook. Use a dedicated bot or remove that webhook explicitly before polling; senai will not delete it automatically.')
         if args.check:
-            print(f'Connected to @{identity["username"]}; webhook is off. Execution still requires an allowed-user list.', file=stdout)
+            print(f'Connected to @{identity["username"]}; webhook is off. Execution requires a locally paired user or existing allowed-user configuration.', file=stdout)
             return 0
         if args.setup:
             return discover_user(api, identity['username'], stdout)
@@ -68,6 +71,15 @@ def telegram_main(argv, stdout, stderr):
             raise ValueError('Telegram state must stay inside outputs/.')
         state.mkdir(parents=True, exist_ok=True)
         state.chmod(0o700)
+        if args.pair_code or args.revoke_user is not None:
+            store = JobStore(state / 'state.sqlite3')
+            if args.revoke_user is not None:
+                store.set_user_status(args.revoke_user, False)
+                print(f'Revoked user {args.revoke_user}. New/queued execution and pending delivery are blocked.', file=stdout)
+            else:
+                code = PairingManager(store).issue()
+                print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout)
+            return 0
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
             router = Router(store, users, identity['username'], max_pending=args.max_pending)
@@ -76,6 +88,8 @@ def telegram_main(argv, stdout, stderr):
             store.recover_interrupted()
             service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout)
             service.skip_pending()
+            code = PairingManager(store).issue()
+            print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout, flush=True)
             print(f'Senai Telegram is ready as @{identity["username"]}. Project: {Path(args.project).expanduser().resolve()}. One shared persistent Codex session; messages from before startup are ignored.', file=stdout, flush=True)
             return service.run_forever(stdout, stderr)
     except (ValueError, RuntimeError, OSError) as error:

@@ -15,6 +15,8 @@ class JobStore:
             database.executescript("""
                 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
                 INSERT OR IGNORE INTO settings VALUES ('offset', 0);
+                CREATE TABLE IF NOT EXISTS paired_users (user_id INTEGER PRIMARY KEY, active INTEGER NOT NULL, updated REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS pairing_codes (digest TEXT PRIMARY KEY, expires REAL NOT NULL, used INTEGER NOT NULL DEFAULT 0);
                 CREATE TABLE IF NOT EXISTS sessions (name TEXT PRIMARY KEY, session_id TEXT NOT NULL, updated REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS jobs (
                     id INTEGER PRIMARY KEY, chat_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
@@ -137,3 +139,14 @@ class JobStore:
     def unbound_running_jobs(self):
         with self.connection() as database:
             return [dict(row) for row in database.execute("SELECT * FROM jobs WHERE status='running' AND session_id IS NULL ORDER BY created,id")]
+
+    def user_status(self, user_id):
+        with self.connection() as database:
+            row = database.execute('SELECT active FROM paired_users WHERE user_id=?', (user_id,)).fetchone()
+            return bool(row[0]) if row is not None else None
+
+    def set_user_status(self, user_id, active):
+        if type(user_id) is not int or user_id <= 0:
+            raise ValueError('User ID must be a positive integer.')
+        with self.connection() as database:
+            database.execute('INSERT INTO paired_users(user_id,active,updated) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET active=excluded.active,updated=excluded.updated', (user_id, int(active), time.time()))

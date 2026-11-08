@@ -1,13 +1,16 @@
 """Authorize private updates before routing text into the durable request queue."""
 
+from .pairing import PairingManager
+
 HELP = (
     'Send a code request as text, or /run your request.\n'
     '/status - latest requests and their states\n'
     '/result - resend your latest completed result\n'
     '/session - show the shared Codex session\n'
+    '/pair CODE - pair using a code shown locally\n'
     '/help - show this message\n'
     'Paired users share one persistent Codex conversation; generated files stay in the configured outputs/. '
-    'Only configured private users can execute requests.'
+    'Only paired private users or configured allowed users can execute requests.'
 )
 
 
@@ -22,6 +25,10 @@ class Router:
         self.username = username.lower()
         self.max_pending = max_pending
 
+    def is_authorized(self, user_id):
+        status = self.store.user_status(user_id)
+        return status if status is not None else user_id in self.allowed_users
+
     def handle(self, update):
         identifier = update.get('update_id') if isinstance(update, dict) else None
         if type(identifier) is not int or identifier < 0:
@@ -31,13 +38,13 @@ class Router:
         sender, chat = message.get('from', {}), message.get('chat', {})
         sender = sender if isinstance(sender, dict) else {}
         chat = chat if isinstance(chat, dict) else {}
-        authorized = (
-            type(sender.get('id')) is int and sender['id'] in self.allowed_users
+        eligible = (
+            type(sender.get('id')) is int and sender['id'] > 0
             and sender.get('is_bot') is not True and chat.get('type') == 'private'
             and type(chat.get('id')) is int and chat['id'] == sender['id']
         )
         text = message.get('text')
-        if not authorized or not isinstance(text, str):
+        if not eligible or not isinstance(text, str):
             self.store.consume(identifier)
             return []
         text = text.strip()
@@ -50,6 +57,15 @@ class Router:
                 self.store.consume(identifier)
                 return []
             argument = parts[1].strip() if len(parts) > 1 else ''
+        if command == '/pair':
+            if self.store.consume(identifier) == 'duplicate':
+                return []
+            paired = PairingManager(self.store).redeem(argument, sender['id'], chat['id'])
+            response = 'Paired successfully. You share the existing Codex conversation; send /help to begin.' if paired else 'Pairing failed. Ask the local operator for a new, unexpired code.'
+            return [(chat['id'], response)]
+        if not self.is_authorized(sender['id']):
+            self.store.consume(identifier)
+            return []
         prompt = argument if command == '/run' else text
         is_request = (not command or command == '/run') and bool(prompt) and len(prompt) <= 8000
         job = {'chat_id': chat['id'], 'user_id': sender['id'], 'prompt': prompt} if is_request else None

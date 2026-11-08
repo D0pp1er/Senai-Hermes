@@ -194,3 +194,8 @@
 - Capture verified native thread.started IDs and persist the shared session per bot/project. Every subsequent turn resumes that exact ID, never --last or a silent one-off fallback.
 - Preserve per-job final responses and JSON events; migrate existing databases without deleting history. Recover a newly created session from interrupted job events.
 - Added /session for authorized users. TDD: six session tests failed before implementation.
+
+## Operator-independent Telegram pairing
+- Added expiring, single-use local pairing codes; only hashes are stored. Any private account can pair with a code obtained from the operator.
+- Persist paired users, support local --pair-code and --revoke-user, and retain legacy allowed-ID compatibility. Explicit revocation overrides legacy configuration.
+- Recheck dynamic authorization for queued work and pending delivery. TDD: eight pairing/authorization tests failed before implementation.

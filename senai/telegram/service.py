@@ -45,7 +45,7 @@ class BotService:
 
     def deliver_results(self):
         for job in self.store.pending_results():
-            if job['user_id'] not in self.router.allowed_users:
+            if not self.router.is_authorized(job['user_id']):
                 self.store.mark_delivered(job['id'])
                 continue
             parts = split_message(self.api.redact(result_text(job)))
@@ -67,7 +67,7 @@ class BotService:
         job = self.store.claim_next()
         if job is None:
             return False
-        if job['user_id'] not in self.router.allowed_users:
+        if not self.router.is_authorized(job['user_id']):
             status, text = 'failed', 'Authorization was revoked; this queued request was not executed.'
         else:
             try:
