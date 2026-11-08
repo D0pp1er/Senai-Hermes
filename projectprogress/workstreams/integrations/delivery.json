@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -12,7 +12,8 @@
     "senai.telegram.runner",
     "senai.telegram.service",
     "senai.telegram.speech",
-    "senai.telegram.store"
+    "senai.telegram.store",
+    "senai.telegram.voice_config"
   ],
   "public_api": [
     {
@@ -82,7 +83,7 @@
       ".venv/bin/python scripts/check_workstream_scope.py --feature integrations",
       "git diff --check"
     ],
-    "offline_result": "passed",
+    "offline_result": "in-progress",
     "offline_test_count": 184,
     "tested_commit": "a78aa29447c62fac8f60377eb1b3b74a9f8a67dd",
     "live_result": "not-run",

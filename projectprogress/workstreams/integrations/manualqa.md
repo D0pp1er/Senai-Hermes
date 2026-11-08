@@ -88,3 +88,5 @@ integration-notes.md; never paste credentials in chat or tracked config.
 Final rerun on a78aa29447c62fac8f60377eb1b3b74a9f8a67dd: PASS, 184 total tests,
 31 media/voice tests. Scope/diff checks PASS. Final evidence supersedes earlier counts.
 The remaining delivery-record commit changes no source/tests. Live acceptance NOT RUN.
+
+Voice config storage TDD: .venv/bin/python -m unittest tests.integrations.test_voice_config -v (13 tests pass). All fixtures/keys are synthetic in temporary directories; no real configuration touched. Logs: outputs/qa-integrations/voice-config-{red,green}.log.

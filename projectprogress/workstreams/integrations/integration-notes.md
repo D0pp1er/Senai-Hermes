@@ -61,3 +61,5 @@ https://core.telegram.org/bots/api#sendphoto
 https://core.telegram.org/bots/api#sendvoice
 https://developers.openai.com/api/docs/guides/text-to-speech
 https://learn.chatgpt.com/docs/image-generation
+
+Optional key storage uses separate version-1 JSON; no Telegram config or DB migration. No new runtime dependency. Old voice environment helper remains supported unchanged.

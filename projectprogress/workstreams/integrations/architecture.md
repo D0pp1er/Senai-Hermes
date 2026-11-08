@@ -72,3 +72,7 @@ modified content. Revoked users receive no pending text/media. Missing/corrupt m
 gets a brief fallback rather than blocking the outbox. A crash after successful
 remote send but before cursor persistence may duplicate that item; exactly-once
 remote delivery is not claimed. Interrupted execution is not silently rerun.
+
+## Optional voice credential persistence
+
+voice_config.py uses canonical project SHA-256 (20 hex chars) to select $XDG_CONFIG_HOME/senai/voice/<hash>.json (default ~/.config). File mode 600, dedicated directory 700; atomic temp-file replacement. Reads require owned regular single-link files, reject symlinks, shared permissions, oversized/invalid JSON and storage inside project/Git. Secrets are excluded from repr and diagnostics. Precedence: SENAI_TTS_API_KEY, saved voice key, OPENAI_API_KEY. No process environment mutation or database changes.

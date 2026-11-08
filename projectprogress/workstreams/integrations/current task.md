@@ -10,3 +10,5 @@ arranges one controlled restart/live acceptance. This chat has not merged, pushe
 started a poller, accessed production state or requested secrets.
 Voice needs local OpenAI speech API configuration; without it normal text/images
 remain available and /voice explains unavailability. Discord stays deferred.
+
+Current increment: voice config persistence tested; standalone CLI/setup integration next. No merge/restart/live key activity.

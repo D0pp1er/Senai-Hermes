@@ -68,3 +68,7 @@ Voice implementation commit: c6b930a. Follow-up native-auth regression preserves
   under outputs/qa-integrations/. Scope guard and whitespace check pass.
 - Delivery status ready means ready for coordinator review of this media milestone,
   not live acceptance, deployment or completion of Discord. No merge/push/restart.
+
+## Optional voice-key setup: storage increment
+
+TDD: missing voice_config module reproduced, then 13 tests passed for private file handling, hidden input/Skip, replacement/removal, precedence, and redaction. Protected voice JSON is separate from Telegram credentials and outside Git/project. CLI wiring follows.

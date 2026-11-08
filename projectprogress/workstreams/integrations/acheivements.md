@@ -21,3 +21,5 @@ Image delivery milestone: 11 new offline tests, 164 total pass; scope guard pass
 Telegram media milestone: image commit cebfe57 plus /voice implementation, 183 offline tests (30 media/voice) pass. No live uploads/model/speech requests performed.
 
 Final media handoff: 184 tests pass at a78aa29, including 31 media/voice; independent speech key preserves native Codex API auth. Ready for coordinator review; live checks remain pending.
+
+Optional voice setup storage increment: 13 behavior tests pass with synthetic keys only.
