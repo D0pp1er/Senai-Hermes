@@ -17,7 +17,10 @@
     "Outcome(id, skill_name, skill_version, skill_digest, request, result, checks, correction, status, created_at)",
     "Registry.propose_revision(name, *, document, outcome_ids, reason) -> Revision",
     "Registry.revisions(name) -> list[Revision]",
-    "Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)"
+    "Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)",
+    "Registry.validate_revision(revision_id, *, validator) -> Validation",
+    "Registry.validations(revision_id) -> list[Validation]",
+    "Validation(id, revision_id, base_digest, candidate_digest, checks, status, error, created_at)"
   ],
   "commands": [],
   "executor_contract": {
@@ -36,8 +39,8 @@
   },
   "storage": {
     "namespace": "<explicit project>/outputs/skills/",
-    "schema_version": 3,
-    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged."
+    "schema_version": 4,
+    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved."
   },
   "verification": {
     "offline_commands": [
@@ -45,8 +48,8 @@
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
     ],
-    "offline_result": "PASS: 159 offline tests on revision-step working tree; log outputs/skills-qa/revisions-suite.log. 23 feature tests. Scope guard passed. Exact post-commit verification pending; delivery remains draft.",
-    "offline_test_count": 159,
+    "offline_result": "PASS: 167 offline tests on validation-step working tree, including 31 feature tests. Scope guard passed. Log outputs/skills-qa/validation-suite.log; exact post-commit verification pending. Delivery draft.",
+    "offline_test_count": 167,
     "tested_commit": "",
     "live_result": "not-run"
   },
@@ -57,7 +60,7 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Draft partial delivery: regression validation, activation/rollback, automatic Codex review, CLI/demo and public imports pending. Inactive proposals implemented.",
+    "Draft partial delivery: activation/rollback, automatic Codex review, CLI/demo and public imports pending. Regression checking is injected, not an OS sandbox.",
     "Trusted caller supplies checks; status does not authenticate evidence.",
     "Restricted frontmatter; not full Hermes compatibility.",
     "No live model checks.",

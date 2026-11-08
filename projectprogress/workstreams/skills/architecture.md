@@ -31,3 +31,13 @@ The additive revisions table stores ID, skill name/version, base digest, candida
 Evidence must be nonempty, unique and already recorded as passed/failed for this exact skill digest; unverified prose and other-skill evidence cannot support proposals. This is validation of trusted-adapter records, not independent authentication of evidence. No LLM drafting occurs in this API. revisions(name) returns proposals in insertion order after verifying full candidate content hashes and metadata. select/execute continue to expose only the original active skill.
 
 Revision packages are currently instruction-only changes: support files cannot be added/edited through proposal creation. Candidate regression validation, activation, rollback and audit events remain pending. Revision is publicly exported from senai.skills. Existing skills/outcomes schemas and public signatures are unchanged.
+
+## Implemented regression validation step
+
+validate_revision(revision_id, *, validator) calls trusted validator(base, candidate, outcomes) and returns frozen Validation. The inputs are exact base Skill, proposed Revision and ordered tuple of linked Outcome records. Return an iterable of Check records with observed evidence. At least one check is required; callers should cover both old successful behavior and the corrected failure. Selecting meaningful cases is the caller's responsibility; a passing label is not universal improvement proof.
+
+The additive validations table retains ID, revision ID, base/candidate digests, checks JSON, passed/failed/error status, sanitized error description and UTC timestamp. Failed checks are recorded as failed. Empty/malformed returns and ordinary checker exceptions are recorded as error with no raw exception message. KeyboardInterrupt/SystemExit propagate. validations(revision_id) retains every attempt in insertion order; a future activation gate must use the latest attempt, never an earlier pass after a failure.
+
+Hashes are checked before and after the callback; changing candidate/base bytes prevents saving a pass. Active base is rechecked transactionally before result insertion. This is content identity verification, not OS sandboxing. The injected checker runs in the caller process and must supply its own isolated evaluation; no imported script is executed automatically. All proposals remain inactive, including passing ones. Shared Check validation is reused for outcomes and regression checks.
+
+Public frozen Validation fields: id, revision_id, base_digest, candidate_digest, checks, status, error, created_at. Initialization creates the local validations table/index idempotently, leaving existing tables and records intact.

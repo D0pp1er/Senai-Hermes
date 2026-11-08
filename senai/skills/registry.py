@@ -6,6 +6,7 @@ import json
 
 from .outcomes import Check, _decode
 from .revisions import Revision
+from .validation import Validation
 from hashlib import sha256
 from pathlib import Path
 import re
@@ -108,6 +109,23 @@ def _digest(files):
     return digest.hexdigest()
 
 
+
+def _checked_checks(checks):
+    try:
+        checks = tuple(checks)
+    except TypeError as exc:
+        raise SkillError("Checks must be an iterable of Check records") from exc
+    if len(checks) > 100:
+        raise SkillError("At most 100 checks allowed")
+    for check in checks:
+        if not isinstance(check, Check) or type(check.passed) is not bool:
+            raise SkillError("Checks require a Check record and boolean result")
+        for value, limit in ((check.name, 200), (check.evidence, 16000)):
+            if not isinstance(value, str) or not value.strip() or len(value) > limit:
+                raise SkillError("Each check requires a bounded name and observed evidence")
+    return checks
+
+
 class Registry:
     """Caller supplies an isolated outputs/ registry; no global discovery occurs."""
 
@@ -123,6 +141,9 @@ class Registry:
             db.execute("CREATE TABLE IF NOT EXISTS outcomes (id TEXT PRIMARY KEY, skill_name TEXT NOT NULL, skill_version TEXT NOT NULL, skill_digest TEXT NOT NULL, request TEXT NOT NULL, result TEXT NOT NULL, checks TEXT NOT NULL, correction TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('passed', 'failed', 'unverified')), created_at TEXT NOT NULL)")
             db.execute("CREATE INDEX IF NOT EXISTS outcomes_skill ON outcomes(skill_name)")
             db.execute("CREATE TABLE IF NOT EXISTS revisions (id TEXT PRIMARY KEY, skill_name TEXT NOT NULL, version TEXT NOT NULL, base_digest TEXT NOT NULL, digest TEXT NOT NULL, source TEXT NOT NULL, outcome_ids TEXT NOT NULL, reason TEXT NOT NULL, directory TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(skill_name, version))")
+
+            db.execute("CREATE TABLE IF NOT EXISTS validations (id TEXT PRIMARY KEY, revision_id TEXT NOT NULL, base_digest TEXT NOT NULL, candidate_digest TEXT NOT NULL, checks TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('passed', 'failed', 'error')), error TEXT NOT NULL, created_at TEXT NOT NULL)")
+            db.execute("CREATE INDEX IF NOT EXISTS validations_revision ON validations(revision_id)")
 
     @contextmanager
     def _connect(self):
@@ -199,18 +220,7 @@ class Registry:
         for label, value, limit, required in (("request", request, 32000, True), ("result", result, 64000, False), ("correction", correction, 16000, False)):
             if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
                 raise SkillError("Invalid outcome " + label)
-        try:
-            checks = tuple(checks)
-        except TypeError as exc:
-            raise SkillError("Checks must be an iterable of Check records") from exc
-        if len(checks) > 100:
-            raise SkillError("At most 100 checks allowed")
-        for check in checks:
-            if not isinstance(check, Check) or type(check.passed) is not bool:
-                raise SkillError("Checks require a Check record and boolean result")
-            for value, limit in ((check.name, 200), (check.evidence, 16000)):
-                if not isinstance(value, str) or not value.strip() or len(value) > limit:
-                    raise SkillError("Each check requires a bounded name and observed evidence")
+        checks = _checked_checks(checks)
         status = "unverified" if not checks else "passed" if all(check.passed for check in checks) else "failed"
         row = (uuid.uuid4().hex, name, skill.version, digest, request, result, json.dumps([asdict(check) for check in checks]), correction, status, datetime.now(timezone.utc).isoformat())
         with self._connect() as db:
@@ -299,3 +309,61 @@ class Registry:
                 raise SkillError("Revision metadata does not match recorded identity")
             revisions.append(Revision(*row[:6], tuple(json.loads(row[6])), row[7], "proposed", path / "SKILL.md", instructions, row[9]))
         return revisions
+
+    def _revision(self, revision_id):
+        if not isinstance(revision_id, str) or not re.fullmatch(r"[0-9a-f]{32}", revision_id):
+            raise SkillError("Invalid revision ID")
+        with self._connect() as db:
+            row = db.execute("SELECT skill_name FROM revisions WHERE id=?", (revision_id,)).fetchone()
+        if row is None:
+            raise SkillError("Revision is not registered")
+        return next(revision for revision in self.revisions(row[0]) if revision.id == revision_id)
+
+    def validate_revision(self, revision_id, *, validator):
+        """Run an injected checker and retain its result without activating anything.
+
+        Checker receives (base Skill, candidate Revision, tuple[Outcome, ...]).
+        Exceptions/empty/malformed checks are persisted as error, never as passed.
+        Caller owns checker isolation and must not execute untrusted scripts by default.
+        """
+        candidate = self._revision(revision_id)
+        base = self.select([candidate.skill_name])[0]
+        if base.digest != candidate.base_digest:
+            raise SkillError("Proposal base is stale")
+        recorded = {outcome.id: outcome for outcome in self.outcomes(candidate.skill_name)}
+        outcomes = tuple(recorded[value] for value in candidate.outcome_ids)
+        checks = ()
+        error = ""
+        try:
+            checks = _checked_checks(validator(base, candidate, outcomes))
+            if not checks:
+                raise SkillError("Regression checks required")
+            status = "passed" if all(check.passed for check in checks) else "failed"
+        except Exception:
+            checks = ()
+            status = "error"
+            error = "Validator raised an exception or returned invalid/empty checks"
+        # Never attach a pass to different bytes than those presented to the checker.
+        current = self._revision(revision_id)
+        active = self.select([candidate.skill_name])[0]
+        if current.digest != candidate.digest or active.digest != base.digest:
+            raise SkillError("Candidate or base changed during validation")
+        row = (uuid.uuid4().hex, revision_id, base.digest, candidate.digest, json.dumps([asdict(check) for check in checks]), status, error, datetime.now(timezone.utc).isoformat())
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            digest = db.execute("SELECT digest FROM skills WHERE name=?", (candidate.skill_name,)).fetchone()
+            if digest != (base.digest,):
+                raise SkillError("Proposal base changed before validation was saved")
+            db.execute("INSERT INTO validations VALUES (?, ?, ?, ?, ?, ?, ?, ?)", row)
+        return self._validation(row)
+
+    @staticmethod
+    def _validation(row):
+        return Validation(*row[:4], tuple(Check(**value) for value in json.loads(row[4])), *row[5:])
+
+    def validations(self, revision_id):
+        """Return all persisted attempts oldest first, including failures/errors."""
+        self._revision(revision_id)
+        with self._connect() as db:
+            rows = db.execute("SELECT id, revision_id, base_digest, candidate_digest, checks, status, error, created_at FROM validations WHERE revision_id=? ORDER BY rowid", (revision_id,)).fetchall()
+        return [self._validation(row) for row in rows]

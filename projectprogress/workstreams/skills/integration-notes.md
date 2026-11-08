@@ -13,3 +13,9 @@ Current blocking limitations for final delivery: no revision history/activation/
 `Registry.propose_revision(name, *, document, outcome_ids, reason) -> Revision` and `Registry.revisions(name) -> list[Revision]` are additive APIs. A future injected Codex reviewer may supply the candidate document and rationale; caller must link actual outcome IDs. No coordinator wiring is applied. `Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)` is frozen; current status is always proposed. No model call, skill execution or activation occurs.
 
 Additive local migration: create revisions table on Registry initialization, preserving previous skills/outcomes and package snapshots. No new dependency. Version tokens are distinct identifiers, not semantically ordered releases. Existing draft blockers remain except inactive proposal persistence is now implemented.
+
+## Regression validation API
+
+Registry.validate_revision(revision_id, *, validator) -> Validation. Callback validator(base: Skill, candidate: Revision, outcomes: tuple[Outcome, ...]) -> Iterable[Check]. Registry.validations(revision_id) -> list[Validation] (oldest first). No execution or activation hook applied to shared code. Checker isolation, trusted observed results and selection of regression cases belong to the injecting adapter.
+
+Additive validations table/index; no dependency change or shared-state migration. Latest attempt must gate future activation; candidates have no activation API yet. Raw checker exception text is not persisted. Passing tests can establish acceptance only for the supplied cases.

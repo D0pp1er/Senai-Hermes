@@ -2,5 +2,6 @@
 from .registry import Registry, Skill, SkillError
 from .outcomes import Check, Outcome
 from .revisions import Revision
+from .validation import Validation
 
-__all__ = ["Registry", "Skill", "SkillError", "Check", "Outcome", "Revision"]
+__all__ = ["Registry", "Skill", "SkillError", "Check", "Outcome", "Revision", "Validation"]

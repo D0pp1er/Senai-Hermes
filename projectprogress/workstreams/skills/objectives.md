@@ -10,3 +10,5 @@ Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invoca
 - [x] Learning step 1: outcome evidence persistence; revisions/regression/rollback remain pending.
 
 - [x] Learning step 2: inactive versioned instruction proposals linked to exact-base evidence.
+
+- [x] Learning step 3: injectable candidate regression validation and durable result history.

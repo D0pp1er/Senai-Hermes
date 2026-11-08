@@ -3,8 +3,8 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Implemented learning step 2: inactive, persistent instruction-only revision proposals linked to observed passed/failed outcomes for their exact base digest. Original packages and supporting files preserved. Eight tests first failed on missing propose_revision API, then passed. All 23 feature tests pass.
+Learning step 3 implemented: injected regression checking with durable passed/failed/error attempts. Eight new tests first failed because validate_revision was missing, then passed. All 31 feature tests pass. No passing result activates anything automatically.
 
-Next step (TDD): injectable candidate regression validation, durable validation results, failed-candidate rejection and stale-base protection. Then explicit activation, restart history and rollback. Finally add injected Codex reviewer/demo and broaden imports. No activation API exists yet; all candidates remain proposed.
+Next TDD step: explicit activation gated by latest passing validation for the exact candidate/base digests, stale-base protection, persistent version history and rollback to a previously accepted version. Afterwards add a Codex reviewer/demo and broaden skill import compatibility/public sources.
 
-Required checks: scope guard and full suite before commits; --ready only after complete draft contract and final evidence. Shared changes remain proposals in integration-notes.md.
+Read MERGE_POLICY.md before each new implementation step. Scope/full-suite required before commit. Delivery remains draft and final --ready is not yet applicable.

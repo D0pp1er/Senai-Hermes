@@ -5,3 +5,6 @@
 
 - 2026-11-09, 6c7e82e: persisted skill outcome evidence.
 - 2026-11-09, current revision step: eight red-to-green behavior tests; inactive instruction revisions, exact-base outcome links, package preservation and tamper detection.
+
+- 2026-11-09, f6c269f: inactive evidence-linked revisions.
+- 2026-11-09, current validation step: injected regression checks, durable pass/fail/error records, content rechecks, eight red-to-green tests.
