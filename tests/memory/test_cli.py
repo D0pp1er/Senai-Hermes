@@ -40,3 +40,44 @@ class CliTests(unittest.TestCase):
                  "--scope", "team", "list"], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(list((root / "outside").iterdir()), [])
+
+class ProfileCliTests(unittest.TestCase):
+    def test_review_apply_restart_and_user_privacy(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            def run(*args, user="alice"):
+                return subprocess.run(
+                    [sys.executable, "-m", "senai.memory", "--project", str(root),
+                     "--scope", "team", "--user-id", user, *args],
+                    capture_output=True, text=True)
+            proposal = run("profile-propose", "USER.md", "Prefers Python")
+            self.assertEqual(proposal.returncode, 0, proposal.stderr)
+            self.assertEqual(json.loads(run("profile-show", "USER.md").stdout)["text"], "")
+            file = root / "proposal.json"
+            file.write_text(proposal.stdout)
+            self.assertNotEqual(run("profile-apply", str(file)).returncode, 0)
+            self.assertEqual(run("profile-apply", str(file), "--approve").returncode, 0)
+            self.assertEqual(json.loads(run("profile-show", "USER.md", user="bob").stdout)["text"], "")
+            self.assertNotIn("Prefers Python", run("session-context", "hello").stdout)
+            self.assertIn("Prefers Python", run("session-context", "hello", "--include-user").stdout)
+            self.assertNotEqual(run("profile-apply", str(file), "--approve").returncode, 0)
+            bad = run("profile-propose", "SOUL.md", "Be terse", "--origin", "outcome")
+            self.assertNotEqual(bad.returncode, 0)
+
+    def test_session_context_reads_all_files_in_fresh_process(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base = [sys.executable, "-m", "senai.memory", "--project", str(root),
+                    "--scope", "team", "--user-id", "alice"]
+            for name, text in (("SOUL.md", "Be clear"), ("USER.md", "Prefers Python"),
+                               ("MEMORY.md", "Invoices use PostgreSQL")):
+                proposal = subprocess.check_output(base + ["profile-propose", name, text], text=True)
+                file = root / "proposal.json"
+                file.write_text(proposal)
+                subprocess.run(base + ["profile-apply", str(file), "--approve"],
+                               check=True, capture_output=True)
+            context = subprocess.check_output(base + [
+                "session-context", "invoices", "--include-user"], text=True)
+            self.assertIn("Be clear", context)
+            self.assertIn("Prefers Python", context)
+            self.assertIn("Invoices use PostgreSQL", context)

@@ -3,23 +3,156 @@
   "feature": "memory",
   "status": "draft",
   "modules": [
-    "senai.memory"
+    "senai.memory.store",
+    "senai.memory.context",
+    "senai.memory.candidates",
+    "senai.memory.profiles",
+    "senai.memory.session",
+    "senai.memory.__main__"
   ],
-  "public_api": [],
-  "commands": [],
+  "public_api": [
+    {
+      "name": "senai.memory.Entry",
+      "signature": "Entry(id: str, project: str, scope: str, text: str, provenance: str, created_at: str, updated_at: str) -> None",
+      "purpose": "Entry(id: str, project: str, scope: str, text: str, provenance: str, created_at: str, updated_at: str)"
+    },
+    {
+      "name": "senai.memory.MemoryStore",
+      "signature": "MemoryStore(path, *, max_entries=100, max_chars=20000)",
+      "purpose": "MemoryStore"
+    },
+    {
+      "name": "senai.memory.Namespace",
+      "signature": "Namespace(project: str, scope: str) -> None",
+      "purpose": "Namespace(project: str, scope: str)"
+    },
+    {
+      "name": "senai.memory.build_snapshot",
+      "signature": "build_snapshot(store, namespace, request, *, max_chars=2200, limit=10)",
+      "purpose": "Return a frozen string. Budget includes framing, metadata and JSON escapes."
+    },
+    {
+      "name": "senai.memory.execute_with_memory",
+      "signature": "execute_with_memory(request, workspace, *, store, namespace, executor, max_chars=2200, skills=(), **executor_kwargs)",
+      "purpose": "Caller owns authorization, workspace validation, and explicit namespace selection."
+    },
+    {
+      "name": "senai.memory.Candidate",
+      "signature": "Candidate(namespace: senai.memory.store.Namespace, text: str, provenance: str) -> None",
+      "purpose": "Candidate(namespace: senai.memory.store.Namespace, text: str, provenance: str)"
+    },
+    {
+      "name": "senai.memory.extract_candidates",
+      "signature": "extract_candidates(outcome, *, namespace, outcome_id, verified, max_candidates=10)",
+      "purpose": "Parse 'Memory: fact' lines only; never store raw output or invoke a model."
+    },
+    {
+      "name": "senai.memory.accept_candidate",
+      "signature": "accept_candidate(store, namespace, candidate, *, approved)",
+      "purpose": "Approval must come from the authorized caller. Candidates are volatile until saved."
+    },
+    {
+      "name": "senai.memory.ConflictError",
+      "signature": "ConflictError(*args)",
+      "purpose": "The reviewed file revision no longer matches disk."
+    },
+    {
+      "name": "senai.memory.ProfileDocument",
+      "signature": "ProfileDocument(name: str, path: pathlib.Path, text: str, revision: str) -> None",
+      "purpose": "ProfileDocument(name: str, path: pathlib.Path, text: str, revision: str)"
+    },
+    {
+      "name": "senai.memory.ProfileProposal",
+      "signature": "ProfileProposal(name: str, text: str, origin: str, verified: bool, owner: str, before_revision: str, diff: str) -> None",
+      "purpose": "ProfileProposal(name: str, text: str, origin: str, verified: bool, owner: str, before_revision: str, diff: str)"
+    },
+    {
+      "name": "senai.memory.ProfileStore",
+      "signature": "ProfileStore(root, namespace, *, user_id=None)",
+      "purpose": "Caller supplies authorized project/scope/user; no identity inference."
+    },
+    {
+      "name": "senai.memory.SessionSnapshot",
+      "signature": "SessionSnapshot(project: str, scope: str, user_id: str | None, context: str, revisions: tuple[tuple[str, str], ...]) -> None",
+      "purpose": "SessionSnapshot(project: str, scope: str, user_id: str | None, context: str, revisions: tuple[tuple[str, str], ...])"
+    },
+    {
+      "name": "senai.memory.start_session",
+      "signature": "start_session(profiles, store, request, *, include_user=False, max_chars=8000)",
+      "purpose": "Load curated files in order, then relevant SQLite facts within total budget."
+    },
+    {
+      "name": "senai.memory.execute_session",
+      "signature": "execute_session(request, workspace, *, snapshot, executor, skills=(), **executor_kwargs)",
+      "purpose": "Use this same explicit snapshot for resumed turns; caller checks session ownership."
+    },
+    {
+      "name": "senai.memory.MemoryStore.list",
+      "signature": "list(self, namespace)",
+      "purpose": "Scoped list operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.add",
+      "signature": "add(self, namespace, text, *, provenance)",
+      "purpose": "Scoped add operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.update",
+      "signature": "update(self, namespace, entry_id, text, *, provenance)",
+      "purpose": "Scoped update operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.delete",
+      "signature": "delete(self, namespace, entry_id)",
+      "purpose": "Scoped delete operation"
+    },
+    {
+      "name": "senai.memory.MemoryStore.retrieve",
+      "signature": "retrieve(self, namespace, request, *, limit=10)",
+      "purpose": "Scoped retrieve operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.read",
+      "signature": "read(self, name)",
+      "purpose": "Scoped read operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.propose",
+      "signature": "propose(self, name, text, *, origin='human', verified=False)",
+      "purpose": "Scoped propose operation"
+    },
+    {
+      "name": "senai.memory.ProfileStore.apply",
+      "signature": "apply(self, proposal, *, approved)",
+      "purpose": "Scoped apply operation"
+    }
+  ],
+  "commands": [
+    "python -m senai.memory --project PROJECT --scope SCOPE {add,update,list,delete,context}",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-show NAME",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-apply PROPOSAL_JSON --approve",
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]"
+  ],
   "executor_contract": {
-    "interface": "",
-    "inputs": [],
-    "outputs": []
+    "interface": "executor(prompt, workspace, **executor_kwargs) -> str (synchronous run_codex signature)",
+    "inputs": [
+      "existing build_prompt output plus bounded snapshot",
+      "caller-authorized workspace",
+      "options/stdout/stderr forwarded unchanged; executor injected"
+    ],
+    "outputs": [
+      "executor result unchanged; exceptions propagate; no implicit retention"
+    ]
   },
   "dependencies": {
     "runtime": [],
     "development": []
   },
   "storage": {
-    "namespace": "",
-    "schema_version": null,
-    "migration_notes": ""
+    "namespace": "canonical project + explicit scope; USER.md additionally uses authorized user_id",
+    "schema_version": 1,
+    "migration_notes": "Existing memory SQLite schema v1 unchanged. Add optional profiles/<namespace hash>/{SOUL.md,MEMORY.md}, users/<user hash>/USER.md and cooperative lock. No old state migration, auto-import or DB/file mirroring."
   },
   "verification": {
     "offline_commands": [],
@@ -29,8 +162,21 @@
     "live_result": "not-run"
   },
   "integration": {
-    "shared_file_changes": [],
+    "shared_file_changes": [
+      "Proposed coordinator fresh-session loader and explicit snapshot reuse/refresh lifecycle; see integration-notes.md",
+      "Optional top-level CLI route; feature-local CLI works independently"
+    ],
     "sibling_requirements": []
   },
-  "limitations": []
+  "limitations": [
+    "Shared CLI/native session lifecycle/Telegram integration not wired or live-tested",
+    "SOUL origin/verified/approved fields rely on trusted caller authorization, not cryptographic proof",
+    "USER context must be explicitly excluded from shared sessions",
+    "WSL/POSIX fcntl required; standard library only",
+    "Curated limits 4000 chars/16000 bytes per file; total snapshot 8000 chars default; overflow errors",
+    "No semantic duplicate detection, automatic retention or file/DB synchronization",
+    "Credential pattern matching incomplete; local storage unencrypted; deletion not secure erasure",
+    "Cooperative locks protect our writers; external editors can race; no version history",
+    "Snapshots frozen in memory; cross-process native-session mapping left to coordinator"
+  ]
 }

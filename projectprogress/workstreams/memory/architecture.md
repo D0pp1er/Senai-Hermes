@@ -52,3 +52,20 @@ facts using SQLite. It does not implement Hermes MEMORY.md/USER.md compatibility
 automatic writes, session search, external memory providers or profile tooling.
 Our snapshots are per wrapper invocation, rather than a native session lifecycle hook.
 See current task.md for the minimal proposed coordinator hook; it is not wired here.
+
+## Curated files and fresh-session extension
+
+profiles.py adds optional SOUL.md, USER.md and MEMORY.md under hashed project/scope
+paths, with USER additionally hashed by explicit identity. Missing files are empty.
+Each read checks fixed filename, symlink paths, regular-file type, bounded bytes,
+strict UTF-8, character limits and credential patterns. No import-time state changes.
+ProfileProposal carries owner, origin, verification flag, prior content hash and diff.
+Writes require caller approval, reject stale revisions, and use flock plus same-directory
+fsync/atomic replacement. Empty text deletes. Only human-origin SOUL changes are accepted.
+
+session.py loads SOUL, optional authorized USER, MEMORY in that order under the profile
+lock, then retrieves SQLite facts into the remaining budget. Snapshot contains immutable
+context, namespace, optional user ID and file revisions. Curated overflow raises rather
+than truncates. The new execute_session bridge consumes a supplied snapshot without
+reloading; fresh/refresh decisions belong to the coordinator. Detailed limits, trust
+boundaries and lifecycle requirements are in integration-notes.md.
