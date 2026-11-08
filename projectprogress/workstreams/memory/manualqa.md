@@ -111,3 +111,9 @@ observations and ordinary model output produce no additional proposal.
 No USER.md/MEMORY.md facts are saved by this command. Input is synthetic demo evidence;
 production code must derive flags from actual trusted validation/confirmation.
 Live evidence-collection/confirmation/callback activation: NOT RUN.
+
+Noteworthy exact-commit evidence: bd37417, 248 full offline tests PASS, including
+53 memory tests. Thirteen evaluator tests include real integrated runtime callback
+adaptation and failure exclusion. Synthetic fixture CLI QA PASS (two proposals,
+no USER/MEMORY writes). Logs: outputs/qa-project/memory-noteworthy-tests.log and
+memory-noteworthy-qa.json. Live extension: NOT RUN.

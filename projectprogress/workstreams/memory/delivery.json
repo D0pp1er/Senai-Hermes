@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "memory",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.memory.store",
     "senai.memory.context",
@@ -151,7 +151,7 @@
     {
       "name": "senai.memory.NoteworthyProposal",
       "signature": "NoteworthyProposal(name: str, text: str, reason: str, evidence_id: str, noteworthy: bool = True, verified: bool = True) -> None",
-      "purpose": "NoteworthyProposal(name: str, text: str, reason: str, evidence_id: str, noteworthy: bool = True, verified: bool = True)"
+      "purpose": "Immutable fact proposal with target, reason, evidence ID and save-gating flags"
     },
     {
       "name": "senai.memory.evaluate_noteworthy",
@@ -198,20 +198,23 @@
       "Disposable profile CLI subprocess QA: outputs/qa-project/memory-multifile-qa.json",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
-      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json"
+      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v"
     ],
     "offline_result": "passed",
-    "offline_test_count": 176,
-    "tested_commit": "d3fbff9c41c4a56516db3868187bb0befef4d063",
-    "live_result": "not-run",
+    "offline_test_count": 248,
+    "tested_commit": "bd374173e05ef98d618d7689bf66906f167b162a",
+    "live_result": "not-run for new evaluator; integrated baseline acceptance documented separately",
     "evidence_logs": [
       "outputs/qa-project/memory-multifile-tests.log",
       "outputs/qa-project/memory-multifile-qa.json",
       "outputs/qa-project/memory-transport-tests.log",
       "outputs/qa-project/memory-installation-tests.log",
-      "outputs/qa-project/memory-installation-qa.json"
+      "outputs/qa-project/memory-installation-qa.json",
+      "outputs/qa-project/memory-noteworthy-tests.log",
+      "outputs/qa-project/memory-noteworthy-qa.json"
     ],
-    "memory_test_count": 40
+    "memory_test_count": 53
   },
   "integration": {
     "shared_file_changes": [
@@ -223,17 +226,14 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Installation-wide mode assumes exactly one owner; not suitable for independent users sharing an installation",
-    "Coordinator CLI/native lifecycle now wired and isolated-live tested; noteworthy-event classification remains a trusted injected validator, not an autonomous model classifier",
-    "Decision flags are trusted caller assertions, not authorization or verification by the memory module",
-    "Legacy scoped data is preserved but not automatically migrated or loaded",
-    "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
-    "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
-    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context",
-    "New evaluator uses structured app evidence; no NLP classifier, observation-history retention or confirmation UI",
-    "User categories require explicit retention confirmation; repeated statements do not qualify",
-    "Evaluator proposals are not automatically activated; source/confirmation callbacks remain coordinator-owned",
-    "Normalized textual deduplication only; no semantic deduplication/persistent event ledger"
+    "Baseline installation runtime is integrated; new noteworthy evidence sourcing, user confirmation interaction and evaluator activation remain coordinator-owned",
+    "Structured rule evaluator only; no NLP classifier, raw-conversation mining, model calls or observation history",
+    "Explicit retention confirmation required for user preferences/habits/likes/dislikes/choices; repetition never substitutes",
+    "Evidence source/verified/confirmed/significant fields are trusted caller assertions, not cryptographic authorization",
+    "Normalized textual deduplication and per-batch event IDs only; no semantic deduplication or persistent event ledger",
+    "Pure evaluator writes no facts; dry-run CLI can initialize normal installation storage while reading existing profiles",
+    "Profile capacity/secret filters and frozen snapshots remain; no automatic compaction, secure erasure or retroactive context retraction",
+    "No new live evaluator tests or production bot/state changes performed"
   ],
   "coordinator_integration": {
     "merge_commit": "0f0c979",
