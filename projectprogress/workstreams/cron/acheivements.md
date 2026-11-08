@@ -14,3 +14,7 @@
 - Coverage includes spring gap, earlier fall fold only, wall-clock hour stability, restart,
   competing skip claims, failed-history rollback, bounded backlog counts and old DB defaults.
 - pip check passes; dependencies installed only in this worktree .venv. No live checks.
+
+- 67b8776: safe show/edit management, 184 full offline tests passed on exact commit.
+- Edit-versus-claim race, stale editor, paused/consumed task, active retry and delivery snapshot
+  behavior verified. Feature-only schema revision upgrade; no new dependencies or live checks.

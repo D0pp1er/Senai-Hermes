@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "cron",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.cron.store",
     "senai.cron.worker",
@@ -108,10 +108,10 @@
       ".venv/bin/python scripts/check_workstream_scope.py --feature cron"
     ],
     "offline_result": "passed",
-    "offline_test_count": 171,
-    "tested_commit": "aaae7f638fda714d235dfd7a32924ac4a0b81a99",
+    "offline_test_count": 184,
+    "tested_commit": "67b8776a67da9449cd05f00271037f9be3b9a308",
     "live_result": "not-run",
-    "log": "outputs/cron-qa/calendar-tests.log"
+    "log": "outputs/cron-qa/management-tests.log"
   },
   "integration": {
     "shared_file_changes": [

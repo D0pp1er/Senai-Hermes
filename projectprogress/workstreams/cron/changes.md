@@ -25,3 +25,5 @@
 - Atomic revision-checked edits reject stale editors and active/retry work; expose local next
   time; preserve paused/consumed schedules and historical delivery snapshots.
 - Additive revision migration; shared validation for create/edit. No dependency changes.
+
+- 67b8776: safe schedule management implementation; 184 offline tests pass.

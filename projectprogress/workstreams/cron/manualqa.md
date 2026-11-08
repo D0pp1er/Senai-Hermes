@@ -53,3 +53,6 @@ Expected: all pass. show <ID> returns next_due_local and revision. To change tex
 Expected: revision increases; repeat using old revision returns exit 2 and changes nothing.
 To change recurrence, supply --at and one of --cron, --every or --once. show/edit operate only
 on saved records, never start execution. Automated CLI verification uses temporary directories.
+
+PASS: 184 full offline tests on exact code commit 67b8776a67da9449cd05f00271037f9be3b9a308; log outputs/cron-qa/management-tests.log.
+Live chat/channel checks remain not run.
