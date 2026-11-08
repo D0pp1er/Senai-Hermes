@@ -12,6 +12,7 @@ from .chat import acknowledgement
 from ..integrations.telegram import TelegramAdapter
 from .pairing import PairingManager
 from .runner import CommandRunner
+from .media import MediaOutbox
 from .service import BotService, instance_lock
 from .store import JobStore
 
@@ -92,10 +93,11 @@ def telegram_main(argv, stdout, stderr):
                 Router(store, users, identity['username'], max_pending=args.max_pending, acknowledge=acknowledgement),
                 api, project=args.project, account=str(identity['id']),
             )
-            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True)
+            media = MediaOutbox(Path(args.project).expanduser().resolve() / 'outputs', state)
+            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media)
             runner.recover_session()
             store.recover_interrupted()
-            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router)
+            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media)
             service.skip_pending()
             code = PairingManager(store).issue()
             print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout, flush=True)

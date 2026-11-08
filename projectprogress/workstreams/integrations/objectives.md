@@ -11,3 +11,5 @@
 - [x] Explicit remote Telegram viewer context and accessible text response guidance.
 - [ ] Send existing/new images as actual Telegram media attachments.
 - [ ] Generate and deliver voice replies (outbound only, as selected by user).
+
+- [x] Workspace image selection, native generation instructions and durable photo delivery.

@@ -48,3 +48,12 @@ After coordinator integration/restart, request a generated-file summary. Expect 
 useful content in chat, without a misleading host-only download link. Ask for an
 image/voice reply: while media is unavailable, expect an honest short explanation,
 not a false claim of attachment. Actual model behavior/live delivery NOT RUN.
+
+## Image delivery acceptance
+
+PASS offline: .venv/bin/python -m unittest tests.integrations.test_telegram_media -v
+(11 tests), full discovery (164 tests), scope guard and git diff --check.
+Logs: outputs/qa-integrations/media-{red,green}.log, media-pipeline-red.log, regression.log.
+After integration/restart, ask to create an image and send it here; expect text plus
+an actual photo. Ask to send an existing image within configured outputs/. Check a
+missing/outside/private path fails with an honest chat response. Live checks NOT RUN.

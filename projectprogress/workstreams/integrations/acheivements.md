@@ -15,3 +15,5 @@
 2026-11-09: Telegram-viewer context added on every model turn, including existing
 session resumes. Long response fallback gives an in-chat follow-up instruction.
 153 offline tests pass. Live model/path behavior remains unverified.
+
+Image delivery milestone: 11 new offline tests, 164 total pass; scope guard passes. Actual model generation and Telegram upload remain live-unverified.

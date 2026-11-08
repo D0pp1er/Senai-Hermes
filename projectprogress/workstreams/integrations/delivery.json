@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -9,7 +9,8 @@
     "senai.telegram.router",
     "senai.telegram.runner",
     "senai.telegram.store",
-    "senai.telegram.service"
+    "senai.telegram.service",
+    "senai.telegram.media"
   ],
   "public_api": [
     {
@@ -26,6 +27,11 @@
       "name": "acknowledgement",
       "signature": "acknowledgement() -> str",
       "purpose": "Choose one of five approved replies."
+    },
+    {
+      "name": "MediaOutbox",
+      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); deliver(job, api, *, authorized)",
+      "purpose": "Snapshot selected images and durably resume media uploads."
     }
   ],
   "commands": [
@@ -56,8 +62,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 153,
-    "tested_commit": "working-tree: Telegram viewer-context change; commit recorded in git history",
+    "offline_test_count": 164,
+    "tested_commit": "image milestone working tree before commit",
     "live_result": "not-run"
   },
   "integration": {
@@ -65,10 +71,9 @@
     "sibling_requirements": []
   },
   "limitations": [
-    "Discord and media delivery pending; delivery remains draft.",
-    "Live Telegram/model behavior unverified.",
-    "Viewer context and brevity are model instructions, not a path-redaction or formatting filter.",
-    "Image generation and outbound speech synthesis require separate runtime integration."
+    "Voice milestone in progress.",
+    "Native image generation and Telegram upload live tests not run.",
+    "Crash between remote send and local cursor update can duplicate an attachment."
   ],
   "delivery_scope": "Telegram adapter and conversational chat milestone; Discord remains backlog."
 }

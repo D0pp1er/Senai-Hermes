@@ -35,7 +35,24 @@ def acknowledgement():
     return random.choice(ACKNOWLEDGEMENTS)
 
 
-def chat_request(request):
+def chat_request(request, *, attachment_manifest=None):
     # Apply on every turn, including an exact-ID resume of an older session.
     # Keep stored requests untouched and preserve code/Markdown in user input.
-    return CHAT_STYLE + "\n\nUser message:\n" + request
+    style = CHAT_STYLE
+    if attachment_manifest is not None:
+        start = style.index("Current delivery is text-only:")
+        end = style.index("Prefer plain text.", start)
+        style = style[:start] + (
+            "This transport can attach PNG/JPEG images selected for this reply. "
+            "For new images, use built-in image generation when available; save or copy "
+            "the resulting image into the current outputs workspace. If generation is "
+            "unavailable, say so; do not fabricate an image or its delivery. "
+            "For existing images, select only the images the user requested. "
+            "Never attach private configuration, logs, hidden files or bot state. "
+            "To attach up to four images, write this JSON manifest: "
+            + str(attachment_manifest) + ' with {"images":["relative/path.png"]}. '
+            "Paths must be relative to outputs/. Do not show the manifest/server paths "
+            "in your reply. The service will upload these files after your text answer. "
+            "Describe the result briefly without claiming upload already succeeded. "
+        ) + style[end:]
+    return style + "\n\nUser message:\n" + request

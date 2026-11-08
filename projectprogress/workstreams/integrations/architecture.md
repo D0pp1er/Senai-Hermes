@@ -59,3 +59,18 @@ configured outputs workspace, photo/file upload, and an outbound voice path with
 injected speech generator. Image generation and speech synthesis are distinct from
 Telegram transport; neither is supplied by this patch. No inbound transcription is
 requested. Retain text replies and short status messages alongside future media.
+
+## Image delivery
+
+MediaOutbox(workspace, state_dir) owns separate media.sqlite3 with an uploads table:
+job_id primary key, immutable JSON items, and sent cursor. No Telegram jobs schema
+change. Runner writes per-job attachment-manifest instructions; Codex selects existing
+or newly generated PNG/JPEG files via {"images":["relative/path.png"]}. The runner
+validates and snapshots selected bytes before marking success. PNG/JPEG signatures,
+10 MiB/image, four images, visible relative paths only; no symlinks, private state,
+URLs, parent traversal or outside files. Media credentials stay outside the model.
+BotService sends its saved text snapshot first, then pending media, then marks delivery.
+Revocation is checked before each upload. Retry resumes media without rerunning the
+job or already-sent text. Permanent 400/413 rejection becomes a brief chat fallback.
+Snapshot hashes detect modification. Crash after remote send before local commit may
+still duplicate an attachment; exactly-once remote delivery is not claimed.

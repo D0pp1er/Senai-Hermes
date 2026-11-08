@@ -13,13 +13,14 @@ from .chat import chat_request
 
 
 class CommandRunner:
-    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False):
+    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None):
         self.project = Path(project).expanduser().resolve()
         self.workspace = prepare_workspace(self.project)
         self.state_dir = Path(state_dir).resolve()
         if not self.state_dir.is_relative_to(self.workspace):
             raise ValueError('Telegram state must remain inside outputs/.')
         self.store = store or JobStore(self.state_dir / 'state.sqlite3')
+        self.media = media
         self.chat_style = chat_style
         self.flags = ['--ask-for-approval', 'never']
         if skip_git_repo_check:
@@ -41,7 +42,10 @@ class CommandRunner:
         response_path = directory / 'response.txt'
         session_id = self.store.shared_session()
         resume = ['--resume', session_id] if session_id else []
-        command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', chat_request(job['prompt']) if self.chat_style else job['prompt']]
+        prompt = job['prompt']
+        if self.chat_style:
+            prompt = chat_request(prompt, attachment_manifest=directory / 'attachments.json' if self.media is not None else None)
+        command = [sys.executable, '-m', 'senai', '--project', str(self.project), *self.flags, '--json', '--output-last-message', str(response_path), *resume, '--', prompt]
         environment = {key: value for key, value in os.environ.items() if key not in ('TELEGRAM_BOT_TOKEN', 'TELEGRAM_ALLOWED_USER_IDS')}
         with stdout_path.open('w', encoding='utf-8') as stdout, stderr_path.open('w', encoding='utf-8') as stderr:
             result = subprocess.run(
@@ -68,6 +72,11 @@ class CommandRunner:
             suffix = ('\n[Reply shortened. Ask for the specific part you need.]' if self.chat_style
                       else f'\n[Reply truncated; complete local output: {path}]')
             text = text[:60000] + suffix
+        if result.returncode == 0 and self.media is not None:
+            try:
+                self.media.prepare(job['id'], directory / 'attachments.json')
+            except (ValueError, OSError, TypeError):
+                text += '\nI could not attach the selected images. Please request a PNG or JPEG from the workspace.'
         return ('succeeded' if result.returncode == 0 else 'failed'), text.strip()
 
     def recover_session(self):

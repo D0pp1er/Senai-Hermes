@@ -31,3 +31,11 @@ Persist exact redacted message chunks before sending. Pre-upgrade partially sent
 - Chat-style long-response/empty-response fallbacks no longer advertise local log paths.
 - TDD: two new tests failed before implementation; 7 chat tests and 153 total offline
   tests now pass. Ownership guard and git diff --check pass.
+
+## 2026-11-09: image attachments
+
+Implemented bounded multipart sendPhoto, selected-image manifests and independent
+media.sqlite3 snapshots/cursors. Runner asks built-in Codex image generation to
+save new artifacts inside outputs/ and select up to four PNG/JPEG files for delivery.
+Existing images can be selected in natural language. No folder scanning or automatic
+attachment of unrelated images. 11 media tests pass; full suite: 164 tests.
