@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 import sqlite3
 import time
+import uuid
 
 
 class JobStore:
@@ -14,13 +15,17 @@ class JobStore:
             database.executescript("""
                 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
                 INSERT OR IGNORE INTO settings VALUES ('offset', 0);
+                CREATE TABLE IF NOT EXISTS sessions (name TEXT PRIMARY KEY, session_id TEXT NOT NULL, updated REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS jobs (
                     id INTEGER PRIMARY KEY, chat_id INTEGER NOT NULL, user_id INTEGER NOT NULL,
-                    prompt TEXT NOT NULL, status TEXT NOT NULL, result TEXT NOT NULL DEFAULT '',
+                    prompt TEXT NOT NULL, session_id TEXT, status TEXT NOT NULL, result TEXT NOT NULL DEFAULT '',
                     parts_sent INTEGER NOT NULL DEFAULT 0, delivered INTEGER NOT NULL DEFAULT 0,
                     created REAL NOT NULL, updated REAL NOT NULL
                 );
             """)
+            columns = {row['name'] for row in database.execute('PRAGMA table_info(jobs)')}
+            if 'session_id' not in columns:
+                database.execute('ALTER TABLE jobs ADD COLUMN session_id TEXT')
         self.path.chmod(0o600)
 
     @contextmanager
@@ -112,3 +117,23 @@ class JobStore:
     def mark_delivered(self, identifier):
         with self.connection() as database:
             database.execute('UPDATE jobs SET delivered=1 WHERE id=?', (identifier,))
+
+    def shared_session(self):
+        with self.connection() as database:
+            row = database.execute("SELECT session_id FROM sessions WHERE name='telegram-shared'").fetchone()
+            return row[0] if row else None
+
+    def bind_shared_session(self, session_id, job_id=None):
+        session_id = str(uuid.UUID(session_id))
+        with self.connection() as database:
+            database.execute('BEGIN IMMEDIATE')
+            row = database.execute("SELECT session_id FROM sessions WHERE name='telegram-shared'").fetchone()
+            if row and row[0] != session_id:
+                raise ValueError('Codex returned a different session; the shared session mapping was preserved.')
+            database.execute("INSERT OR IGNORE INTO sessions(name,session_id,updated) VALUES ('telegram-shared',?,?)", (session_id, time.time()))
+            if job_id is not None:
+                database.execute('UPDATE jobs SET session_id=? WHERE id=?', (session_id, job_id))
+
+    def unbound_running_jobs(self):
+        with self.connection() as database:
+            return [dict(row) for row in database.execute("SELECT * FROM jobs WHERE status='running' AND session_id IS NULL ORDER BY created,id")]

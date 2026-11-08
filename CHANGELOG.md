@@ -188,3 +188,9 @@
 - User confirmed live Telegram operation on 2026-11-08 and requested merge into main.
 - Updated setup/progress records to distinguish user-confirmed live operation from offline tests and individually unrecorded QA cases.
 - Verification: all 100 tests passed before merging; merge commit 46b1b33 integrates the feature into main.
+
+## Persistent Telegram conversation
+- Created feature/telegram-sessions. User selected local-code pairing and one shared conversation.
+- Capture verified native thread.started IDs and persist the shared session per bot/project. Every subsequent turn resumes that exact ID, never --last or a silent one-off fallback.
+- Preserve per-job final responses and JSON events; migrate existing databases without deleting history. Recover a newly created session from interrupted job events.
+- Added /session for authorized users. TDD: six session tests failed before implementation.

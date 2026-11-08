@@ -4,8 +4,9 @@ HELP = (
     'Send a code request as text, or /run your request.\n'
     '/status - latest requests and their states\n'
     '/result - resend your latest completed result\n'
+    '/session - show the shared Codex session\n'
     '/help - show this message\n'
-    'Requests are one-off; generated files stay in the configured outputs/. '
+    'Paired users share one persistent Codex conversation; generated files stay in the configured outputs/. '
     'Only configured private users can execute requests.'
 )
 
@@ -62,6 +63,9 @@ class Router:
         if command == '/status':
             jobs = self.store.recent(chat['id'])
             response = '\n'.join(f'Request #{job["id"]}: {job["status"]}' for job in jobs) or 'No requests yet.'
+        elif command == '/session':
+            session_id = self.store.shared_session()
+            response = f'Shared Codex session: {session_id}' if session_id else 'The shared session will be created by the first request.'
         elif command == '/result':
             job = self.store.latest_completed(chat['id'])
             response = result_text(job) if job else 'No completed result yet. Use /status.'

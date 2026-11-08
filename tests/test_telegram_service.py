@@ -1,4 +1,5 @@
 import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -132,7 +133,8 @@ class TelegramRunnerTests(unittest.TestCase):
                 self.assertEqual(command[command.index('--ask-for-approval') + 1], 'never')
                 self.assertNotIn('TELEGRAM_BOT_TOKEN', kwargs['env'])
                 self.assertNotIn('shell', kwargs)
-                kwargs['stdout'].write('Done')
+                kwargs['stdout'].write(json.dumps({'type': 'thread.started', 'thread_id': '11111111-1111-4111-8111-111111111111'}) + '\n')
+                Path(command[command.index('--output-last-message') + 1]).write_text('Done')
                 return subprocess.CompletedProcess(command, 0)
             with patch.dict('os.environ', {'TELEGRAM_BOT_TOKEN': '123:secret'}), patch('senai.telegram.runner.subprocess.run', side_effect=execute):
                 self.assertEqual(runner({'id': 1, 'prompt': '--model malicious; $literal'}), ('succeeded', 'Done'))

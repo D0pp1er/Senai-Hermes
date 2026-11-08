@@ -70,12 +70,13 @@ def telegram_main(argv, stdout, stderr):
         state.chmod(0o700)
         with instance_lock(state / 'bot.lock'):
             store = JobStore(state / 'state.sqlite3')
-            store.recover_interrupted()
             router = Router(store, users, identity['username'], max_pending=args.max_pending)
-            runner = CommandRunner(args.project, state, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill))
+            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill))
+            runner.recover_session()
+            store.recover_interrupted()
             service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout)
             service.skip_pending()
-            print(f'Senai Telegram is ready as @{identity["username"]}. Project: {Path(args.project).expanduser().resolve()}. One-off private requests only; messages from before startup are ignored.', file=stdout, flush=True)
+            print(f'Senai Telegram is ready as @{identity["username"]}. Project: {Path(args.project).expanduser().resolve()}. One shared persistent Codex session; messages from before startup are ignored.', file=stdout, flush=True)
             return service.run_forever(stdout, stderr)
     except (ValueError, RuntimeError, OSError) as error:
         message = api.redact(str(error)) if api else str(error)
