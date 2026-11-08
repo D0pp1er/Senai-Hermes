@@ -119,3 +119,17 @@ approved later restart applies changes to a running bot. Live API key validity/a
 playback is not claimed by these local checks and was not requested for this task.
 
 Final voice setup evidence: exact source commit fa9c20963ec146339c1c409573255b667b571c33; 210 total tests PASS and 26 setup/config tests PASS. Scope/diff PASS. Final readiness command recorded in delivery.json; records-only commit follows. No live API/auth/audio acceptance or restart claimed.
+
+## Current voice-only acceptance (supersedes earlier dual-output checks)
+
+TDD: voice-only success, no acknowledgement, upload-failure/missing-file fallback,
+restart-after-fallback, interrupted-finalization and no-key cases failed before changes.
+Current expected checks after separately approved integration/restart:
+1. /voice QUESTION -> one voice note; no text acknowledgement or answer transcript.
+2. /voice after a successful answer -> one voice note; no repeated transcript.
+3. Missing speech config/generation/upload failure -> answer in text.
+4. A fallback-text retry never regenerates speech or later adds voice.
+5. Normal questions, images and explicit /result still work; revoked users receive nothing.
+Offline fixtures cover these plus legacy partially sent text completion without audio.
+Logs: outputs/qa-integrations/voice-only-{red,green,regression}.log and voice-no-key-red.log.
+Live API/audio checks NOT RUN; no production process/state was touched.

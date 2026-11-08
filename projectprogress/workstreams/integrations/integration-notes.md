@@ -90,3 +90,16 @@ or instantly disable a running bot; messages explain the restart/env behavior.
 production state, merge, bot stop/start or live restart was used for this task.
 
 Coordinator handoff: review feature/integrations with tested implementation fa9c209 plus final records. Rerun --ready and 210 tests; no shared source patches, dependencies or migrations required. Do not restart the live bot as part of this task. Existing credentials/state/native UUID and text-plus-audio semantics are preserved.
+
+## Current voice output policy: audio only, text fallback
+
+This requested change supersedes earlier text-plus-audio instructions. No new key,
+provider, environment/auth change or shared source patch. Only an additive
+voice_delivery table in media.sqlite3; no Telegram jobs/session/credential migration.
+New APIs: has_voice(job_id) -> bool; deliver_voice(job, api, *, authorized) -> str
+(audio/fallback/revoked); deliver(job, api, *, authorized, skip_voice=False).
+A stored audio/fallback choice keeps restarts from producing both formats. Existing
+text delivery snapshots/part cursors remain usable; already-partial legacy text
+finishes without audio. No text acknowledgement for accepted /voice requests.
+Normal chat, photo delivery, explicit /result, optional key setup and native auth stay.
+No merge/restart/live API playback performed; coordinator review is the next step.

@@ -90,3 +90,7 @@ TDD: missing voice_config module reproduced, then 13 tests passed for private fi
 - Exact tested implementation: fa9c20963ec146339c1c409573255b667b571c33.
 - 210 full regression tests and 26 new setup/config tests PASS. Scope/diff PASS.
 - Readiness metadata updated for coordinator review; no merge/restart/API/live activity.
+
+## Voice-only output
+
+User requested audio-only /voice success, text fallback. Updated durable delivery choice, omitted voice acknowledgements, added no-key/legacy/retry coverage and revised setup/help/docs. 216 offline tests pass. No changes to credentials/native auth/shared session, no live restart or merge.

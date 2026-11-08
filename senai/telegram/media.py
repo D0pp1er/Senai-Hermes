@@ -30,6 +30,7 @@ class MediaOutbox:
         with self._db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS uploads (job_id INTEGER PRIMARY KEY, items TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0)')
             db.execute('CREATE TABLE IF NOT EXISTS voice_requests (job_id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, chat_id INTEGER NOT NULL, prompt_hash TEXT NOT NULL, mode TEXT NOT NULL)')
+            db.execute('CREATE TABLE IF NOT EXISTS voice_delivery (job_id INTEGER PRIMARY KEY, outcome TEXT NOT NULL)')
         self.path.chmod(0o600)
 
     @contextmanager
@@ -167,7 +168,44 @@ class MediaOutbox:
         with self._db() as db:
             db.execute('UPDATE uploads SET items=? WHERE job_id=? AND sent=0', (json.dumps(items), job_id))
 
-    def deliver(self, job, api, *, authorized):
+    def has_voice(self, job_id):
+        record = self._existing(job_id)
+        return record is not None and any(item['kind'] == 'voice' for item in json.loads(record[0]))
+
+    def _read_snapshot(self, item):
+        path = self._state_path(item['path'])
+        with path.open('rb') as stream:
+            content = stream.read(MAX_IMAGE_BYTES + 1)
+        if hashlib.sha256(content).hexdigest() != item['sha256']:
+            raise ValueError('Media snapshot changed.')
+        return path
+
+    def deliver_voice(self, job, api, *, authorized):
+        """Persist audio success or text fallback so retries never switch formats."""
+        if not authorized():
+            return 'revoked'
+        with self._db() as db:
+            row = db.execute('SELECT outcome FROM voice_delivery WHERE job_id=?', (job['id'],)).fetchone()
+        if row is not None:
+            return row[0]
+        record = self._existing(job['id'])
+        voice = next((item for item in json.loads(record[0]) if item['kind'] == 'voice'), None) if record else None
+        outcome = 'fallback'
+        if voice is not None:
+            try:
+                path = self._read_snapshot(voice)
+                api.send_voice(job['chat_id'], path)
+                outcome = 'audio'
+            except TelegramError as error:
+                if error.status in (401, 403, 409):
+                    raise
+            except (OSError, ValueError):
+                pass
+        with self._db() as db:
+            db.execute('INSERT OR IGNORE INTO voice_delivery VALUES (?,?)', (job['id'], outcome))
+        return outcome
+
+    def deliver(self, job, api, *, authorized, skip_voice=False):
         record = self._existing(job['id'])
         if record is None:
             return
@@ -175,27 +213,22 @@ class MediaOutbox:
         for index, item in enumerate(items[sent:], sent):
             if not authorized():
                 return
-            try:
-                path = self._state_path(item['path'])
-                if path.is_symlink() or not path.resolve().is_relative_to(self.state):
-                    raise ValueError('Invalid media snapshot.')
-                with path.open('rb') as stream:
-                    content = stream.read(MAX_IMAGE_BYTES + 1)
-                if hashlib.sha256(content).hexdigest() != item['sha256']:
-                    raise ValueError('Media snapshot changed.')
-            except (OSError, ValueError):
-                api.send_message(job['chat_id'], 'An attachment is no longer available. Please request it again.')
-            else:
+            if not (skip_voice and item['kind'] == 'voice'):
                 try:
-                    if item['kind'] == 'voice':
-                        api.send_voice(job['chat_id'], path)
-                    else:
-                        api.send_photo(job['chat_id'], path)
-                except TelegramError as error:
-                    if error.status != 400 and error.status != 413:
-                        raise
-                    message = ('Telegram could not play the voice reply. The text answer is above.'
-                               if item['kind'] == 'voice' else 'Telegram could not display an image. Please request a smaller PNG or JPEG.')
-                    api.send_message(job['chat_id'], message)
+                    path = self._read_snapshot(item)
+                except (OSError, ValueError):
+                    api.send_message(job['chat_id'], 'An attachment is no longer available. Please request it again.')
+                else:
+                    try:
+                        if item['kind'] == 'voice':
+                            api.send_voice(job['chat_id'], path)
+                        else:
+                            api.send_photo(job['chat_id'], path)
+                    except TelegramError as error:
+                        if error.status != 400 and error.status != 413:
+                            raise
+                        message = ('Telegram could not play the voice reply. Please request the text with /result.'
+                                   if item['kind'] == 'voice' else 'Telegram could not display an image. Please request a smaller PNG or JPEG.')
+                        api.send_message(job['chat_id'], message)
             with self._db() as db:
                 db.execute('UPDATE uploads SET sent=? WHERE job_id=?', (index + 1, job['id']))

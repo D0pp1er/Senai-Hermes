@@ -5,7 +5,7 @@ from ..integrations.telegram import parse_private_update
 
 HELP = (
     'Send a code request as text, or /run your request.\n'
-    '/voice QUESTION - get a text and AI-generated voice reply; /voice reads your latest answer\n'
+    '/voice QUESTION - get an AI-generated voice reply (text fallback); /voice reads your latest answer\n'
     '/status - latest requests and their states\n'
     '/result - resend your latest completed result\n'
     '/session - show the shared Codex session\n'
@@ -67,20 +67,18 @@ class Router:
             return []
         prompt = argument if command in ('/run', '/voice') else text
         voice_error, reuse_voice = None, False
-        if command == '/voice':
-            if not self.voice_enabled or self.media is None:
-                voice_error = 'Voice replies are not configured yet. You can still ask in text.'
-            elif not argument:
-                previous = self.store.latest_completed(chat['id'])
-                if previous is None or previous['status'] != 'succeeded':
-                    voice_error = 'No answer to read yet. Use /voice your question.'
-                elif len(previous['result']) > 4000:
-                    voice_error = 'That answer is too long for a voice note. Use /voice and ask for a shorter summary.'
-                else:
-                    prompt, reuse_voice = previous['result'], True
+        voice_available = self.voice_enabled and self.media is not None
+        if command == '/voice' and not argument:
+            previous = self.store.latest_completed(chat['id'])
+            if previous is None or previous['status'] != 'succeeded':
+                voice_error = 'No answer to read yet. Use /voice your question.'
+            elif not voice_available or len(previous['result']) > 4000:
+                voice_error = previous['result']  # Return the text answer as fallback.
+            else:
+                prompt, reuse_voice = previous['result'], True
         is_request = (not command or command in ('/run', '/voice')) and bool(prompt) and len(prompt) <= 8000 and voice_error is None
         job = {'chat_id': chat['id'], 'user_id': sender['id'], 'prompt': prompt} if is_request else None
-        if command == '/voice' and job is not None:
+        if command == '/voice' and job is not None and voice_available:
             self.media.record_voice_request(identifier, job, reuse=reuse_voice)
         outcome = self.store.consume(identifier, job, max_pending=self.max_pending)
         if outcome == 'duplicate':
@@ -88,6 +86,8 @@ class Router:
         if outcome == 'busy':
             return [(chat['id'], 'Senai is busy; its request queue is full. Try again after /status.')]
         if outcome == 'queued':
+            if command == '/voice':
+                return []
             if self.acknowledge is not None:
                 return [(chat['id'], self.acknowledge())]
             return [(chat['id'], f'Queued request #{identifier}. Use /status to check progress.')]

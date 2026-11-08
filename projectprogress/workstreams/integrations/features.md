@@ -62,10 +62,21 @@ Do not start a duplicate bot or repeat Telegram pairing. Setup/update/removal co
 only print this guidance; they do not touch the running process. Without an active bot,
 settings apply on the first start.
 
-## Voice reply behavior is unchanged
+## Voice-first replies
 
-`/voice QUESTION` sends both the text answer and matching audio. Bare `/voice` sends
-the latest successful answer from that private chat as text and matching audio without
-another model turn. Normal questions remain text. Generated audio is labeled as such.
-This task does not add an audio-only mode, change retry behavior, or alter the exact
-shared Codex session. Telegram credentials, jobs, pairing, media and sessions are retained.
+`/voice QUESTION` sends only an AI-generated voice note when audio succeeds. Bare
+`/voice` reads the latest successful answer from that private chat, also as audio
+only. Accepted voice commands do not send a separate text acknowledgement/transcript.
+The short AI-generated label remains on the voice note. Normal messages stay text.
+
+Text is the fallback when voice is unconfigured, too long, cannot be generated, or
+its saved audio is missing/corrupt or rejected/unavailable during upload. The full
+answer is retained locally and sent as text on fallback. If that text send also fails,
+retry resumes only text: no new model/speech call and no late audio after fallback.
+A bare /voice without audio support returns the latest answer as text.
+
+`/result` still explicitly retrieves text when requested. Already-partially-delivered
+text from an older release finishes as text without adding audio. Requested images
+are unaffected. Telegram authorization failures remain fatal if the bot cannot send
+either format; no delivery is claimed. Configuration, pairing, jobs, media and exact
+shared Codex sessions are retained. No live merge/restart is performed by this task.

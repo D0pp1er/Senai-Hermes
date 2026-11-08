@@ -93,3 +93,20 @@ arguments. Startup reads configuration once; later updates require normal gracef
 restart, never a second poller. Invalid optional config disables voice with a generic
 warning while Telegram continues. --voice-check is local only and performs no API call.
 No Telegram schema/session migration or reply-format change is introduced.
+
+## Voice-only delivery (current policy, supersedes text-plus-audio above)
+
+Prepared voice replies go through MediaOutbox.deliver_voice before any text snapshot
+is sent. Successful audio suppresses the transcript/acknowledgement. The answer stays
+in the job record for fallback and explicit /result. New additive voice_delivery
+(job_id PRIMARY KEY, outcome) records audio or fallback in media.sqlite3, preserving
+all existing tables and cursors. Audio success is recorded before job finalization;
+retries after finalization/other-media failures do not resend it. Failed/missing audio
+records fallback before attempting text so later retries cannot switch back to audio.
+Text fallback retains existing stable chunk snapshots/cursors. Speech generation is
+never repeated by delivery retry. Missing configuration queues /voice questions as
+normal text requests; bare /voice returns that chat's latest answer as text. Legacy
+partially sent text completes without audio. Images retain their normal media flow.
+Authorization is checked before audio/media; access/auth/polling errors still stop
+rather than claiming text delivery to a destination the bot cannot access. A network
+failure after remote acceptance can still cause ambiguity; no exactly-once guarantee.

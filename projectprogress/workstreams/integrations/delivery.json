@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -28,7 +28,7 @@
     },
     {
       "name": "MediaOutbox",
-      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); add_voice(job_id, content); record_voice_request(job_id, job, *, reuse=False); voice_mode(job); deliver(job, api, *, authorized)",
+      "signature": "MediaOutbox(workspace, state_dir); prepare(job_id, manifest); add_voice(job_id, content); record_voice_request(job_id, job, *, reuse=False); voice_mode(job); deliver(job, api, *, authorized, skip_voice=False); has_voice(job_id) -> bool; deliver_voice(job, api, *, authorized) -> str",
       "purpose": "Persist voice intent, bounded media snapshots and upload progress separately from Telegram jobs."
     },
     {
@@ -79,8 +79,8 @@
   ],
   "commands": [
     ".venv/bin/python -m senai telegram --help",
-    "Telegram /voice QUESTION: one spoken answer plus text",
-    "Telegram /voice: read the latest successful answer in this private chat",
+    "Telegram /voice QUESTION: audio only on success; text fallback",
+    "Telegram /voice: read the latest successful answer as audio; text fallback",
     "Telegram text request: generate/select images for actual photo attachment",
     "senai telegram --project PROJECT --voice-configure",
     "senai telegram --project PROJECT --voice-check",
@@ -102,7 +102,7 @@
   "storage": {
     "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git",
     "schema_version": 1,
-    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration."
+    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration. Additive voice_delivery(job_id,outcome) table in media.sqlite3 records audio/fallback decisions; existing jobs/media/text cursors and protected voice JSON untouched."
   },
   "verification": {
     "offline_commands": [
@@ -112,8 +112,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 210,
-    "tested_commit": "fa9c20963ec146339c1c409573255b667b571c33",
+    "offline_test_count": 216,
+    "tested_commit": "voice-only working tree before commit",
     "live_result": "not-run",
     "evidence_logs": [
       "outputs/qa-integrations/voice-setup-regression.log",
@@ -130,9 +130,11 @@
   "limitations": [
     "--voice-check verifies local availability/permissions only, not API authorization/billing/audio quality.",
     "Changes apply at startup; a running bot needs an operator-managed graceful restart. No restart/merge was performed.",
-    "Existing image/media limits and at-least-once delivery behavior remain unchanged."
+    "Existing image/media limits and at-least-once delivery behavior remain unchanged.",
+    "Voice upload failures choose text fallback; fatal authorization errors cannot deliver either format.",
+    "Remote acceptance followed by network/local-cursor failure can remain ambiguous; no exactly-once guarantee."
   ],
-  "delivery_scope": "Optional protected OpenAI voice-key setup and management; existing Telegram media/reply behavior unchanged.",
+  "delivery_scope": "Voice-only /voice success with durable text fallback; optional protected key setup retained.",
   "external_services": [
     "Optional OpenAI Speech API: dedicated env key, saved protected voice file, then generic OpenAI env key; local setup/check makes no network call.",
     "Installed Codex built-in image generation when available; no image API client/key added"

@@ -173,13 +173,13 @@ def configure_voice(project, *, stdout, prompt=None, environ=None):
         print('Saved voice configuration kept; voice setup skipped.' if read_voice_key(project, environ=environ) else 'Voice setup skipped. Telegram works without voice.', file=stdout)
         return False
     write_voice_key(project, entered, environ=environ)
-    print('Voice key saved privately, separate from Telegram credentials. /voice sends text and matching audio. OpenAI speech API usage is billed separately.', file=stdout)
+    print('Voice key saved privately, separate from Telegram credentials. /voice sends audio only, with text fallback. OpenAI speech API usage is billed separately.', file=stdout)
     _restart_notice(stdout)
     return True
 
 
 def offer_voice_setup(project, *, stdout, choice=None, prompt=None, environ=None):
-    print('Optional voice replies: /voice sends text and matching audio using the OpenAI speech API (separate API billing). Telegram works without it.', file=stdout)
+    print('Optional voice replies: /voice sends audio only, with text fallback using the OpenAI speech API (separate API billing). Telegram works without it.', file=stdout)
     try:
         answer = (choice or input)('Configure optional voice? [Configure/Skip; Enter=Skip]: ').strip().lower()
         if answer not in ('y', 'yes', 'configure'):
@@ -205,7 +205,7 @@ def manage_voice(project, action, *, stdout, stderr, prompt=None, environ=None):
             if selected is None:
                 print('Voice is not configured. Telegram works without voice.', file=stdout)
                 return 1
-            print(f'Voice configured via {selected.source}. Local check only; API access and billing have not been verified. /voice sends text and matching audio.', file=stdout)
+            print(f'Voice configured via {selected.source}. Local check only; API access and billing have not been verified. /voice sends audio only, with text fallback.', file=stdout)
         else:
             raise VoiceConfigError('Unsupported voice management action.')
         return 0

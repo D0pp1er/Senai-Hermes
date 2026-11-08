@@ -128,7 +128,7 @@ class VoiceSetupTests(unittest.TestCase):
         self.assertEqual(read_voice_key(self.project, environ=self.env), KEY)
         self.assertNotIn(KEY, out.getvalue())
         self.assertIn("graceful", out.getvalue())
-        self.assertIn("text and", out.getvalue())
+        self.assertIn("text fallback", out.getvalue())
 
     def test_failed_optional_setup_keeps_telegram_usable_and_old_key_intact(self):
         write_voice_key(self.project, KEY, environ=self.env)
