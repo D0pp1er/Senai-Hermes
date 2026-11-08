@@ -205,3 +205,8 @@
 - Saved configuration is discovered per project under XDG_CONFIG_HOME (or ~/.config), outside the controlled workspace; no manual export or numeric ID lookup is needed.
 - Added guided setup and file-protection tests. A failing race test exposed code messages being skipped; the backlog is now drained before showing the pairing code.
 - Existing --setup, --env-file, and explicit allowed-ID configurations remain supported. No real token was read or changed by these tests.
+
+## Shared-session and setup verification
+- Verified two live Codex turns in an isolated QA project: another simulated Telegram user after a runner/store restart recalled the marker through the exact same saved session ID. No bot token was read.
+- Added regressions for v1 SQLite migration, configure-and-start using the newly entered token, and expired setup code renewal.
+- The new Telegram onboarding itself remains to be verified with the operator bot; tests use fake API clients and private temporary configuration files.

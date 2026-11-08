@@ -12,7 +12,7 @@ from senai import cli
 from senai.telegram.api import TelegramError
 from senai.telegram.config import default_env_file, write_token_file
 from senai.telegram.store import JobStore
-from senai.telegram.wizard import configure_project
+from senai.telegram.wizard import configure_project, Configuration
 
 
 class TelegramWizardTests(unittest.TestCase):
@@ -93,6 +93,29 @@ class TelegramWizardTests(unittest.TestCase):
             return original(offset, **kwargs)
         self.api.get_updates.side_effect = poll
         self.configure()
+
+    def test_configure_and_start_use_new_token_instead_of_stale_export(self):
+        configured = Configuration('123:new-token', self.path, 'test_bot')
+        with patch.dict(os.environ, {'TELEGRAM_BOT_TOKEN': '123:stale-token'}), patch('senai.telegram.wizard.configure_project', return_value=configured), patch('senai.telegram.cli.BotAPI', return_value=self.api) as factory, patch('senai.telegram.cli.BotService') as service:
+            service.return_value.run_forever.return_value = 0
+            result = cli.main(['telegram', '--project', str(self.project), '--configure', '--start'], self.out, io.StringIO())
+        self.assertEqual(result, 0)
+        factory.assert_called_once_with('123:new-token')
+        service.return_value.run_forever.assert_called_once()
+        self.assertNotIn('new-token', self.out.getvalue())
+
+    def test_expired_handshake_prints_new_code_instead_of_waiting_forever(self):
+        from senai.telegram.pairing import PairingManager
+        original = PairingManager.redeem
+        attempts = []
+        def redeem(manager, code, user_id, chat_id):
+            attempts.append(code)
+            return False if len(attempts) == 1 else original(manager, code, user_id, chat_id)
+        with patch.object(PairingManager, 'redeem', new=redeem):
+            self.configure()
+        self.assertEqual(len(attempts), 2)
+        self.assertNotEqual(attempts[0], attempts[1])
+        self.assertIn('Code expired', self.out.getvalue())
 
     def test_setup_script_has_valid_syntax_and_help_needs_no_token(self):
         root = Path(__file__).resolve().parents[1]

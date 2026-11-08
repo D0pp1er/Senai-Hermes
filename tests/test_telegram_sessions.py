@@ -1,5 +1,6 @@
 import json
 import subprocess
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -74,3 +75,17 @@ class SharedSessionTests(unittest.TestCase):
         (directory / 'stdout.txt').write_text(json.dumps({'type': 'thread.started', 'thread_id': SID}) + '\n')
         CommandRunner(self.root, self.state, store=self.store).recover_session()
         self.assertEqual(self.store.shared_session(), SID)
+
+    def test_legacy_database_migration_preserves_jobs_and_cursor(self):
+        path = self.root / 'legacy.sqlite3'
+        with sqlite3.connect(path) as database:
+            database.executescript("""
+                CREATE TABLE settings (key TEXT PRIMARY KEY,value INTEGER NOT NULL);
+                INSERT INTO settings VALUES ('offset',42);
+                CREATE TABLE jobs (id INTEGER PRIMARY KEY,chat_id INTEGER,user_id INTEGER,prompt TEXT,status TEXT,result TEXT DEFAULT '',parts_sent INTEGER DEFAULT 0,delivered INTEGER DEFAULT 0,created REAL,updated REAL);
+                INSERT INTO jobs(id,chat_id,user_id,prompt,status,created,updated) VALUES (1,7,7,'original request','queued',1,1);
+            """)
+        migrated = JobStore(path)
+        self.assertEqual(migrated.offset(), 42)
+        self.assertEqual(migrated.claim_next()['prompt'], 'original request')
+        self.assertIsNone(migrated.shared_session())
