@@ -37,3 +37,33 @@ Use the returned ID with delete ID in scope qa; subsequent context is empty.
 Use update ID 'replacement fact' --provenance manual for explicit revision.
 
 Live Codex/Telegram checks: NOT RUN. Shared integration has not been wired.
+
+## Multifile extension verification (2026-11-09)
+
+Code commit: fa0a3c5. PASS: 167 full offline tests, including 31 memory behavior tests
+and 10 coordinator policy tests. Exact commit and full verbose output retained at
+outputs/qa-project/memory-multifile-tests.log. Scope guard PASS.
+
+Disposable independent CLI processes proposed and approved SOUL.md, USER.md and
+MEMORY.md, then loaded all three into a new private session snapshot. Another user's
+snapshot excluded the private preference; shared loading excluded USER by default.
+PASS evidence: outputs/qa-project/memory-multifile-qa.json. Fixture removed after QA.
+
+Repeat with synthetic content from this WSL worktree:
+
+    mkdir -p outputs/qa-project/profile-demo
+    .venv/bin/python -m senai.memory --project outputs/qa-project/profile-demo --scope qa profile-propose MEMORY.md 'Invoices use PostgreSQL' > outputs/qa-project/profile-proposal.json
+
+Inspect the JSON diff before applying:
+
+    .venv/bin/python -m senai.memory --project outputs/qa-project/profile-demo --scope qa profile-apply outputs/qa-project/profile-proposal.json --approve
+    .venv/bin/python -m senai.memory --project outputs/qa-project/profile-demo --scope qa session-context invoices
+
+Expected: labeled MEMORY.md source containing the invoice fact.
+For USER.md add --user-id alice before the command; include --include-user on
+session-context only in an authorized private session. Without that flag USER is absent.
+SOUL proposals accept human origin only. Outcome proposals need --origin outcome
+--verified plus a separate reviewed --approve. Empty proposed text deletes a file.
+Direct file edits are allowed, validated on load, and invalidate pending proposals.
+
+Live model/native session lifecycle/Telegram integration: NOT RUN and not wired here.

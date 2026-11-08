@@ -11,3 +11,12 @@
 - Disposable subprocess QA confirms recall, scope isolation and deletion.
 - Own .venv binding verified from /tmp; no extra dependencies, shared-file changes,
   production state, merges or pushes. Coordinator integration remains proposed.
+
+Multifile extension, code commit fa0a3c5:
+- Scoped optional SOUL.md / USER.md / MEMORY.md, private user identity selection.
+- Human-only SOUL changes; outcome proposals require trusted verification plus approval.
+- Diff review, content-hash conflicts, cooperative file locking and atomic replacement.
+- Ordered bounded fresh-session context; frozen snapshot reused without reloading.
+- Existing SQLite APIs preserved; new APIs and CLI are additive, no dependencies.
+- 167 full offline tests pass: 126 original + 10 coordinator policy + 31 memory.
+- Disposable subprocess checks confirm multifile restart loading and user exclusion.
