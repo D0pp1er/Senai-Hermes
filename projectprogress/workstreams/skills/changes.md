@@ -20,3 +20,6 @@
 
 - 2026-11-09, e714f3c: evidence-guided Codex reviewer.
 - 2026-11-09, metadata step: bounded constructor-free YAML node reader, standard optional fields/nested Hermes declarations, preserved metadata.version, optional compatibility predicate, CLI metadata, pinned PyYAML dependency. Eight metadata tests plus one CLI test.
+
+- 2026-11-09, 6d376ce: expanded validated metadata support.
+- 2026-11-09, planning update: prioritize Obsidian inventory, accurate origins and concise history before public imports; rough expanded-scope estimate 60%. No runtime changes.

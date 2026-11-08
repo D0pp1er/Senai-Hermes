@@ -3,12 +3,10 @@
 Branch: feature/skills
 Worktree: /home/rk/SentiensHermes/senai-skills
 
-Metadata compatibility milestone implemented before public imports. YAML parser supports standard optional license/compatibility/allowed-tools/metadata fields, folded/quoted scalars, comments, nested inert Hermes metadata and metadata.version. Original documents are byte-preserved. Revisions preserve optional declarations. Optional compatibility_check(metadata) can reject select/execute; declarations grant no permissions.
+User expanded scope to Obsidian viewing of saved skills, imported/learned origin and short history. Plan updated in workplan.md; no runtime behavior changed in this planning step. Estimated expanded-scope progress: about 60%, based on explicit scope weights there, not a completion guarantee.
 
-New dependency PyYAML==6.0.3 is pinned in requirements-skills.txt and installed only in this checkout .venv. Rerun feature dependency installation in other environments; coordinator consolidates packaging. No root pyproject edit.
+Next TDD implementation: a one-way Obsidian Markdown inventory export to outputs/skills-vault/, with linked skill/history pages, honest origin classification and preservation of unrelated notes. Add explicit origin storage before making learned_here claims; imported skills revised here keep imported origin. Empty registries remain empty. Demo/test fixtures are not real acquired learning.
 
-Eight metadata tests and one additional CLI metadata test added; red tests exposed overly long descriptions and rejected valid YAML. Reviewer->proposal->validation->activation metadata preservation verified offline. No live skill execution.
+Then pinned public GitHub acquisition, real new-skill authoring/reuse evidence and coordinator production integration. Existing .venv dependency PyYAML==6.0.3 remains. Current offline baseline 209 tests. No personal vault, Obsidian settings, production state or global skill/config changes authorized/required by the default export design.
 
-Next step: public GitHub repository source adapter with explicit pinned commit/path, bounded staged downloads, provenance and traversal/symlink rejection tests before network QA. Archive imports still rejected. Normal production execution/outcome/review hooks remain coordinator-owned and unapplied.
-
-Reread MERGE_POLICY.md before each implementation step. Full suite/scope required before commit; delivery draft.
+Reread MERGE_POLICY.md before each implementation step; scope/full-suite before commit; delivery draft.

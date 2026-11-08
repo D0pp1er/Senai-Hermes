@@ -20,3 +20,5 @@
 - Reviewer adapter: twelve behavior tests pass, including strict malformed-reply handling, exact selected evidence, no-change, no activation/validation, pre-call budget rejection, stale-base protection and actual wrapper subprocess with fake Codex. Two additional CLI review tests pass. Installed required flags verified without live model call.
 
 - Metadata milestone: standard/Hermes-style YAML imported with byte preservation and restart; malformed/unsafe YAML and excessive lengths rejected. Optional declarations preserved through reviewer/activation. New predicate blocks incompatible execution before executor call. PyYAML pin installed only in assigned .venv.
+
+- Recorded revised Obsidian workplan and weighted approximate 60% expanded-scope estimate. Obsidian export/UI and real learned-skill inventory are not implemented or verified yet.

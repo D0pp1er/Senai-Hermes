@@ -101,6 +101,7 @@
     "Live reviewer quality and actual skill improvement unverified.",
     "No-change review results are returned but do not have a separate durable attempt log.",
     "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
-    "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions."
+    "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
+    "User-expanded scope: Obsidian inventory/origin/history projection and explicit learned-vs-imported provenance pending; see workplan.md. No export command exists yet."
   ]
 }

@@ -49,3 +49,7 @@ Install `.venv/bin/python -m pip install --only-binary=:all: -r requirements-ski
 Additive API: Registry.metadata(name) -> dict; CLI metadata NAME. select(names, *, compatibility_check=None) and execute(request, names, *, executor, compatibility_check=None) preserve old calls. Optional trusted compatibility_check(metadata) -> bool must return True to permit selection. It does not grant tools or install requirements; coordinator decides runtime compatibility policy.
 
 No DB migration. Stricter frontmatter checks may reject previously accepted overlong descriptions or ambiguous YAML; do not alter historical bytes to bypass hashes. Full official-spec compliance is not claimed: legacy source-folder/name mismatch remains supported, aliases/tags disallowed, and nested Hermes metadata is treated as inert data. Public source acquisition remains next, not implemented by this compatibility change.
+
+## Obsidian requirement (planned)
+
+New user requirement: export project skill inventory with imported/learned origin and a brief history to Obsidian-readable Markdown. Default separate folder outputs/skills-vault/; no personal vault path needed initially. No runtime API/CLI exists for export yet. Registry remains authoritative. Additive provenance migration may be needed; imported+revised is distinct from new learned_here packages. This introduces no shared coordinator patch until an optional export-refresh hook is proposed. No personal vault/settings changed.

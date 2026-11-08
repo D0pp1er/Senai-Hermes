@@ -1,22 +1,16 @@
 # Skills objectives
 
-- [x] First milestone: local import, strict validation, explicit selection, durable version/provenance.
-- [ ] Public repository import after local validation hardening.
-- [ ] Verified outcome traces, candidate revisions, regression gates, activation and rollback.
-- [ ] Feature-local command interface and reuse demo.
+Scope follows ../../parallel/prompts/04-skills.md plus user-requested Obsidian viewing. Detailed ordering and estimate: workplan.md.
 
-Scope follows ../../parallel/prompts/04-skills.md. Native installed skill invocation remains unchanged.
+- [x] Isolated local import, durable provenance, strict validation and explicit selection.
+- [x] Outcome evidence, inactive proposals, injected reviewer and regression checks.
+- [x] Explicit activation, accepted history and rollback.
+- [x] Feature-local management CLI and synthetic offline demo.
+- [x] Broader metadata format and optional caller compatibility policy.
+- [ ] Obsidian skill index/pages, origin labels and short learning history.
+- [ ] Explicit durable imported/learned/unknown/synthetic provenance where missing.
+- [ ] Pinned public repository imports with acquisition validation tests.
+- [ ] Real new-skill authoring and independently checked reuse evidence.
+- [ ] Coordinator production wiring and final delivery verification.
 
-- [x] Learning step 1: outcome evidence persistence; revisions/regression/rollback remain pending.
-
-- [x] Learning step 2: inactive versioned instruction proposals linked to exact-base evidence.
-
-- [x] Learning step 3: injectable candidate regression validation and durable result history.
-
-- [x] Learning step 4: explicit validated activation, accepted version history and rollback.
-
-- [x] Feature-local CLI and offline synthetic lifecycle demo. Actual model-backed reuse demonstration still pending.
-
-- [x] Injected Codex-compatible reviewer and explicit CLI review; model-backed behavioral reuse verification remains pending.
-
-- [x] Broader metadata compatibility and optional caller-defined compatibility checks; public source acquisition remains pending.
+Approximate expanded-scope progress: 60%; not a production-readiness claim. Existing 209 offline tests passed. No live model-backed improvement verified.

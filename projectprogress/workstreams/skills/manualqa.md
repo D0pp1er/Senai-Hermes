@@ -108,3 +108,7 @@ Expected: eight metadata tests pass; metadata command prints validated optional 
 Tests verify folded descriptions/comments, optional standard fields, nested Hermes metadata/version, rejected tags/aliases/anchors/duplicates/merge keys, limits, blocked incompatible execution and preservation through model-reply fixture -> proposal -> validation -> activation. They do not prove real instruction safety/runtime compatibility. Initial red log: outputs/skills-qa/metadata-red.log; targeted integration log: metadata-integration.log. Public repository/network and live-model QA not performed in this milestone.
 
 Metadata-step full offline suite: PASS, 209 tests (73 skills tests). Scope guard: PASS. Log outputs/skills-qa/metadata-suite.log. No live/network skill acquisition tested.
+
+## Obsidian planning status
+
+NOT IMPLEMENTED/NOT RUN: export command and Obsidian UI check. Planned acceptance is to open generated outputs/skills-vault/ as an existing vault, inspect skill origin/history, refresh after accepted revision/rollback and verify personal notes preserved. Full plan in workplan.md. No personal vault has been accessed.

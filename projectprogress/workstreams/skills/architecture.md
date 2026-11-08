@@ -91,3 +91,7 @@ Instruction revisions must preserve optional declarations, excluding the version
 SkillError moved to errors.py and remains re-exported from registry/package, preserving existing imports. No schema or package snapshot rewriting. Previously accepted overlong/ambiguous metadata can now fail revalidation; this deliberately tightens format validation, and does not silently rewrite historical artifacts. Dependency is feature-local requirements-skills.txt until coordinator packaging integration.
 
 Primary format references: https://agentskills.io/specification and https://hermes-agent.nousresearch.com/docs/user-guide/features/skills . Dependency release verified at https://pypi.org/project/PyYAML/6.0.3/ .
+
+## Planned Obsidian projection (not implemented)
+
+Registry remains source of truth; export ordinary Markdown into a separate outputs/skills-vault/ folder. Index -> skill notes -> concise audit/history notes, with flat origin/version/source properties. Imported content and registry snapshots are not edited by Obsidian refresh. Planned one-way projection, stable links and exporter ownership prevent accidental replacement of user annotations/configuration. No Obsidian plugin or live app integration is required for this design. Explicit origin classification must distinguish imported plus locally revised from genuinely learned_here, and synthetic/unknown inventories remain labelled. Full scope, tests and progress weights in workplan.md.
