@@ -210,3 +210,8 @@
 - Verified two live Codex turns in an isolated QA project: another simulated Telegram user after a runner/store restart recalled the marker through the exact same saved session ID. No bot token was read.
 - Added regressions for v1 SQLite migration, configure-and-start using the newly entered token, and expired setup code renewal.
 - The new Telegram onboarding itself remains to be verified with the operator bot; tests use fake API clients and private temporary configuration files.
+
+## Shared Telegram setup documentation
+- Rewrote the Telegram guide around automated configuration and persistent shared context; updated architecture, feature guide, manual QA-20, requirements, and progress records.
+- Documented trusted local pairing, shared-history implications, compatibility, restart behavior, and pending live onboarding acceptance.
+- Final documentation check: local links and 69 Bash examples pass. The source branch remains feature/telegram-sessions; no merge or real-token migration was performed.

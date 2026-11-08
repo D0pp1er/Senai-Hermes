@@ -185,7 +185,7 @@ The installed-command tests use a deterministic fake Codex child process, so the
 ## Verified compatibility baseline
 
 Tested with WSL Ubuntu-22.04, Python 3.10, and Codex CLI 0.167.0.
-- 100 offline tests pass, including installed-command child-process tests.
+- 126 offline tests pass, including installed-command child-process tests.
 - Installed CLI checks: version, exec/resume/review/MCP/plugin help, feature listing.
 - Live checks: search-enabled code creation, session resume retaining a marker,
   interactive launch, installed skill picker, and clean /quit exit.
@@ -234,6 +234,17 @@ the calling directory; generated output paths resolve from outputs/.
 
 ## Telegram control
 
-Use `senai telegram` for authorized private, one-off requests while WSL stays online.
-Start with the [Telegram setup guide](projectprogress/telegram.md); credentials and
-a numeric user allowlist are required. The user confirmed live Telegram operation on 2026-11-08.
+Run the guided setup from this checkout:
+
+```bash
+bash scripts/setup_telegram.sh --project /path/to/project --skip-git-repo-check
+```
+
+The wizard prompts privately, validates the bot, pairs an account with a local
+code, saves mode-600 per-project configuration, and starts the service. No manual
+user-ID lookup or environment exports are needed. All paired users share one
+persistent Codex session; future turns and restarts resume its exact ID.
+
+See [Telegram setup](projectprogress/telegram.md) for startup, additional pairing,
+local revocation, /session, compatibility with old configuration, and limits.
+The old bot was user-verified live; new setup/pairing still needs manual acceptance.

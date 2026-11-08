@@ -24,7 +24,7 @@ senai review --help
 senai codex --help
 ```
 
-Expected: commands resolve to WSL installations; 100 tests pass with no skips when
+Expected: commands resolve to WSL installations; 126 tests pass with no skips when
 senai is installed; all help commands exit 0 and show the documented options.
 If senai is missing, follow projectprogress/features.md before continuing.
 
@@ -445,7 +445,7 @@ project when starting the bot. Allow only your own numeric Telegram user ID.
 1. `senai telegram --check`: correct bot identity, no webhook, no code execution.
 2. `senai telegram --setup`: send the random phrase privately; terminal prints your
    numeric user ID without executing the phrase or sending a reply.
-3. Export the allowlist and start `senai telegram --project "$QA_ROOT"`.
+3. For the legacy route, export the allowlist and start `senai telegram --project "$QA_ROOT"`. For current automated setup, use QA-20 instead.
 4. Wait for ready, then send /start in Telegram. Expect usage text.
 5. Send `/run Create telegram_hello.py that prints Telegram is working`.
    Expect a request ID, a completion result, and the file under QA_ROOT/outputs/.
@@ -471,3 +471,42 @@ test_telegram_service.py, and test_telegram_integration.py.
 No /cancel, attachments, downloads, or remote interactive approvals are implemented;
 do not mark those as working features. A failed Telegram send should retain a
 pending result and must not cause another Codex execution (covered offline).
+
+
+## QA-20: automated setup, any-user pairing, and shared persistent memory
+
+Stop the old bot gracefully before this upgrade. Use a disposable project to keep
+new acceptance state separate from your real bot state, and only one poller per bot.
+
+```bash
+bash scripts/setup_telegram.sh --project "$QA_ROOT"
+```
+
+1. Enter the token at the hidden prompt (Enter can reuse a saved/exported token).
+2. Send the printed /pair CODE privately to the bot. Expect automatic ID discovery,
+   protected env-file saving, and service startup without manual exports.
+3. Check the printed config file has mode 600 using `stat -c '%a' PATH`.
+   Do not display its contents. It must be outside QA_ROOT/the controlled project.
+4. Send `Remember the exact marker SHARED_QA_882. Reply stored.` then `/session`.
+   Record the session ID. Ask for the previous marker without including it again.
+5. Stop/restart with `senai telegram --project "$QA_ROOT"` from a new terminal,
+   without exporting credentials. Ask again; the marker and session ID must persist.
+6. In another local terminal run `senai telegram --project "$QA_ROOT" --pair-code`.
+   Give that code privately to a second trusted Telegram account. It sends /pair CODE.
+7. From that second account ask for the marker and /session. Expect the same shared
+   context and ID, intentionally, rather than a separate one-off conversation.
+8. Attempt to reuse the consumed code from an unpaired account. Expect pairing failure
+   and no execution. A group cannot redeem it. Expiry is ten minutes; offline tests
+   cover it using a fake clock if you do not want to wait during live testing.
+9. Locally revoke the second ID with `senai telegram --project "$QA_ROOT" --revoke-user ID`.
+   Its later prompts must not execute. Existing queued work/pending replies are blocked;
+   an already executing request is not automatically cancelled.
+10. Try an unsupported/removed session only in a separate test DB, not your real state.
+    It must fail visibly and retain its stored ID, never silently create a fresh chat.
+11. Check old job history/cursor survives upgrade and new jobs have session_id recorded.
+12. Repeat configuration with a saved token and press Enter at the token prompt.
+    No secret should appear in terminal output, Git diff, or the child's environment.
+
+Record each result as PASS/FAIL/BLOCKED. Existing v1 bot operation was user-confirmed;
+the new onboarding/pairing steps still need this live acceptance. The real Codex
+session-resume path has been exercised independently in an isolated QA workspace.

@@ -92,7 +92,7 @@ created inside outputs/ and cleaned up. Final responses go to your terminal.
 | One request | `senai "Write or edit some code"` | Builds instructions, calls Codex, prints the final response. |
 | Interactive | `senai chat` | Opens native Codex for back-and-forth work and slash commands. |
 | Code review | `senai review` | Streams native review findings in read-only mode. |
-| Telegram bot | `senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check` | Process private authorized text requests and return results. Requires bot setup. |
+| Telegram bot | `senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check` | Process locally paired users in one persistent shared conversation. Requires bot setup. |
 | Native compatibility | `senai codex -- <arguments>` | Forwards native commands/flags and preserves their streams and exit code. |
 
 All modes select outputs/ as the working directory. Put wrapper `--project` before
@@ -282,7 +282,7 @@ senai --help
 senai codex -- --version
 ```
 
-The current suite contains 100 offline tests. Installed-command tests use a fake
+The current suite contains 126 offline tests. Installed-command tests use a fake
 Codex child process and skip only if the package is not installed. These tests do
 not consume model usage. Live model/tool checks do consume usage and need account access.
 
@@ -346,8 +346,17 @@ Codex flag or every model/feature combination is already supported.
 
 ## 9. Telegram control
 
-The [Telegram guide](telegram.md) walks through BotFather, hidden token input,
-user-ID discovery, local startup, /run, /status, /result, and restart behavior.
-Only allowlisted private users can execute; requests are one-off and queued serially.
-The bot must stay running in WSL. Voice, attachments, cancellation, and downloads
-are not implemented. The user confirmed live operation on 2026-11-08; new installations still need their own token and user ID.
+```bash
+bash scripts/setup_telegram.sh --project /path/to/project --skip-git-repo-check
+```
+
+The [Telegram guide](telegram.md) explains guided setup: hidden token entry,
+validation, private local-code pairing, protected config saving, and automatic
+startup. Any operator/account can use it; no personal ID is hardcoded.
+
+All paired accounts share one persistent Codex conversation. /session shows its
+saved ID; later messages and restarts resume that exact session. /run, /status,
+/result, and /help remain available. Local --pair-code adds accounts and
+--revoke-user removes access. Voice, attachments, downloads, and /cancel remain
+unimplemented. The new pairing/wizard needs live acceptance; session continuity
+has been checked with real Codex.

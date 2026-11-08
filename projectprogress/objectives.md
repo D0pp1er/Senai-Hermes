@@ -15,3 +15,7 @@ Native accounts, tools, and workspace-relocating flags retain documented limits.
 
 - [x] Add Telegram transport around one-off senai execution, with private allowlist authorization, durable queue and replies.
 - [x] User confirmed live Telegram operation after local setup (2026-11-08); detailed regression cases remain available.
+
+- [x] Replace one-off Telegram turns with one durable shared Codex session.
+- [x] Automate setup without personal IDs/paths in code; support local-code pairing and private config discovery.
+- [ ] Manually accept the new setup/pairing flow after restarting the existing bot.

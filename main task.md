@@ -73,4 +73,6 @@ transport verification, installed-CLI parser checks, and live model checks.
 
 - [x] Non-Git execution and installed exec option parity: tests/test_git_option.py and tests/test_exec_compat.py; JSON/retained outputs in tests/test_output_options.py.
 
-- [x] Telegram adapter on feature/telegram-bot: authorized one-off private requests, durable queue/status/results, offline tests. Live operation confirmed by the user on 2026-11-08.
+- [x] Telegram adapter on feature/telegram-bot: authorized private requests (now one persistent shared conversation), durable queue/status/results, offline tests. Live operation confirmed by the user on 2026-11-08.
+
+- [x] Operator-independent Telegram setup script, protected per-project config, local-code pairing/revocation, and shared-session persistence on feature/telegram-sessions. New pairing/wizard live acceptance remains pending.

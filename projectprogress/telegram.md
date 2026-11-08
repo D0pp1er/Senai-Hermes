@@ -1,218 +1,203 @@
-# Control senai from Telegram
+# Telegram: automated setup and one persistent shared conversation
 
-Status: implemented and verified offline; the user confirmed live Telegram operation on 2026-11-08. New installations still require a bot token and numeric user ID. No credentials are
-included in this repository.
+The Telegram adapter is operator-independent: no personal Telegram ID or project
+path is hardcoded. Any private account can pair using a code obtained locally.
+As requested, **all paired accounts share one Codex session and output workspace**.
+They can therefore access earlier conversation context; pair only accounts that
+should share that context. Private /status and /result replies remain scoped to
+the requesting chat, but the model conversation itself is shared.
 
-The selected setup runs independent one-off Codex requests against
-`/home/rk/SentiensHermes`. Generated code goes into that project's outputs/.
+The original bot was user-verified live. This new pairing/setup/session revision
+has 126 passing automated tests plus a live Codex session-continuity check; its
+full Telegram onboarding still needs your manual acceptance.
 
-## 1. Create your bot
+## 1. One-command setup
 
-In Telegram, open the official **@BotFather**, send `/newbot`, and follow its
-name/username prompts. Keep the issued bot token private. Do not paste it into
-this chat, a prompt, a screenshot, or Git.
-
-Official Bot API reference: https://core.telegram.org/bots/api
-
-## 2. Configure the token in WSL
-
-Open your Ubuntu terminal:
-
-```bash
-cd /home/rk/SentiensHermes/senai
-export PATH="$HOME/.local/bin:$PATH"
-git branch --show-current
-senai telegram --help
-```
-
-Expected branch: feature/telegram-bot. Existing editable installs pick up this
-code automatically. If the senai command is absent, use the installation section
-in [features.md](features.md).
-
-Run this command, paste the token into its hidden prompt, and press Enter:
+Create a bot with official @BotFather using /newbot if you do not already have one.
+Stop an already running copy of the bot with Ctrl+C and let active work finish.
+From the senai repository checkout:
 
 ```bash
-read -r -s -p "Telegram bot token (hidden): " TELEGRAM_BOT_TOKEN
-printf '\n'
-export TELEGRAM_BOT_TOKEN
+bash scripts/setup_telegram.sh --project /path/to/project --skip-git-repo-check
 ```
 
-Check credentials without polling or executing a request:
+Replace /path/to/project with the directory you want controlled. Omit
+--skip-git-repo-check when normal Codex Git checks are appropriate. The script uses
+the installed Python package; install senai first if the module is unavailable.
+It can run for any WSL user and project, without editing the script.
+
+The script automatically:
+
+1. Prompts for the bot token with hidden input; Enter reuses a saved/exported token.
+2. Validates the bot identity and checks for a conflicting webhook.
+3. Prints a private `/pair CODE` message, valid for ten minutes and one use.
+4. Waits for you to send that exact message to your bot in a private Telegram chat.
+5. Records the paired user automatically; no numeric ID lookup or export is needed.
+6. Saves the token atomically in a private mode-600 env file outside the project.
+7. Starts the bot, using the validated token and selected project/options.
+
+The pending-message backlog is drained before the pairing code is shown, so a
+quickly sent valid pairing message is not skipped. If an expired code is submitted,
+a fresh code is printed. An existing webhook is never deleted automatically.
+
+Equivalent Python command:
 
 ```bash
-senai telegram --check
+senai telegram --configure --start --project /path/to/project --skip-git-repo-check
 ```
 
-Expected: the bot username and confirmation that no webhook is active. A bot
-already using a webhook needs a separate/dedicated bot or explicit removal of
-its existing webhook. senai never silently deletes a webhook.
+To configure only, omit --start. No code request runs during the pairing wizard.
+The token is never printed or passed as a command-line argument. Do not paste it
+into chat, a model prompt, or Git.
 
-## 3. Discover your numeric Telegram user ID
-
-In the same terminal:
+## 2. Restart without repeating manual setup
 
 ```bash
-senai telegram --setup
+senai telegram --project /path/to/project --skip-git-repo-check
 ```
 
-The terminal shows an exact random `senai-setup-...` phrase and your bot's username.
-Open that bot's private chat in Telegram and send the phrase exactly. The terminal
-then prints `TELEGRAM_ALLOWED_USER_IDS=<your number>` and exits.
+Configuration is discovered from:
 
-Setup only reads the matching private message. It does not run code or send a reply.
-Set the printed ID locally, replacing the placeholder:
+```text
+${XDG_CONFIG_HOME:-~/.config}/senai/telegram/<project-path-hash>.env
+```
+
+The wizard prints the exact path. The hash identifies the resolved project path,
+so continue using the same --project value. The file contains only the bot token;
+paired accounts and session mapping live in the project's state database.
+
+Explicit configuration remains supported:
 
 ```bash
-export TELEGRAM_ALLOWED_USER_IDS=YOUR_NUMERIC_USER_ID
+senai telegram --env-file /private/path/telegram.env --project /path/to/project
 ```
 
-Use the numeric user ID, not a username or the bot's own ID. The allowlist is
-mandatory. Multiple explicitly authorized users may be comma-separated; they
-share the same configured project and execution queue.
+The env file accepts TELEGRAM_BOT_TOKEN and optional legacy
+TELEGRAM_ALLOWED_USER_IDS assignments. Exported values override file values on
+ordinary launches. If you change bots/tokens, remove stale exported values first.
+The configure-and-start path uses the token just validated by the wizard.
 
-## 4. Start the bot
+Credential files created by the wizard must remain outside the controlled project.
+Symlinked credential files are refused. Credential variables are removed from the
+senai/Codex child environment. No credential file is created in Git by setup.
 
-Keep this terminal running:
+## 3. Pair another Telegram account
+
+While the service runs, open another local WSL terminal:
 
 ```bash
-senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check
+senai telegram --project /path/to/project --pair-code
 ```
 
-Wait for `Senai Telegram is ready as @...` before sending work. Messages sent
-before startup are intentionally skipped; they will not unexpectedly execute
-later. Then send `/start` in the bot's private Telegram chat.
+Give the printed `/pair CODE` to the intended account privately. That account
+sends it to the bot in a private chat. It is then authorized without changing
+source or typing its numeric ID into configuration.
 
-The PC and WSL bot process must remain awake and online. This uses outbound HTTPS
-long polling; no public server, inbound port, tunnel, or desktop Remote setup is needed.
-The bot uses your existing Codex CLI login. It does not need a separate model API key.
+Codes are random, single-use, expire after ten minutes, and are stored only as
+hashes. Issuing a new code invalidates the previous unused code. Startup also
+prints a local code for convenient additional pairing. Already paired users do
+not need to pair again after reconnecting or restarting the bot.
 
-## 5. Send requests and inspect status
+Revoke access locally:
+
+```bash
+senai telegram --project /path/to/project --revoke-user NUMERIC_USER_ID
+```
+
+Explicit revocation overrides even an old environment allowlist. New/queued
+execution and pending replies are blocked for that user. An already executing
+request is not cancelled; this adapter still has no /cancel command.
+
+## 4. Use the shared conversation
 
 | Telegram message | Result |
 | --- | --- |
-| `/start` or `/help` | Show bot usage. |
-| `Create telegram_hello.py that prints Telegram is working` | Queue an independent senai request. |
-| `/run Edit telegram_hello.py to print Hello again` | Queue a request explicitly. |
-| `/status` | Show your three most recent requests and their states. |
-| `/result` | Resend your latest completed result; does not execute it again. |
+| `/start` or `/help` | Usage and commands. |
+| Plain text request | Execute the next turn in the shared conversation. |
+| `/run your request` | Execute a turn explicitly. |
+| `/session` | Show the saved shared Codex ID, or that the first request will create it. |
+| `/status` | Your latest three job states. |
+| `/result` | Resend your latest completed result without re-executing it. |
+| `/pair CODE` | Authorize a private account with a locally issued code. |
 
-Accepted work receives a request ID. One worker executes requests sequentially,
-while polling remains responsive to /status. Up to four queued/running jobs are
-accepted by default; extra requests receive a busy response and are not saved as jobs.
-
-Only configured users in private chats are authorized. Groups, other users, bot
-accounts, edited updates, and non-text messages do not execute code. Telegram
-message text is always a literal request, never a shell command or native CLI
-option list. Unknown slash commands display help instead of executing.
-
-Generated files stay in `/home/rk/SentiensHermes/outputs/`. For example:
-
-```bash
-python3 /home/rk/SentiensHermes/outputs/telegram_hello.py
-```
-
-Final success/failure replies return to the requesting private chat. Long results
-are split into plain-text messages without breaking Unicode. Replies longer than
-60,000 characters are truncated; complete stdout/stderr remain in local job logs.
-Local file links in a reply are not downloadable files on your phone.
-
-## 6. Configure the bot's execution defaults
-
-These are local startup options, not commands that strangers can send remotely:
-
-```bash
-senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check --search
-senai telegram --project /home/rk/SentiensHermes --skip-git-repo-check --model YOUR_MODEL --profile YOUR_PROFILE --skill YOUR_INSTALLED_SKILL
-```
-
-- --model / --profile select existing Codex settings.
-- --search enables native live search for requests.
-- --skill can be repeated for installed workflows.
-- --max-pending sets total running/queued capacity (1-100, default 4).
-- --poll-timeout sets long-poll duration (1-30 seconds, default 10).
-
-Use available models/profiles/skills. The bot does not install tools or skills.
-Each request starts a fresh conversation; generated files persist in the shared
-workspace, so later requests can still edit earlier files.
-
-Remote jobs use the normal workspace-write flow with `--ask-for-approval never`:
-action requests requiring additional interactive permission fail rather than
-waiting for a terminal approval. No sandbox/approval bypass is enabled by the adapter.
-This is not a separate security jail for arbitrary Codex tools/configuration.
-
-## 7. Optional persistent local configuration
-
-For later sessions, you may create a private env file outside the project and
-outside the Codex output workspace, for example `~/.config/senai/telegram.env`:
+Example continuity check:
 
 ```text
-TELEGRAM_BOT_TOKEN=YOUR_PRIVATE_BOT_TOKEN
-TELEGRAM_ALLOWED_USER_IDS=YOUR_NUMERIC_USER_ID
+Remember this conversation marker: TELEGRAM_MEMORY_731. Reply stored.
+What exact marker did I give you earlier?
 ```
 
-Protect it with mode 600 and use:
+The second message must recall TELEGRAM_MEMORY_731 without the marker being
+included in that message. Restart the bot and repeat the second question; /session
+must show the same ID. Another paired account uses that same shared conversation.
+
+The first post-upgrade request creates the shared session. Later turns resume
+its exact verified native thread ID using --resume; --last is never used. A failed
+resume preserves the mapping and reports failure rather than silently creating a
+new one-off conversation. Earlier independent v1 sessions are not merged together.
+
+Requests remain serialized through one worker (four pending/running jobs by default).
+Local files also persist, so later turns can edit earlier generated code. Replies
+are plain text and split safely for long Unicode responses. Large replies are
+truncated at 60,000 characters with a reference to complete local output.
+
+## 5. Execution options and files
 
 ```bash
-chmod 600 "$HOME/.config/senai/telegram.env"
-senai telegram --env-file "$HOME/.config/senai/telegram.env" --project /home/rk/SentiensHermes --skip-git-repo-check
+senai telegram --project /path/to/project --skip-git-repo-check --search
+senai telegram --project /path/to/project --model YOUR_MODEL --profile YOUR_PROFILE --skill YOUR_INSTALLED_SKILL
 ```
 
-The loader accepts only these two KEY=VALUE assignments (optional matching quotes),
-not shell scripts, `export` commands, or variable interpolation. Already-exported
-environment values take precedence over the file. Do not commit the real file.
-Bot credential variables are removed from the senai/Codex child environment.
+--skill is repeatable. --max-pending controls queue capacity; --poll-timeout
+controls long polling. Models, profiles, skills, and tools still need native setup.
+Remote text is a literal request, never a shell command or arbitrary CLI flags.
 
-## 8. State, retries, and shutdown
-
-State is under the selected project's outputs/:
+The worker uses normal workspace-write execution with --ask-for-approval never.
+Protected operations fail rather than waiting for a terminal approval. No approval
+or sandbox bypass is enabled automatically. Native configuration/tools still apply;
+this wrapper is not an independent filesystem jail.
 
 ```text
-outputs/.senai-telegram/<bot-id>/
-  bot.lock
-  state.sqlite3
-  jobs/<request-id>/stdout.txt
-  jobs/<request-id>/stderr.txt
+<project>/outputs/                         generated files
+  .senai-telegram/<bot-id>/
+    bot.lock
+    state.sqlite3                         jobs, paired users, code hashes, shared session ID
+    jobs/<request-id>/stdout.txt           native JSONL events
+    jobs/<request-id>/stderr.txt           diagnostics
+    jobs/<request-id>/response.txt         final response
 ```
 
-The SQLite store retains the update cursor, authorized prompts, job states, results,
-and sent-reply progress. Keep it private; it contains conversation content.
+The native Codex transcript remains in its normal Codex state location. The local
+DB also retains Telegram requests/results and a session_id on each new job.
+Do not publish bot state or tokens. Stop the old bot before switching code versions;
+already running Python processes do not reload this change automatically.
 
-- Duplicate updates do not rerun jobs.
-- Telegram send/network failures retry delivery without re-executing completed work.
-- A result part can be duplicated if the process crashes after Telegram accepts it
-  but before its local delivery marker is saved. Exactly-once delivery is not promised.
-- On restart, previously running work becomes interrupted and is not automatically
-  retried. Inspect outputs/logs before manually resubmitting.
-- Already accepted queued work remains queued and can run after restart, subject
-  to the current allowlist. New messages sent while the service was offline are skipped.
-- /status and /result are private to the requesting user. Revoked users cannot run
-  already queued work or receive pending results.
-- One process may poll a bot/project at a time. Do not run the same bot in multiple projects.
+## 6. Reliability and limits
 
-Press Ctrl+C once in WSL to stop polling. The adapter waits for any active request
-to finish before exiting; queued jobs and pending replies remain saved for restart.
-This version has **no /cancel command**, no automatic background-service installation,
-no voice/photo/file attachments, and no file-download interface.
+- Duplicate updates do not re-execute work; failed sends retry saved result delivery.
+- A reply part may be duplicated if Telegram accepted it immediately before a crash.
+- Accepted queued jobs persist; previously running jobs are marked interrupted and
+  are not automatically repeated. A new session ID found in an interrupted job's
+  event log is recovered before interrupted-job handling.
+- Explicit revocation is checked again before queued execution and result delivery.
+- New messages sent while the bot is offline are skipped at startup. This does not
+  erase the stored conversation, paired users, queued work, or completed results.
+- Ctrl+C stops polling and waits for active work to finish. Pending work/results remain saved.
+- No remote cancellation, voice/photos, attachments, file downloads, or service autostart.
+- The PC, WSL process, and outbound internet must remain available. No public port,
+  tunnel, or desktop Remote connection is required.
 
-## 9. Troubleshooting and verification
-
-| Symptom | Check |
-| --- | --- |
-| Missing token/allowlist error | Configure both in the same terminal, or use --env-file. |
-| Telegram status 401 | Recheck/reissue the BotFather token. |
-| Existing webhook error | Use a dedicated polling bot or explicitly manage its current webhook. |
-| Already-running/409 error | Stop the other local poller before starting a new one. |
-| No reply | Wait for ready, check numeric ID and private chat, then send /start again. |
-| Request queued but no result yet | Ask /status; Codex can take time. Result polling may add about 10 seconds. |
-| Codex login or permission error | Fix Codex locally; remote work cannot answer interactive approvals. |
-| Local network error | Check internet; durable completed results remain pending for delivery. |
+## 7. Verify
 
 ```bash
-cd /home/rk/SentiensHermes/senai
 python3 -m unittest discover -s tests -v
+bash scripts/setup_telegram.sh --help
 senai telegram --help
 ```
 
-All 100 current tests pass offline. Telegram API calls use fixtures in tests, and
-an integration test uses a real senai child plus fake Codex. The user confirmed live Telegram operation on 2026-11-08; individual manual QA subcases have not all been independently recorded.
-See [manualqa.md](../tests/manualqa.md) for live Telegram acceptance checks.
+Current evidence: 126 tests; real Codex remembered a marker after runner/store
+restart and a simulated second Telegram user, with the same saved ID. New wizard
+and pairing tests use fake APIs/private temporary files, not your live token.
+See [manualqa.md](../tests/manualqa.md), QA-20, for new live acceptance steps.
+Official protocol sources: https://core.telegram.org/bots/api and
+https://learn.chatgpt.com/docs/non-interactive-mode

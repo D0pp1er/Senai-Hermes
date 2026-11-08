@@ -35,3 +35,5 @@ See CHANGELOG.md for chronological details and verification evidence.
 - Fixed the reported non-Git command; all installed Codex 0.167.0 exec option names are recognized, with 60 passing tests and live C++/JSON verification.
 
 - Implemented Telegram control on feature/telegram-bot with no new runtime dependencies; 100 tests pass, including offline end-to-end message/job/child/result verification. Subsequently, the user confirmed live operation on 2026-11-08.
+
+- On feature/telegram-sessions: local-code pairing, automated protected configuration, and one persistent shared conversation; 126 tests pass. Two real Codex turns retained the same ID/context after a runner/store restart across simulated users. New wizard/pairing awaits live acceptance.

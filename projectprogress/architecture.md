@@ -235,7 +235,7 @@ termination or a job supervisor; native child/terminal behavior remains relevant
 | Review scopes and read-only choice | [test_review.py](../tests/test_review.py) |
 | Installed command through a real, deterministic fake child | [test_installed.py](../tests/test_installed.py) |
 
-The current suite has 100 offline tests. These verify wrapper behavior, not every
+The current suite has 126 offline tests. These verify wrapper behavior, not every
 live account/tool/model combination. Live verification evidence is recorded in
 [CHANGELOG.md](../CHANGELOG.md); the manual checklist records user-observed outcomes.
 
@@ -264,7 +264,7 @@ checks identity/webhook state. Neither mode executes requests or sends bot repli
 | Module | Role |
 | --- | --- |
 | [telegram/api.py](../senai/telegram/api.py) | HTTPS JSON Bot API transport; sanitized errors/rate-limit metadata. |
-| [telegram/config.py](../senai/telegram/config.py) | Required token and numeric allowlist; optional non-executable local env file. |
+| [telegram/config.py](../senai/telegram/config.py) | Token loading, per-project config discovery, atomic private env saving, and legacy optional allowlist. |
 | [telegram/router.py](../senai/telegram/router.py) | Authorize private sender/chat identities, route commands, enqueue literal requests. |
 | [telegram/store.py](../senai/telegram/store.py) | SQLite cursor, bounded jobs, atomic claims, interrupted recovery, and delivery outbox. |
 | [telegram/runner.py](../senai/telegram/runner.py) | Run the existing senai module in a child process, retaining stdout/stderr logs. |
@@ -279,24 +279,25 @@ Already accepted queued jobs persist; previously running jobs become interrupted
 and are not automatically re-executed.
 
 The polling thread records update consumption and job insertion in one transaction.
-Only allowlisted, non-bot private users can submit requests. It acknowledges queued
+Only paired (or legacy allowed), non-bot private users can submit requests; local revocation overrides either route. It acknowledges queued
 work and answers /status without waiting for the worker. Group/unauthorized/edited
 updates do not execute. Requests and results are scoped to the requesting chat for
 status and delivery, while the configured output workspace is intentionally shared.
 
-The worker claims one queued row atomically, rechecks the current allowlist, and runs:
+The worker claims one queued row atomically, rechecks dynamic pairing/legacy authorization, and runs:
 
 ```text
 <python> -m senai --project <configured project>
   --ask-for-approval never
   <optional skip-git/model/profile/search/skill settings>
+  --json --output-last-message <job>/response.txt
+  <optional --resume SAVED_SHARED_ID>
   -- <literal Telegram request>
 ```
 
 No shell is used. The request cannot inject CLI flags because it follows --.
 TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS are removed from the child environment.
-The child follows the ordinary write/edit execution path documented above, creating
-a fresh native Codex conversation. This is not a second implementation of the agent.
+The child follows the ordinary write/edit execution path documented above, creating the shared native conversation once and subsequently resuming its saved ID. This is not a second implementation of the agent.
 
 Results are saved durably before delivery. The polling side sends split plain-text
 parts to the authorized requesting chat and records each successful send. A send
@@ -315,3 +316,47 @@ The bot needs outbound internet and a running WSL process, not an inbound webser
 The current Telegram verification is offline: API fixtures, store/router tests,
 real worker-thread tests, and an end-to-end real senai child with fake Codex.
 The user confirmed live Telegram operation on 2026-11-08. The detailed manual acceptance checklist remains available for regression testing.
+
+
+## 11. Automated pairing and shared session upgrade
+
+[telegram/wizard.py](../senai/telegram/wizard.py), invoked by
+[scripts/setup_telegram.sh](../scripts/setup_telegram.sh), replaces the repeated
+manual export/user-ID steps. It validates a hidden token, drains stale updates,
+then shows a one-use pairing code. On a matching private message it grants the
+account and atomically saves a mode-600 per-project env file outside the workspace.
+--configure --start continues into service startup using the just-validated token.
+Normal later starts discover the config by resolved-project hash. Explicit env
+files/exports and old numeric allowlists remain supported.
+
+[telegram/connection.py](../senai/telegram/connection.py) shares bot/webhook
+validation and state-directory preparation between the wizard and server.
+[telegram/pairing.py](../senai/telegram/pairing.py) hashes random codes, expires them
+after ten minutes, and redeems them atomically into paired_users. /pair is the only
+unauthenticated private command processed; it cannot execute code. Issuing a new
+local code invalidates the prior unused one. Local --revoke-user records an explicit
+denial that overrides even legacy allowlists and affects queued work/delivery.
+
+The existing SQLite DB is migrated in place: sessions, paired_users, pairing_codes,
+and a jobs.session_id column are added without removing old jobs or update cursors.
+There is one session named telegram-shared per bot/project, shared intentionally
+by every authorized account. It is not a user privacy partition.
+
+The runner now requests native JSON events and a separate final-response file.
+It accepts a UUID from the native thread.started event, binds it to the shared
+mapping/job, and uses --resume EXACT_ID on every later turn. It never guesses
+with --last and never silently replaces a missing/failed resumed session. Missing
+first-session metadata fails visibly instead of reverting to one-off behavior.
+The raw event log allows recovery of a first-session ID from interrupted work
+before marking that job interrupted. Existing one-off transcripts are not merged.
+
+/session displays the saved ID to authorized accounts. Disconnecting Telegram,
+restarting the bot, or pairing another account leaves the mapping intact. All
+members share model history and files; per-chat /status and /result only control
+which job records are directly displayed/delivered.
+
+Verification: test_telegram_sessions.py covers exact-ID resumption and old-schema
+migration; test_telegram_pairing.py covers code expiry/use/revocation;
+test_telegram_wizard.py covers protected configuration, setup races, and startup.
+Live Codex turns confirmed memory after runner/store restart for a second simulated
+user. The new wizard/pairing protocol has not yet been live-tested with the bot.
