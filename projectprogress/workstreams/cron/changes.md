@@ -29,3 +29,13 @@
 - Additive revision migration; shared validation for create/edit. No dependency changes.
 
 - 67b8776: safe schedule management implementation; 184 offline tests pass.
+
+2026-11-09 friendly scheduling UX:
+- Authorized clean fast-forward to main e4791e8; own .venv import/editable package verified.
+- TDD red missing parse_when/draft APIs and main injection hooks; green parser/draft/wizard tests.
+- Added guarded English time grammar, immutable destination/preview, explicit confirmed commit,
+  sequential terminal flow, --when and actionable missing-first-run/non-TTY errors.
+- Existing advanced ISO flags retained; no root/shared/Telegram edits, migrations or new dependencies.
+- Exact public draft/destination hook signatures published in integration-notes.md before adapters.
+
+- fa67c50: friendly time parser and pure confirmed-draft API.
