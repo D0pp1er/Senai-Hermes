@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Meet Senai: a local Codex harness with persistent chat, human-editable memory, Telegram, scheduling and reusable skills. An eight-step project walkthrough.">
+  <meta name="theme-color" content="#f4f2e9">
+  <title>Senai — a little context goes a long way.</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#intro">Skip to the presentation</a>
+<header class="masthead">
+  <a class="brand" href="#intro" aria-label="Senai home"><span class="brand-mark" aria-hidden="true">s.</span> senai<span class="brand-sub"> / Sentien’s Hermes</span></a>
+  <div class="masthead-actions"><a class="source-link" href="https://github.com/D0pp1er/Senai-Hermes">Source ↗</a><button id="present-toggle" class="button small" type="button" hidden>Present <span aria-hidden="true">↗</span></button></div>
+</header>
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
+<div class="page-shell">
+<aside class="rail" aria-label="Presentation chapters">
+  <p class="eyebrow">A guided field trip</p>
+  <nav id="chapter-nav">
+    <a href="#intro" aria-current="location"><span>01</span> Meet Senai</a>
+    <a href="#setup"><span>02</span> Make it yours</a>
+    <a href="#cli"><span>03</span> First conversation</a>
+    <a href="#memory"><span>04</span> Give it context</a>
+    <a href="#telegram"><span>05</span> Take it with you</a>
+    <a href="#cron"><span>06</span> Put it on a clock</a>
+    <a href="#skills"><span>07</span> Teach a workflow</a>
+    <a href="#obsidian"><span>08</span> Open the notebook</a>
+  </nav>
+  <div class="rail-note"><span class="status-dot"></span> Local first. Human directed.<br><span>WSL + Python + Codex</span></div>
+</aside>
+<main id="main-content">
+<section id="intro" class="chapter hero" aria-labelledby="intro-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">01 / 08</span><span>Brief introduction</span></div>
+  <div class="hero-grid">
+    <div><p class="eyebrow">A coding harness with a longer memory</p><h1 id="intro-title">A little context<br>goes a <em>long way.</em></h1><p class="lede">Your code, your routines, your way of working. Senai brings them together around the Codex CLI you already use.</p><div class="hero-actions"><a class="button" href="#setup">Walk through the project <span aria-hidden="true">→</span></a><a class="text-link" href="https://github.com/D0pp1er/Senai-Hermes/blob/main/docs/architecture.md">Under the hood ↗</a></div></div>
+    <div class="hero-visual" aria-label="Illustrative Senai conversation and execution flow">
+      <div class="visual-topline"><span class="status-dot"></span> ONE STUDENT · ONE INSTALLATION</div>
+      <div class="message user-message"><span>YOU</span>Help me plan an AI project around my classes and BJJ training.</div>
+      <div class="context-strip"><span>USER.md</span><span>MEMORY.md</span><span>SOUL.md</span></div>
+      <div class="pipeline-line"><span>Senai context</span><b aria-hidden="true">→</b><span>Codex</span><b aria-hidden="true">→</b><span>Saved response</span></div>
+      <div class="message assistant-message"><span>SENAI · ILLUSTRATIVE RESPONSE</span>Let’s break the project into small tasks, keep your training evenings clear, and verify each change.</div>
+      <div class="visual-bottomline"><span class="mono">outputs/</span><span>Files &amp; history stay local.</span></div>
+    </div>
+  </div>
+  <div class="intro-bottom"><p><strong>One familiar command.</strong><br>CLI and persistent chat, with Telegram when you’re away.</p><p><strong>Context you can read.</strong><br>Human-editable profiles and explicit reusable skills.</p><p><strong>Work with a paper trail.</strong><br>Scheduled runs, saved outcomes and durable delivery.</p></div>
+  <p class="caption">This is a static project presentation. Commands run in your WSL terminal; this page does not connect to your accounts or execute jobs.</p>
+</section>
+<section id="setup" class="chapter" aria-labelledby="setup-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">02 / 08</span><span>Set up once</span></div>
+  <div class="section-heading"><h2 id="setup-title">From clone<br>to <em>your command.</em></h2><p>Use WSL Ubuntu, Python 3.10+ and an installed Codex CLI. Authenticate Codex in the same WSL environment.</p></div>
+  <div class="two-column"><div><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · INSTALL</span><button class="copy" type="button" data-copy="install-code" hidden>Copy</button></div><pre><code id="install-code">git clone https://github.com/D0pp1er/Senai-Hermes.git
+cd Senai-Hermes
+codex login
+bash scripts/setup_senai.sh
+source .venv/bin/activate</code></pre></div><p class="note">Need Codex first? Follow the <a href="https://developers.openai.com/codex/cli/">official CLI installation guide ↗</a>. Repository access and your own Codex account are required.</p></div>
+  <ol class="steps"><li><span>01</span><div><h3>Choose your project</h3><p>Accept the current folder for this demo. Setup saves it; later commands need no repeated paths.</p></div></li><li><span>02</span><div><h3>Choose your timezone</h3><p>For our example student, use Asia/Dhaka. Pick your actual timezone in your installation.</p></div></li><li><span>03</span><div><h3>Meet your profile files</h3><p>Setup prints MEMORY.md, USER.md and SOUL.md paths. Existing contents are preserved.</p></div></li><li><span>04</span><div><h3>Leave the extras for later</h3><p>Skip Telegram and voice for now. Neither is needed for a first CLI request.</p></div></li></ol></div>
+  <div class="callout"><strong>Already installed?</strong> Activate the venv once per terminal. The optional setup launcher makes <code>senai</code> available without activation when its directory is in PATH. No bot or scheduler starts during installation.</div>
+  <div class="verify"><span>CHECKPOINT</span>Run <code>senai --help</code> and <code>python -m pip check</code>. Expect command help and no broken dependencies.</div>
+</section>
+<section id="cli" class="chapter" aria-labelledby="cli-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">03 / 08</span><span>Check via CLI</span></div>
+  <div class="section-heading"><h2 id="cli-title">Small request.<br><em>Real artifact.</em></h2><p>Start with a tiny code change. Verify the actual file, then continue through Senai’s own persistent chat pipeline.</p></div>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · CREATE &amp; CHECK</span><button class="copy" type="button" data-copy="cli-code" hidden>Copy</button></div><pre><code id="cli-code">senai "Create hello.py that prints Hello from Senai"
+python outputs/hello.py
+senai "Edit hello.py to print Ready for the next round"
+python outputs/hello.py</code></pre></div>
+  <div class="two-column spaced"><div><h3>Keep the conversation going</h3><div class="code-block"><div class="code-heading"><span>WSL TERMINAL</span><button class="copy" type="button" data-copy="chat-code" hidden>Copy</button></div><pre><code id="chat-code">senai chat</code></pre></div><div class="chat-demo"><span class="eyebrow">Type these inside chat</span><p>Explain hello.py in one sentence.</p><p>What did we just change?</p><p class="mono">/history<br>/exit</p></div></div><div class="explanation"><h3>Exit isn’t the end of the story</h3><p>Reopen <code>senai chat</code> to continue the saved native session with its frozen memory. <code>/new</code> starts fresh context and keeps earlier transcripts.</p><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · HISTORY</span><button class="copy" type="button" data-copy="history-code" hidden>Copy</button></div><pre><code id="history-code">senai chat --history
+senai chat --sessions</code></pre></div><p class="note">Generated files use the saved project’s <code>outputs/</code>. The relative Python examples assume you accepted this clone as the project.</p></div></div>
+  <div class="verify"><span>CHECKPOINT</span>See “Hello from Senai”, then “Ready for the next round”. Reopened chat should retain the conversation. Model success prose alone is not verification.</div>
+</section>
+<section id="memory" class="chapter" aria-labelledby="memory-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">04 / 08</span><span>Memory · User · Soul</span></div>
+  <div class="section-heading"><h2 id="memory-title">More than<br><em>a blank prompt.</em></h2><p>Our illustrative user is a CS undergraduate who studies AI and trains Brazilian jiu-jitsu. Give Senai that context explicitly.</p></div>
+  <div class="profile-labels"><div><span class="file-tab">USER.md</span><h3>Who you are</h3><p>Personal facts and confirmed preferences.</p></div><div><span class="file-tab">MEMORY.md</span><h3>What matters</h3><p>Things you explicitly want retained.</p></div><div><span class="file-tab">SOUL.md</span><h3>How to respond</h3><p>Human-controlled style and identity.</p></div></div>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · EXAMPLE STUDENT PROFILES</span><button class="copy" type="button" data-copy="memory-code" hidden>Copy</button></div><pre><code id="memory-code">senai user add "I am a computer science undergraduate. My hobbies are BJJ and studying AI. I prefer concise explanations with small examples."
+senai memory add "This project is my AI coursework companion, BJJ training notebook and UFC fixture research workspace."
+senai soul add "Be clear and practical. Explain verification. Distinguish checked facts from uncertainty."
+senai user show
+senai memory show
+senai soul show</code></pre></div>
+  <div class="two-column spaced"><div><h3>Find the files. Make them yours.</h3><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · EXACT PATHS</span><button class="copy" type="button" data-copy="profile-paths" hidden>Copy</button></div><pre><code id="profile-paths">senai user path
+senai memory path
+senai soul path</code></pre></div><p>Open the printed files in your editor or alongside Codex. Setup keeps one installation root; profiles are shared across its projects.</p></div><div><h3>Check recall in a fresh request</h3><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · RECALL</span><button class="copy" type="button" data-copy="recall-code" hidden>Copy</button></div><pre><code id="recall-code">senai "What do you know about my studies, hobbies and preferred explanation style?"</code></pre></div><p class="note">Fresh sessions load profile edits. Existing sessions keep frozen snapshots. Use <code>/new</code> in CLI chat for updated profiles; earlier history remains saved.</p></div></div>
+  <div class="verify"><span>CHECKPOINT</span>The files contain your notes and a fresh request recalls CS, BJJ and AI. Inferred personal facts need confirmation; repetition alone never saves them. Automatic learning never edits SOUL.md.</div>
+</section>
+<section id="telegram" class="chapter" aria-labelledby="telegram-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">05 / 08</span><span>Set up Telegram</span></div>
+  <div class="section-heading"><h2 id="telegram-title">Your terminal,<br><em>away from the desk.</em></h2><p>Use your own Telegram bot and local pairing code. Keep the same project and installation context when you send a request from your phone.</p></div>
+  <div class="two-column"><div><ol class="steps"><li><span>01</span><div><h3>Create your bot</h3><p>Open the official <a href="https://t.me/BotFather">@BotFather</a> in Telegram, use /newbot and follow its instructions.</p></div></li><li><span>02</span><div><h3>Configure locally</h3><p>Run the configure command. Enter the token at its hidden local prompt; never in this page, a chat message or Git.</p></div></li><li><span>03</span><div><h3>Pair your private account</h3><p>Follow the code and pairing instructions printed locally. Only paired or explicitly allowed users can execute.</p></div></li></ol><div class="code-block"><div class="code-heading"><span>WSL TERMINAL</span><button class="copy" type="button" data-copy="telegram-code" hidden>Copy</button></div><pre><code id="telegram-code">senai telegram configure
+senai telegram --check
+senai telegram start</code></pre></div></div>
+  <div class="phone"><div class="phone-header"><span class="bot-avatar">s.</span><div>My Senai bot<small>ILLUSTRATIVE CHAT · USE YOUR OWN BOT</small></div></div><div class="phone-body"><div class="phone-bubble outgoing">/help</div><div class="phone-bubble outgoing">Create a Python study-plan helper for my AI coursework.</div><div class="phone-bubble incoming">The response arrives here. Check the generated file in your project’s outputs/.</div><div class="phone-bubble outgoing">/status<br>/result<br>/session</div></div><div class="phone-footer"><span>Authorized private requests</span><span aria-hidden="true">↗</span></div></div></div>
+  <div class="callout"><strong>Optional voice, later.</strong> Use <code>senai telegram voice-configure</code> for a separate speech key, then stop and restart gracefully. <code>/voice QUESTION</code> sends audio on success with text fallback. Normal text needs no speech key.</div>
+  <p class="note">Keep one bot process running in WSL; stop with Ctrl+C. All paired users share the Telegram conversation and project. Its native session is separate from local CLI chat history. Updated profiles require an operator-permitted <code>/new</code> transition in Telegram.</p>
+  <div class="verify"><span>CHECKPOINT</span>A paired request produces an actual response and file. Check /session, restart gracefully, and confirm the same native UUID remains.</div>
+</section>
+<section id="cron" class="chapter" aria-labelledby="cron-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">06 / 08</span><span>Set up cron jobs</span></div>
+  <div class="section-heading"><h2 id="cron-title">Some tasks<br><em>need a clock.</em></h2><p>Schedule a coursework reminder or a training-note check. Plain questions, readable times and a preview before anything is saved.</p></div>
+  <div class="two-column"><div><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · GUIDED WIZARD</span><button class="copy" type="button" data-copy="cron-code" hidden>Copy</button></div><pre><code id="cron-code">senai cron create</code></pre></div><dl class="wizard-example"><div><dt>Name</dt><dd>AI study check-in</dd></div><div><dt>Task</dt><dd>Reply with: Review one AI concept and log today’s BJJ training note.</dd></div><div><dt>First run</dt><dd>in 2 minutes</dd></div><div><dt>Repeat</dt><dd>once</dd></div><div><dt>Destination</dt><dd>1 <small>Choose the number next to your paired chat.</small></dd></div><div><dt>Confirm</dt><dd>yes <small>Only after checking the resolved time and timezone.</small></dd></div></dl></div>
+  <div><div class="schedule-note"><span class="eyebrow">Natural-language time</span><p>today at 10pm</p><p>tomorrow at 1 am</p><p>in 2 minutes</p><small>Use a future time. The preview shows the actual date, timezone and destination.</small></div><h3>Prefer to schedule from Telegram?</h3><p>Send <code>/cron create</code>. Answer the same questions one at a time, then <strong>Confirm</strong> or <code>/cancel</code>. The destination is your authorized private chat.</p></div></div>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · INSPECT</span><button class="copy" type="button" data-copy="cron-check-code" hidden>Copy</button></div><pre><code id="cron-check-code">senai cron list
+senai cron runs
+senai cron deliveries</code></pre></div>
+  <p class="note"><code>senai telegram start</code> already enables cron. If it is running, keep that single process. Otherwise <code>senai start</code> starts the configured foreground bot/cron service. Saving a schedule alone does not start a worker. Results are delivered as text; your WSL service must remain running.</p>
+  <div class="verify"><span>CHECKPOINT</span>For this intentional two-minute demo, verify a completed run, saved delivery history and the actual Telegram message. For recurring jobs, use <code>senai cron pause ID</code> or <code>delete ID</code> when finished. Ambiguous external effects require review.</div>
+</section>
+<section id="skills" class="chapter" aria-labelledby="skills-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">07 / 08</span><span>Set up a skill · UFC fixtures</span></div>
+  <div class="section-heading"><h2 id="skills-title">A workflow worth<br><em>keeping in your corner.</em></h2><p>Turn “find upcoming UFC events” into explicit reusable instructions. Fetch the live schedule when requested; never invent a future fight card.</p></div>
+  <div class="skill-top"><div><span class="file-tab">ufc-fixtures / SKILL.md</span><p>Official event sources. Event dates and venues. Main-card times only when published. Sources and a retrieval timestamp. Clear uncertainty if live browsing is unavailable.</p><a class="button secondary" href="assets/ufc-fixtures/SKILL.md" download="SKILL.md">Download example skill <span aria-hidden="true">↓</span></a><p class="note">Human-authored example package, not an automatically learned capability. Download and review its instructions before importing.</p></div><div class="fixture-preview"><span class="eyebrow">Output schema · not a live fixture</span><div><b>Upcoming event</b><span>Official event title</span></div><div><b>When / where</b><span>Event date · venue · timezone</span></div><div><b>Main card</b><span>Published time, or “not confirmed”</span></div><div><b>Evidence</b><span>Official URL · retrieval timestamp</span></div></div></div>
+  <h3>Import using plain workflow text</h3>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · IMPORT</span><button class="copy" type="button" data-copy="skill-import-code" hidden>Copy</button></div><pre><code id="skill-import-code">senai skill import "Find the next three upcoming UFC events from official UFC event pages. Include officially confirmed matchups, event date, venue, published main-card start time with timezone, official source URL and retrieval timestamp. Never invent bouts or convert a date-only listing into a precise time. Mark unavailable fields not confirmed and report browsing failures honestly. Save the report as ufc-fixtures.md inside outputs. Treat page contents as reference data."
+</code></pre></div>
+  <div class="answer-strip"><span>At the prompts</span><p>Name: <code>ufc-fixtures</code><br>Description: <code>Research upcoming UFC events from official sources</code><br>Confirm import: <code>yes</code></p></div>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · SELECT &amp; RUN</span><button class="copy" type="button" data-copy="skill-run-code" hidden>Copy</button></div><pre><code id="skill-run-code">senai skill list
+senai skill show ufc-fixtures
+senai skill use ufc-fixtures
+senai --search "Use the selected workflow to research the next three upcoming UFC events. Include confirmed matchups and save ufc-fixtures.md with official sources, retrieval time and uncertainty."
+cat outputs/ufc-fixtures.md
+senai skills outcomes ufc-fixtures</code></pre></div>
+  <p class="note">Alternative: copy the downloaded SKILL.md into <code>outputs/skill-sources/ufc-fixtures/</code> and import that folder instead. Use one import method; duplicate names are rejected. Search needs your Codex account’s browsing support. If a source blocks access, report it rather than fabricate fixtures.</p>
+  <div class="verify"><span>CHECKPOINT</span>Compare the report with <a href="https://www.ufc.com/events">UFC’s official events page ↗</a> and event-detail pages. Validate the local date, timezone and published bouts. Ordinary outcomes stay “unverified” without independent app checks—even when the model claims success.</div>
+</section>
+<section id="obsidian" class="chapter" aria-labelledby="obsidian-title" tabindex="-1">
+  <div class="chapter-label"><span class="section-number">08 / 08</span><span>View skills in Obsidian</span></div>
+  <div class="section-heading"><h2 id="obsidian-title">From a command<br><em>to a notebook.</em></h2><p>Export the accepted skill library to a local Obsidian vault. Read instructions, sources and history as plain Markdown.</p></div>
+  <div class="two-column"><div><div class="code-block"><div class="code-heading"><span>WSL TERMINAL · EXPORT</span><button class="copy" type="button" data-copy="obsidian-code" hidden>Copy</button></div><pre><code id="obsidian-code">senai skill export obsidian</code></pre></div><ol class="steps compact"><li><span>01</span><div><h3>Pick a dedicated vault</h3><p>When prompted, enter a real absolute folder, such as <code>/home/YOUR_USER/SenaiSkillsVault</code>. From WSL, Windows paths like <code>C:/Users/YOUR_USER/Documents/SenaiSkillsVault</code> are also supported.</p></div></li><li><span>02</span><div><h3>Open it in Obsidian</h3><p>Choose “Open folder as vault”, select that folder, then open <code>Generated/Index.md</code> and the ufc-fixtures skill note.</p></div></li><li><span>03</span><div><h3>Refresh when you choose</h3><p>Rerun export after importing or changing accepted skills. It is a one-way snapshot, not automatic sync.</p></div></li></ol></div>
+  <div class="vault-preview"><div class="vault-heading"><span class="vault-symbol" aria-hidden="true">◇</span> SenaiSkillsVault <span>ILLUSTRATIVE FILE VIEW</span></div><div class="vault-tree"><div>▾ Generated</div><div class="indent selected">▤ Index.md</div><div class="indent">▾ Skills</div><div class="indent double">▤ ufc-fixtures.md</div><div class="indent">▾ History</div><div class="indent double">▤ ufc-fixtures.md</div><div class="vault-personal">▤ Your personal notes stay yours.</div></div><blockquote>Sources, instructions and history.<br>A workflow you can actually inspect.</blockquote></div></div>
+  <div class="code-block"><div class="code-heading"><span>WSL TERMINAL · VIEW SAVED PATH &amp; REFRESH</span><button class="copy" type="button" data-copy="obsidian-check-code" hidden>Copy</button></div><pre><code id="obsidian-check-code">senai skill list
+senai skill show ufc-fixtures
+senai skill export obsidian</code></pre></div>
+  <div class="verify"><span>CHECKPOINT</span>The saved vault path appears on list/show, the exported skill is readable in Obsidian and personal notes remain untouched. Edited generated pages are protected from unsafe overwrite. Exporting a skill does not export the fetched fixtures report automatically.</div>
+  <div class="closing"><span class="eyebrow">The whole loop</span><h3>Give it context. Do the work.<br>Keep the evidence.</h3><div class="closing-links"><a class="button" href="https://github.com/D0pp1er/Senai-Hermes">Explore the repository ↗</a><a class="text-link" href="https://github.com/D0pp1er/Senai-Hermes/blob/main/docs/all-features-demonstration.md">Full manual QA ↗</a><a class="text-link" href="https://github.com/D0pp1er/Senai-Hermes/blob/main/docs/sequence-diagrams.md">4 sequence diagrams ↗</a></div></div>
+</section>
+<footer class="site-footer"><span><strong>senai</strong> / Sentien’s Hermes</span><p>A local Codex harness. Static presentation; examples are illustrative. Live execution depends on your accounts, permissions and running WSL service.</p><a href="https://github.com/D0pp1er/Senai-Hermes/blob/main/LICENSE">License ↗</a></footer>
+</main>
+</div>
+<div class="present-controls" id="present-controls" hidden aria-label="Presentation controls"><button id="previous-chapter" type="button" aria-label="Previous chapter">← Previous</button><span id="chapter-counter" aria-live="polite">01 / 08</span><button id="next-chapter" type="button" aria-label="Next chapter">Next →</button><span class="keyboard-hint">← → navigate · Esc exit</span></div>
+<div id="copy-status" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

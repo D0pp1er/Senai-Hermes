@@ -1,5 +1,11 @@
 # Changes
 
+## GitHub Pages presentation
+- Added a self-contained eight-chapter static walkthrough: introduction, install, CLI/chat, CS-student/BJJ/AI profiles, Telegram, guided cron, UFC fixtures skill and Obsidian.
+- Added presentation mode, chapter/keyboard controls, command copy buttons, responsive/print CSS and a downloadable human-authored UFC skill. Fixture data is fetched only when the user runs it; no fabricated upcoming schedule.
+- Added a presentation-only Pages workflow and explicit publishing/preview instructions. No GitHub settings, push, deployment or production service changed.
+- Verified: HTTP page/assets, eight chapters and copy targets/local links, JavaScript syntax and isolated navigation/clipboard behavior; imported the example skill into disposable QA state with no execution. Browser automation failed to initialize, so visual/mobile browser acceptance remains unverified. Runtime code unchanged; full harness suite was not rerun.
+
 ## Persistent Senai chat
 - Replaced direct native interactive chat with a Senai loop using shared execute_request: workspace/options, selected skills, frozen installation memory, native execution and outcome learning.
 - Added private project-local SQLite transcripts, installation-partitioned local sessions, exact native UUID resume, /history all, /sessions, /resume, /new and explicit uncertain-turn fencing. Telegram state/session unchanged.
