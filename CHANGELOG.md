@@ -1,5 +1,10 @@
 # Changes
 
+## Skills manual demonstration guide
+- Added a step-by-step viewer guide and 48-case fillable CSV covering selection, outcomes, checked learning, revisions, rollback and Obsidian.
+- Marked synthetic, network, live Codex and UI checks separately; manual cases were not executed while writing this documentation.
+- Linked from README and core QA; checked CSV structure, shell snippet syntax and local links. No runtime code changed.
+
 ## Repository setup
 - Initialized a separate local Git repository in senai/.
 - Chose Python's standard library for CLI parsing, process execution, and tests.

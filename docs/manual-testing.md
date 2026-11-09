@@ -1,12 +1,14 @@
 # Core-feature manual acceptance
 
+For the complete skills workflow, use the [skills demonstration guide](skills-demonstration.md) and [fillable checklist](skills-demo-checklist.csv).
+
 Run from a fresh clone with its own activated venv. Use your own authenticated
 Codex account and a dedicated test bot. Keep results as pass/fail/not-run;
 a provider error is not a passing test. Live model/speech calls may incur usage.
 
 ## 1. Package and offline baseline
 Run python -m pip check, senai --help, codex --version and
-python -m unittest discover -s tests -v.
+python scripts/test.py (isolates saved defaults).
 Expected: command resolves to this venv, no broken dependencies, tests pass.
 Record OS/Python/Codex versions. Do not copy another checkout's .venv or outputs/.
 

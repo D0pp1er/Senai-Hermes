@@ -294,6 +294,9 @@ Detailed calendar/DST/retry/recovery rules: [cron guide](projectprogress/cron.md
 
 # Registry skills: basic use, learning and Obsidian
 
+For a viewer presentation, follow the [skills demonstration guide](docs/skills-demonstration.md) and record results in the [48-case checklist](docs/skills-demo-checklist.csv). Offline, live Codex and Obsidian checks are marked separately.
+
+
 ## Basic commands
 
 After senai setup, these use the saved project:
