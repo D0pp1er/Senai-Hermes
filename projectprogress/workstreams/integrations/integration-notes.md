@@ -126,3 +126,44 @@ Stop if the tree is not clean or the branch is not feature/integrations. Then:
     python -m unittest discover -s tests -v
     python scripts/check_workstream_scope.py --feature integrations --ready
 Reinstalling in this worktree's .venv includes the cron dependencies now present on main; never use pip --user or reinstall globally. If fast-forward refuses because new feature commits were added, stop for coordinator review; do not reset or automatically rebase. These commands do not restart the bot or migrate live runtime state.
+
+## Telegram UX contract proposal — cron conversation
+
+Feature-owned factory: create_conversation_router(base_router, **kwargs) returns
+ConversationRouter(base_router, *, project, account, parse_schedule=None,
+create_schedule=None, advanced_handler=None, timezone='Asia/Dhaka', clock=None,
+draft_ttl=600, new_session_users=(), session_guard=None).
+
+Requested cron-team parser seam (not yet merged; injected in tests):
+parse_schedule(when: str, repeat: str, *, now: aware datetime, timezone: str) -> dict
+with at (aware datetime), optional timezone (must match input), every (positive int
+seconds or None), cron (five fields or None). No additional natural-language parser
+is implemented here. Cron owner must reject past/ambiguous date/year/DST interpretations
+and support the UX-contract examples. Relative reference time is frozen when the
+user answers when; confirmation checks future time again instead of moving a relative
+reminder. Explicit advanced ISO/calendar inputs reuse datetime and merged next_after.
+
+create_schedule(spec, *, target, request_key) -> nonempty schedule ID. spec contains
+name,prompt,at(aware),timezone, optional every/cron, misfire,grace_seconds,retries,
+retry_delay. target is canonical Telegram account/project/scope/user/private-chat.
+request_key is stable per draft, reserved for coordinator/backend idempotency support.
+A persisted 'creating' claim precedes callback execution; unknown callback outcomes
+remain uncertain and are not automatically retried. DraftFieldError(field,message)
+certifies no schedule was persisted and safely retries the named field. Raw exception
+messages are never shown. bind_schedule_creator(store, *, project, authorize_target,
+scope='telegram-shared') adapts the already merged Store with destination authorization.
+
+Coordinator composition: construct TelegramCron as today; pass its handle method as
+advanced_handler, bind its store/authorize through the helper, supply the cron parser,
+then wrap the conversation router in TelegramAdapter. Leave the existing foreground,
+cron worker and delivery callbacks unchanged. Do not put TelegramCron outside this
+router: its legacy /cron create handler would intercept wizard messages first.
+Other advanced actions delegate; old generic rejection text is mapped to action-level
+instructions. No shared source/router/defaults changes applied by this feature.
+
+State: protected conversations.sqlite3 beside the per-bot state DB, bound to canonical
+account/project. Drafts isolated by user/chat, expire after 10 minutes, preserve creation
+receipts/uncertainty over restart. Telegram queue cursor handles duplicate events.
+No schedules created until explicit Confirm. JSON advanced create also previews.
+Parser/creation callback absence yields an actionable local-operator message, never
+an unsendable schedule or model execution. Fresh-session policy is the next increment.

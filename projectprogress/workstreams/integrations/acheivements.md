@@ -31,3 +31,5 @@ Optional voice setup: initial Skip/configure, standalone management and automati
 Optional voice setup verified at fa9c209: 210 regression tests, 26 setup/config tests, scope/whitespace checks pass. Ready metadata prepared; all real credentials and live processes untouched.
 
 Voice-only response policy: 216 offline tests pass, including 23 voice tests covering audio success and text fallbacks/retries.
+
+UX cron milestone: 18 conversation tests and 394 combined offline tests pass. Callback and cron-team contracts documented; no live scheduling.

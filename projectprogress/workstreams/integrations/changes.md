@@ -98,3 +98,7 @@ TDD: missing voice_config module reproduced, then 13 tests passed for private fi
 User requested audio-only /voice success, text fallback. Updated durable delivery choice, omitted voice acknowledgements, added no-key/legacy/retry coverage and revised setup/help/docs. 216 offline tests pass. No changes to credentials/native auth/shared session, no live restart or merge.
 
 Voice-only implementation commit c858952; exact tested commit c858952a171916d28ed34941417c5ce56e4a4baf. 216 full tests and 23 voice tests PASS; scope/diff PASS. Ready for coordinator review, live playback NOT RUN.
+
+## UX cron conversation increment
+
+Fast-forwarded clean feature worktree to e4791e8 as authorized. Baseline 376 tests passed. RED missing conversation module and calendar-preview mismatch reproduced; GREEN 18 conversation tests and 394 full tests pass. Added separate draft state/factory and injected parser/creator contracts. No shared code, production state, service or actual scheduler activation touched.

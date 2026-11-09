@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "ready",
+  "status": "draft",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -13,7 +13,9 @@
     "senai.telegram.service",
     "senai.telegram.speech",
     "senai.telegram.store",
-    "senai.telegram.voice_config"
+    "senai.telegram.voice_config",
+    "senai.telegram.conversation",
+    "senai.telegram.conversation_state"
   ],
   "public_api": [
     {
@@ -112,8 +114,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 216,
-    "tested_commit": "c858952a171916d28ed34941417c5ce56e4a4baf",
+    "offline_test_count": 394,
+    "tested_commit": "cron conversation working tree before commit",
     "live_result": "not-run",
     "evidence_logs": [
       "outputs/qa-integrations/voice-only-red.log",
@@ -133,7 +135,7 @@
     "Voice upload failures choose text fallback; fatal authorization errors cannot deliver either format.",
     "Remote acceptance followed by network/local-cursor failure can remain ambiguous; no exactly-once guarantee."
   ],
-  "delivery_scope": "Voice-only /voice success with durable text fallback; optional protected key setup retained.",
+  "delivery_scope": "Telegram UX conversation and safe session transition work in progress.",
   "external_services": [
     "Optional OpenAI Speech API: dedicated env key, saved protected voice file, then generic OpenAI env key; local setup/check makes no network call.",
     "Installed Codex built-in image generation when available; no image API client/key added"

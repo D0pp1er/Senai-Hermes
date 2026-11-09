@@ -27,3 +27,6 @@
 - [x] Feature documentation and restart guidance; audio/text behavior unchanged.
 
 - [x] /voice audio only on success, text fallback on unavailability/failure, durable format choice and legacy partial-text compatibility.
+
+- [x] Guided cron draft/validation/preview/confirm/cancel/expiry, duplicates/restart/auth tests.
+- [ ] Explicit protected fresh-session transition and complete source-module README.

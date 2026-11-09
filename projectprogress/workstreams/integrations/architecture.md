@@ -112,3 +112,7 @@ partially sent text completes without audio. Images retain their normal media fl
 Authorization is checked before audio/media; access/auth/polling errors still stop
 rather than claiming text delivery to a destination the bot cannot access. A network
 failure after remote acceptance can still cause ambiguity; no exactly-once guarantee.
+
+## Guided cron conversation milestone
+
+Feature-owned ConversationRouter wraps existing private/auth routing and delegates advanced management. Separate ConversationState persists per-user draft phases, expiry, frozen time preview, confirmation claims and uncertain outcomes. No replacement natural-language parser; parser/creator injected as specified in integration-notes.md. Existing merged calendar helper resolves advanced cron first occurrence. No import-time effects.
