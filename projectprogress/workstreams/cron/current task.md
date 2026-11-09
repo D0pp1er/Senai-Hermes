@@ -1,7 +1,7 @@
 # Current task
 
-Friendly scheduling UX built in feature/cron after authorized fast-forward to main e4791e8.
-Parser, shared pure drafts, destination-aware terminal wizard and --when implemented with TDD.
-No shared source or production state modified. Next: final regression/readiness evidence and
-coordinator composition of the authorized destination/store hooks and Telegram conversation.
-See senai/cron/README.md for current usage/architecture; integration-notes.md for exact APIs.
+Friendly scheduling UX module is ready for coordinator review/composition.
+Parser/draft code fa67c50; wizard code 20f3245. Full offline suite: 401 passing tests.
+Readiness evidence and exact tested commit are in delivery.json. Fake-route PTY acceptance passed.
+Next: coordinator supplies authorized destinations + matching account store to CLI and composes
+Telegram per-user draft conversations using the shared helpers. No shared source or live state edited.

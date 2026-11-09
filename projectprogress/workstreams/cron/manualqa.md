@@ -68,3 +68,8 @@ retry, durable delivery, revision, coordinator and advanced CLI coverage.
 No real scheduled run, live send, production poller or Telegram conversation was activated here.
 The terminal wizard requires injected destination/store hooks; a plain unconfigured create must
 fail clearly instead of saving a local task with no execution path. Coordinator hook work is pending.
+
+PASS: exact commit 20f3245, 401 combined offline tests; real PTY wizard with fake route
+accepted sequential answers and explicit yes. One saved temporary schedule, zero executions.
+Logs: outputs/cron-qa/ux-tests.log, ux-pty.log, ux-acceptance.json, ux-install.log.
+Live friendly scheduling/Telegram UI NOT RUN; no workers or production state used.

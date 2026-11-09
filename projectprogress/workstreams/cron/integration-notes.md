@@ -47,7 +47,7 @@ Feature-local CLI main now accepts optional keyword-only store_factory for the s
 
 Added explicit senai cron worker / worker-status commands in 58109c0. Execution and delivery loops are independent; scheduled native execution has a configurable process-group deadline. Unknown execution pauses the schedule and bypasses retries; ambiguous sends remain unknown. Singleton locking preserves Telegram's exact shared-session policy. Existing bot --enable-cron mode also drains delivery independently. All 312 tests passed, including disposable offline pipeline/authorized-delivery and restart acceptance. Live acceptance remains pending explicit instruction; production services/state were not used. Startup, shutdown and recovery: projectprogress/cron.md.
 
-## Friendly UX contract (planned public API, 2026-11-09)
+## Friendly UX contract (implemented public API, 2026-11-09)
 - parse_when(text, *, now, timezone) -> aware datetime; raises TimeClarification(ValueError)
   with actionable text for unsupported/ambiguous/past/year/DST input. Clock always injected.
 - Destination(key, label, scope, target, execution_hint): immutable adapter-provided option.
@@ -65,5 +65,11 @@ Added explicit senai cron worker / worker-status commands in 58109c0. Execution 
   defaults. No destination adapter means wizard refuses without creating an unsendable task.
   Coordinator must inject account-specific authorized options AND matching store_factory,
   or a real local executor/delivery adapter; never guess a local delivery path or start a worker.
-These signatures are the integration contract being implemented here; shared adapters remain
+These implemented signatures are the published integration contract; shared adapters remain
 coordinator/integrations-owned. Do not copy a second time parser into Telegram.
+
+Friendly UX implementation commits: fa67c50 (parser/drafts), 20f3245 (wizard/module README).
+Exact code commit 20f3245a0848655f681dceb7b82280b7de71f12b passed 401 full offline tests. Real PTY acceptance with a fake
+route saved one disposable schedule and zero execution runs. Runtime/delivery/worker code and
+DB schemas were untouched. Coordinator may now compose these helpers; no Telegram UX adapter
+is changed here. Missing route returns a clear error with no save. No live friendly UX checks.

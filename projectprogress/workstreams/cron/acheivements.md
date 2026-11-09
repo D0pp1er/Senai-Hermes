@@ -27,3 +27,6 @@
 - Own worktree editable install refreshed with --no-deps; pip check passes. No new dependency.
 - No live schedule/model/message operation in this feature work. Destination/account/chat
   composition remains explicitly coordinator-owned; missing wizard route fails without writes.
+
+- Exact implementation commit 20f3245: 401 full offline tests passed; real PTY fake-route
+  wizard passed (one saved disposable schedule, zero executions). Evidence in outputs/cron-qa/.

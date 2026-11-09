@@ -39,3 +39,5 @@
 - Exact public draft/destination hook signatures published in integration-notes.md before adapters.
 
 - fa67c50: friendly time parser and pure confirmed-draft API.
+
+- 20f3245: confirmed terminal wizard and module README; 401 tests and offline PTY smoke pass.
