@@ -46,3 +46,24 @@ Feature-local CLI main now accepts optional keyword-only store_factory for the s
 ## Supervised cron worker (2026-11-09)
 
 Added explicit senai cron worker / worker-status commands in 58109c0. Execution and delivery loops are independent; scheduled native execution has a configurable process-group deadline. Unknown execution pauses the schedule and bypasses retries; ambiguous sends remain unknown. Singleton locking preserves Telegram's exact shared-session policy. Existing bot --enable-cron mode also drains delivery independently. All 312 tests passed, including disposable offline pipeline/authorized-delivery and restart acceptance. Live acceptance remains pending explicit instruction; production services/state were not used. Startup, shutdown and recovery: projectprogress/cron.md.
+
+## Friendly UX contract (planned public API, 2026-11-09)
+- parse_when(text, *, now, timezone) -> aware datetime; raises TimeClarification(ValueError)
+  with actionable text for unsupported/ambiguous/past/year/DST input. Clock always injected.
+- Destination(key, label, scope, target, execution_hint): immutable adapter-provided option.
+  target is a JSON-serializable dict; adapter is responsible for authorization and store choice.
+- build_draft(*, name, prompt, when, recurrence, destination, now, timezone,
+  parser=parse_when) -> ScheduleDraft; pure, no writes. recurrence: once/daily/weekly,
+  every N seconds/minutes/hours/days, or cron EXPR. First-run time is always asked separately.
+- preview_draft(draft) -> str: full local time/zone, recurrence, destination and execution hint.
+- commit_draft(store, draft, *, project, now, confirmed) -> str | None:
+  confirmed=False writes nothing; confirmed=True revalidates future time then Store.create.
+  Adapter owns duplicate-update suppression, per-user drafts, timeout and /cancel state.
+- cron.__main__.main(argv=None, *, store_factory=None, stdin=None, stdout=None,
+  stderr=None, clock=None, timezone=None, destinations=()) -> int.
+  destinations are trusted Destination options for the selected store; timezone overrides saved
+  defaults. No destination adapter means wizard refuses without creating an unsendable task.
+  Coordinator must inject account-specific authorized options AND matching store_factory,
+  or a real local executor/delivery adapter; never guess a local delivery path or start a worker.
+These signatures are the integration contract being implemented here; shared adapters remain
+coordinator/integrations-owned. Do not copy a second time parser into Telegram.
