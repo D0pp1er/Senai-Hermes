@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Integrations change notes
 
 Maintain dated, feature-local changes and short commit IDs here. Root CHANGELOG.md is coordinator-owned.

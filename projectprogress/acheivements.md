@@ -1,3 +1,5 @@
+> Development history and progress, not onboarding instructions. Current setup and supported capabilities are documented in README.md and docs/.
+
 # Achievements
 
 - Created the local Git repository and documented development steps.

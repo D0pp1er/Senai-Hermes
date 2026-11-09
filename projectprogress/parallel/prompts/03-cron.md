@@ -2,10 +2,10 @@
 
 Implement this workstream in WSL Ubuntu-22.04.
 
-- Assigned folder: /home/rk/SentiensHermes/senai-cron
+- Assigned folder: /path/to/workspace/senai-cron
 - Assigned branch: feature/cron
 - Repository: senai, a Python 3.10+ wrapper around installed Codex CLI.
-- Environment: /home/rk/SentiensHermes/senai-cron/.venv
+- Environment: /path/to/workspace/senai-cron/.venv
 - Progress directory: projectprogress/workstreams/cron/
 - Existing features: code writing/editing, Codex options/native modes, Telegram pairing,
   protected setup, durable jobs, and one shared persistent Codex session.
@@ -65,7 +65,7 @@ Memory/skill/delivery integrations should be callbacks until sibling branches ar
 ## First commands
 
 ```bash
-cd /home/rk/SentiensHermes/senai-cron
+cd /path/to/workspace/senai-cron
 source .venv/bin/activate
 git branch --show-current
 python -c 'import senai, sys; print(sys.executable); print(senai.__file__)'

@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Safe scheduling and delivery contract
 
 2026-11-09: first durable-delivery milestone; no live scheduling enabled.

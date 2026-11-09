@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Current task
 
 Branch: feature/skills

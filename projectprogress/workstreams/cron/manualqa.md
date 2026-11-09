@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Cron manual QA
 PASS: own .venv Python and senai import both resolve inside senai-cron; branch feature/cron.
 PASS: 126 baseline offline tests; eight new feature tests. No live checks performed.

@@ -11,7 +11,7 @@ No credentials are copied into this repository.
 | R1 | Accept user input through a simple interface | Done | Red: CLI invocation has no handler. Green: quoted request reaches the adapter; empty input fails. Tests: tests/test_cli.py. |
 | R2 | Process input and pass appropriate context/instructions to Codex CLI | Done | Red: missing context or wrong cwd. Green: prompt boundaries, workspace, and stdin delivery match expectations. Mock subprocess; inspect exact arguments. |
 | R3 | Capture Codex output and return it to the user | Done | Red: missing final message/errors lost. Green: final-response capture and nonzero/missing executable/empty response tests. Live create/edit checks recorded in CHANGELOG.md. |
-| R4 | Extend the wrapper with selected Hermes-like capabilities | Partial | Reuse native Codex skills and session mechanisms first. Each added capability starts with a failing behavior test and ends with one feature commit. Custom memory/scheduling is optional, not yet implemented. |
+| R4 | Extend the wrapper with selected Hermes-like capabilities | Partial | Reuse native Codex skills and session mechanisms first. Each added capability starts with a failing behavior test and ends with one feature commit. Installation-wide memory and explicit supervised scheduling are integrated; consult the current README for limits. |
 
 ## Research and development requirements
 

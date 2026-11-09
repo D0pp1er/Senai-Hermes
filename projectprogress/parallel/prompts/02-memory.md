@@ -2,10 +2,10 @@
 
 Implement this workstream in WSL Ubuntu-22.04.
 
-- Assigned folder: /home/rk/SentiensHermes/senai-memory
+- Assigned folder: /path/to/workspace/senai-memory
 - Assigned branch: feature/memory
 - Repository: senai, a Python 3.10+ wrapper around installed Codex CLI.
-- Environment: /home/rk/SentiensHermes/senai-memory/.venv
+- Environment: /path/to/workspace/senai-memory/.venv
 - Progress directory: projectprogress/workstreams/memory/
 - Existing features: code writing/editing, Codex options/native modes, Telegram pairing,
   protected setup, durable jobs, and one shared persistent Codex session.
@@ -64,7 +64,7 @@ Telegram's shared Codex conversation must not be mistaken for project memory or 
 ## First commands
 
 ```bash
-cd /home/rk/SentiensHermes/senai-memory
+cd /path/to/workspace/senai-memory
 source .venv/bin/activate
 git branch --show-current
 python -c 'import senai, sys; print(sys.executable); print(senai.__file__)'

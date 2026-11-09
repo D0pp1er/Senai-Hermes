@@ -8,7 +8,7 @@ Live scheduling is disabled by default. No production bot restart, OS cron/syste
 Dependencies from requirements-cron.txt are consolidated in pyproject.toml and installed only in main's .venv. Use that environment's senai command; the global editable installation was not modified.
 
 ## Safe local management
-From /home/rk/SentiensHermes/senai, activate .venv. The management commands do not start a worker:
+From the repository checkout, activate .venv. The management commands do not start a worker:
     senai cron --project PROJECT list
     senai cron --project PROJECT dry-run
     senai cron --project PROJECT create --name NAME --prompt TASK --scope local --at 2035-01-01T09:00:00+06:00

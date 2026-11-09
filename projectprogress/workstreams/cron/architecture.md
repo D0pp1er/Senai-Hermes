@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Cron architecture
 
 Store owns a feature-local SQLite DB under <project>/outputs/.senai-cron/. Importing modules

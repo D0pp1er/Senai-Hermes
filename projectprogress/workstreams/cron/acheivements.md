@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Cron achievements
 - Baseline: 126 offline tests passed in this worktree .venv.
 - TDD red: tests failed importing missing senai.cron.

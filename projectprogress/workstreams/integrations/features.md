@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Telegram optional voice setup
 
 Telegram works without a voice key. During `senai telegram --configure` (with or

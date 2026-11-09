@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Current task
 
 Feature/cron: safe schedule inspection/editing implemented with revision checks and active-work

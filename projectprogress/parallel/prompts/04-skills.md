@@ -2,10 +2,10 @@
 
 Implement this workstream in WSL Ubuntu-22.04.
 
-- Assigned folder: /home/rk/SentiensHermes/senai-skills
+- Assigned folder: /path/to/workspace/senai-skills
 - Assigned branch: feature/skills
 - Repository: senai, a Python 3.10+ wrapper around installed Codex CLI.
-- Environment: /home/rk/SentiensHermes/senai-skills/.venv
+- Environment: /path/to/workspace/senai-skills/.venv
 - Progress directory: projectprogress/workstreams/skills/
 - Existing features: code writing/editing, Codex options/native modes, Telegram pairing,
   protected setup, durable jobs, and one shared persistent Codex session.
@@ -67,7 +67,7 @@ if actually authoring reusable Codex skills. Keep learned artifacts in your isol
 ## First commands
 
 ```bash
-cd /home/rk/SentiensHermes/senai-skills
+cd /path/to/workspace/senai-skills
 source .venv/bin/activate
 git branch --show-current
 python -c 'import senai, sys; print(sys.executable); print(senai.__file__)'

@@ -5,7 +5,7 @@ Do not rebase main to upload already-integrated work.
 
 ## Before pushing main
 
-Run from /home/rk/SentiensHermes/senai:
+Run from /path/to/workspace/senai:
 
     git status
     git fetch origin

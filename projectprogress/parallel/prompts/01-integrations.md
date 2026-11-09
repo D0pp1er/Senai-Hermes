@@ -2,10 +2,10 @@
 
 Implement this workstream in WSL Ubuntu-22.04.
 
-- Assigned folder: /home/rk/SentiensHermes/senai-integrations
+- Assigned folder: /path/to/workspace/senai-integrations
 - Assigned branch: feature/integrations
 - Repository: senai, a Python 3.10+ wrapper around installed Codex CLI.
-- Environment: /home/rk/SentiensHermes/senai-integrations/.venv
+- Environment: /path/to/workspace/senai-integrations/.venv
 - Progress directory: projectprogress/workstreams/integrations/
 - Existing features: code writing/editing, Codex options/native modes, Telegram pairing,
   protected setup, durable jobs, and one shared persistent Codex session.
@@ -32,7 +32,7 @@ Targets in small commits:
 First milestone: failing adapter-contract tests, then a working Telegram-compatible adapter.
 Discord live testing needs the user's app/token/channel setup later; do not request secrets
 in chat or treat unavailable credentials as an excuse to skip offline implementation.
-Do not run the production Telegram bot or use /home/rk/SentiensHermes as a test project.
+Do not run the production Telegram bot or use /path/to/workspace as a test project.
 Research additional platforms only after these boundaries work; do not claim every platform
 is integrated. Preserve the existing deliberate shared-session policy and document new
 cross-platform scope decisions instead of silently sharing or isolating context.
@@ -65,7 +65,7 @@ cross-platform scope decisions instead of silently sharing or isolating context.
 ## First commands
 
 ```bash
-cd /home/rk/SentiensHermes/senai-integrations
+cd /path/to/workspace/senai-integrations
 source .venv/bin/activate
 git branch --show-current
 python -c 'import senai, sys; print(sys.executable); print(senai.__file__)'

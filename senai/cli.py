@@ -16,7 +16,7 @@ from .workspace import prepare_workspace, resolve_output_path
 def build_parser():
     parser = argparse.ArgumentParser(
         description=__doc__, allow_abbrev=False,
-        epilog='Use senai chat for interactive Codex, senai review for code review, senai telegram for bot control, or senai codex -- <args> for native commands.',
+        epilog='Use senai chat for interactive Codex, senai review for code review, senai telegram for bot control, senai memory for profiles, senai cron for schedules, or senai codex -- <args> for native commands.',
     )
     parser.add_argument('request', nargs='?', help='Quoted request, or - to read stdin.')
     parser.add_argument('--project', '-C', '--cd', default='.', help='Parent project directory; code goes in its outputs/ folder.')

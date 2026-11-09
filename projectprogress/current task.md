@@ -1,3 +1,5 @@
+> Development history and progress, not onboarding instructions. Current setup and supported capabilities are documented in README.md and docs/.
+
 # Current task
 
 Strengthen modular delivery and merge-conflict prevention for four active workstreams.

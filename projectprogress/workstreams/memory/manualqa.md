@@ -1,3 +1,5 @@
+> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
+
 # Memory manual QA
 
 Date: 2026-11-09. Run commands from the assigned WSL checkout.
