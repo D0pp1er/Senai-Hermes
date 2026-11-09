@@ -289,3 +289,7 @@ Reinstalling in this worktree's .venv includes the cron dependencies now present
 ## Confirmed memory learning (2026-11-09)
 
 Integrated 929a2ea in b6c56f7; successful-outcome evaluator wiring 4ffc1aa. Personal facts require explicit user retention confirmation; repetition never confirms. Only app-verified significant milestones qualify automatically. SOUL.md stays human-controlled. Installation-wide memory and frozen session snapshots preserved. Branch readiness/248 tests and combined 370 tests passed. See projectprogress/memory-learning.md. No push, deployment or production bot state used.
+
+## New-user documentation and compatibility audit (2026-11-09)
+
+Refreshed portable README/setup/command/compatibility/architecture/manual acceptance guides. Preserved earlier guides under projectprogress/history and labeled workstream records as historical. Parameterized contributor templates and removed user-wide install advice. Runtime source/scripts contain no developer-specific home paths. Updated CLI help to include memory and cron. Main and isolated fresh-checkout suites: 370 passed each. Local fresh clone dependency/install/entry-point checks passed; host ensurepip limitation is disclosed. No live providers, bot state or services used. No push performed.

@@ -23,3 +23,16 @@ supervised scheduled delivery still needs separately authorized acceptance.
 No automatic old-session memory adoption, snapshot refresh, autonomous milestone
 classifier, skill import/relearning, Discord or OS-installed service is shipped.
 See [manual acceptance](manual-testing.md).
+
+## Fresh-checkout audit
+
+Source 7a8a8e2 was cloned locally into an isolated checkout and installed into a
+new virtual environment. Package dependency checks, installed command entry points
+and all 370 offline tests passed. The host lacks ensurepip, so QA used venv
+--without-pip plus an isolated pip bootstrap; standard new-user setup should install
+OS venv support as documented. This is not a test of unauthenticated GitHub access
+or a clean OS with every prerequisite installed.
+
+Evidence: outputs/fresh-clone-qa/report.json, install.log and regression.log.
+No live bot, native account state, speech call or scheduler was used.
+The GitHub clone route can include these changes only after main is pushed.

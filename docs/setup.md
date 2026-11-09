@@ -1,8 +1,17 @@
 # Setup and troubleshooting
 
 Follow README clone/venv steps in the WSL Linux filesystem. Dependencies (croniter,
-python-dateutil, six, tzdata) install from pyproject.toml. No personal venv, account,
+python-dateutil, six, tzdata) install from pyproject.toml. Repository read access is required if the GitHub repository is private. No personal venv, account,
 bot, runtime state or API key is bundled.
+
+On Ubuntu, if these prerequisites are missing, install them before creating the venv:
+
+~~~bash
+sudo apt update
+sudo apt install git python3 python3-venv python3-pip
+~~~
+
+Install Codex separately following the [official Codex CLI guide](https://developers.openai.com/codex/cli/); no Codex binary or model access is bundled.
 
 ## Telegram and voice
 
