@@ -137,3 +137,10 @@ an example; no text with redirected stdin returns 2 and an example command witho
 Missing configuration/folder/setup, full files, corrupt UTF-8, symlinks and conflicts
 have specific actionable errors. No facts are automatically learned by this helper.
 Live root-router/Telegram /new checks are NOT RUN; coordinator owns those hooks.
+
+Final UX code commit e5459f8: 393 full offline tests PASS (70 memory, 17 new shortcut).
+Retained exact-commit log: outputs/qa-project/memory-profile-ux-tests.log.
+Subprocess + pseudo-TTY QA: outputs/qa-project/memory-profile-ux-qa.json PASS.
+Editable environment refreshed after main update; initial dependency-only cron baseline
+failures resolved by installing integrated pyproject dependencies into this .venv.
+Pip check PASS: outputs/qa-project/memory-profile-ux-env.log. No dependency files changed.

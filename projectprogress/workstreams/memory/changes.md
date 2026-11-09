@@ -40,3 +40,7 @@ Thirteen new behavior tests pass, including integrated callback success/failure 
 install to obtain integrated cron dependencies, pip check PASS. Added human profile
 shortcuts/setup/demo/README. TDD red: missing exports; additional red tests exposed
 subparser stream leakage and multiline duplicate append, both fixed. 17 focused tests pass.
+
+- e5459f8: human profile UX helper/setup/demo/README. 393 full offline tests PASS,
+  including 70 memory tests (17 new focused tests). Pseudo-TTY/subprocess QA and pip
+  check PASS; exact-commit evidence retained. No shared source or production changes.

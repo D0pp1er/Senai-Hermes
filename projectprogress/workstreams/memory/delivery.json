@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "memory",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.memory.store",
     "senai.memory.context",
@@ -213,12 +213,15 @@
       ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
       "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json",
-      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v"
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_profile_commands.py -v",
+      ".venv/bin/python -m pip check",
+      "Disposable subprocess + pseudo-TTY profile UX: outputs/qa-project/memory-profile-ux-qa.json"
     ],
     "offline_result": "passed",
-    "offline_test_count": 248,
-    "tested_commit": "bd374173e05ef98d618d7689bf66906f167b162a",
-    "live_result": "not-run for new evaluator; integrated baseline acceptance documented separately",
+    "offline_test_count": 393,
+    "tested_commit": "e5459f8796d92a266b3dab4e8214c54d2fcbbb16",
+    "live_result": "not-run for new UX/root-router/Telegram fresh-session flow",
     "evidence_logs": [
       "outputs/qa-project/memory-multifile-tests.log",
       "outputs/qa-project/memory-multifile-qa.json",
@@ -226,9 +229,12 @@
       "outputs/qa-project/memory-installation-tests.log",
       "outputs/qa-project/memory-installation-qa.json",
       "outputs/qa-project/memory-noteworthy-tests.log",
-      "outputs/qa-project/memory-noteworthy-qa.json"
+      "outputs/qa-project/memory-noteworthy-qa.json",
+      "outputs/qa-project/memory-profile-ux-tests.log",
+      "outputs/qa-project/memory-profile-ux-qa.json",
+      "outputs/qa-project/memory-profile-ux-env.log"
     ],
-    "memory_test_count": 53
+    "memory_test_count": 70
   },
   "integration": {
     "shared_file_changes": [
@@ -254,7 +260,9 @@
     "New root shortcuts and Telegram /new not wired here; standalone demo and public helper work",
     "Human-only shortcut is an authorized caller boundary, not an autonomous-learning entry point",
     "setup_profiles creates explicitly requested directories/profiles; read-only show/path make no storage",
-    "Deduplication is textual case/whitespace normalization; no semantic rewriting; conflicts require reread/retry"
+    "Deduplication is textual case/whitespace normalization; no semantic rewriting; conflicts require reread/retry",
+    "UX helper/setup does not infer or save configuration; coordinator must supply the saved installation",
+    "No live root-router or Telegram /new test; feature-local subprocess and pseudo-TTY checks passed"
   ],
   "coordinator_integration": {
     "merge_commit": "0f0c979",

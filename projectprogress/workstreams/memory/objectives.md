@@ -27,5 +27,5 @@
 - [x] Explicit setup, precise paths, validation/capacity/conflicts and preservation.
 - [x] Human-only SOUL shortcut and unchanged automatic learning rules.
 - [x] Module README and standalone CLI demo; advanced API compatibility.
-- [ ] Full current-revision regression/evidence and --ready.
+- [x] Full current-revision regression/evidence and --ready.
 - Coordinator-owned: root shortcuts, onboarding/defaults and integrations /new.
