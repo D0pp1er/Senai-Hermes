@@ -40,6 +40,16 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     stderr = stderr if stderr is not None else sys.stderr
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'setup':
+        from .onboarding import setup_main
+        return setup_main(argv[1:], stdout, stderr, stdin)
+    from .defaults import load_defaults, apply_defaults
+    try:
+        defaults = load_defaults()
+        argv = apply_defaults(argv, defaults)
+    except (ValueError, OSError) as error:
+        print("senai: " + str(error), file=stderr)
+        return 2
     if argv and argv[0] == 'cron':
         from contextlib import redirect_stdout, redirect_stderr
         from .cron_runtime import manage_cli as cron_main
@@ -50,7 +60,7 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
         from .memory.__main__ import main as memory_main
         arguments = argv[1:]
         if '--installation' not in arguments and '--project' not in arguments:
-            root = os.environ.get('SENAI_INSTALLATION_ROOT')
+            root = os.environ.get('SENAI_INSTALLATION_ROOT') or defaults.get('installation')
             if root:
                 arguments = ['--installation', root, *arguments]
         with redirect_stdout(stdout), redirect_stderr(stderr):

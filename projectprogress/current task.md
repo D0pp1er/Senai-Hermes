@@ -86,3 +86,9 @@ Integrated 929a2ea in b6c56f7; successful-outcome evaluator wiring 4ffc1aa. Pers
 ## New-user documentation and compatibility audit (2026-11-09)
 
 Refreshed portable README/setup/command/compatibility/architecture/manual acceptance guides. Preserved earlier guides under projectprogress/history and labeled workstream records as historical. Parameterized contributor templates and removed user-wide install advice. Runtime source/scripts contain no developer-specific home paths. Updated CLI help to include memory and cron. Main and isolated fresh-checkout suites: 370 passed each. Local fresh clone dependency/install/entry-point checks passed; host ensurepip limitation is disclosed. No live providers, bot state or services used. No push performed.
+
+## User-flow redesign in progress
+
+Implemented coordinator saved defaults, initial setup/profile paths, short Telegram aliases and setup script. Six focused tests pass. Feature prompts: outputs/ux-prompts/. Contract: docs/development/ux-contract.md. Conversational scheduling/time parsing and short profile commands are delegated, not complete. Removed duplicated historical guide copies (Git history retained); governance and active feature contracts preserved. No production services or configuration changed.
+
+Coordinator validation: 376 offline tests passed (outputs/ux-defaults-regression.log); bash syntax check passed for scripts/setup_senai.sh. Actual installer, OS dependency installation and live onboarding were not executed. No push performed.

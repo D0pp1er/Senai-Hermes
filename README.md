@@ -79,3 +79,23 @@ External execution and sends are not guaranteed exactly once.
 
 [Requirements](main%20task.md) and [workstreams](projectprogress/parallel/README.md)
 are contributor records, not onboarding instructions.
+
+## UX redesign in progress
+
+One-time guided defaults/setup is now available:
+
+~~~bash
+bash scripts/setup_senai.sh
+~~~
+
+It installs this checkout into .venv, checks dependencies, saves one project's defaults,
+initializes preserved SOUL.md/USER.md/MEMORY.md and displays their paths, and offers
+Telegram onboarding. Existing Codex CLI is currently a prerequisite. No service
+starts automatically. An optional non-overwriting launcher can make senai available
+without activating a venv; otherwise activate once per terminal.
+
+After saved setup, senai "REQUEST", senai cron list, senai telegram start and
+senai telegram voice-configure use the configured project. Telegram start opts into
+cron. The fully conversational scheduling wizard and short profile commands are
+ASSIGNED work, not yet shipped. Continue using documented advanced forms until integrated.
+See docs/development/ux-contract.md for feature-chat boundaries.
