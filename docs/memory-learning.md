@@ -1,11 +1,9 @@
 # Confirmed outcome learning
 
-Integrated feature/memory through 929a2ea (merge b6c56f7). Coordinator wiring: 4ffc1aa.
-Branch readiness and 248 offline tests passed. Combined suite: 370 passed, including
-13 evaluator tests and 12 new confirmation/event-source integration tests.
+See [usage](../README.md#3-human-memory-preferences-and-identity) and [manual demonstrations](all-features-demonstration.md#4-memory-user-and-soul-profiles-m01m12).
 
 ## Personal facts
-With one configured SENAI_INSTALLATION_ROOT, ordinary single-line personal observations
+With one saved installation root (or an explicit SENAI_INSTALLATION_ROOT), ordinary single-line personal observations
 such as "I prefer concise replies", "I like Python" or "My habit: Checks tests" are
 candidates only. In the ordinary interactive CLI, a successful execution is followed
 by a prompt showing the exact fact. Only the user's y/yes input confirms retention.
@@ -56,13 +54,3 @@ target. One configured installation still shares USER.md/MEMORY.md across projec
 saved facts appear in fresh snapshots, not in an already-frozen native session.
 No profile/session schema migration, new dependency or production action was needed.
 
-Verification logs:
-- feature worktree outputs/qa-integration/evaluator-review.log
-- main outputs/outcome-learning-red.log
-- main outputs/outcome-learning-green.log
-- main outputs/noteworthy-combined-regression.log
-
-Tests cover confirmation acceptance/decline, real CLI input, all personal categories,
-unconfirmed repetition, forged model flags, failed tasks/checks, insignificant events,
-an actual bounded subprocess artifact check, legacy bypass rejection, separate
-installations, frozen snapshots and unchanged SOUL.md. No live bot/API state was used.

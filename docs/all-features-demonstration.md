@@ -352,7 +352,7 @@ delivery drains independently. Stop/restart idle: completed work must not rerun.
 Use offline integration fixtures for pending-delivery restart, process death, deadlines,
 partially accepted sends, revocation and unknown work. Only transport-confirmed rejection
 can safely retry; uncertain effects need review. No exactly-once guarantee. Scheduled
-delivery is text only. See [cron recovery](../projectprogress/cron.md).
+delivery is text only. See [cron recovery](cron-recovery.md).
 
 ## 11. Skills and Obsidian (S01–S48)
 

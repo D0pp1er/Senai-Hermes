@@ -33,17 +33,17 @@ supported for a one-shot. Preview shows the actual first cron match, not just it
 
 ### Execution and delivery configuration
 
-Friendly creation requires adapter-supplied `Destination` options and a matching store factory.
-Each option carries an authorized target, scope and truthful instructions explaining which
-worker executes and delivers it. These are adapter configuration, never user-entered JSON.
-Without those hooks, the wizard fails clearly and saves nothing. This feature does not invent
-a local delivery adapter, select a Telegram account, authorize a recipient or start workers.
-The coordinator must wire options to the selected account store, or implement a genuine local
-execution/delivery path. Creating a schedule alone does not execute it.
+The shared CLI supplies authorized Destination options and a matching account-store
+factory. One eligible Telegram account is automatic; otherwise select an account, or
+use --telegram-account ID. --local explicitly selects advanced local management.
+Missing eligible recipients fails clearly without creating an unsendable schedule.
+Destination authorization is rechecked at commit, execution and delivery.
 
-Existing account execution uses the coordinator's supervised worker or enabled Telegram worker.
-Do not run both for the same bot/project/shared session. Local advanced stores remain management
-state only unless the caller explicitly supplies a matching executor and delivery adapter.
+Use senai start or senai telegram start for the configured foreground bot/cron service.
+Alternatively stop the bot and run senai cron worker --telegram-account ID. Never run
+both for the same account/project/session. Local advanced stores require an explicitly
+injected executor/delivery adapter; creation alone does not execute anything.
+See [operation/recovery](../../docs/cron-recovery.md).
 
 ### Advanced compatibility
 
@@ -113,51 +113,17 @@ See the workstream integration notes for exact CLI hook signatures and coordinat
 
 ```bash
 .venv/bin/python -m unittest tests.cron.test_when tests.cron.test_draft tests.cron.test_wizard -v
-.venv/bin/python -m unittest discover -s tests -v
+python scripts/test.py
 .venv/bin/python scripts/check_workstream_scope.py --feature cron --ready
 ```
 
 All tests use temporary stores, fake clocks and fake destinations; no live schedules are started.
 No schema migration or new dependency is introduced by the friendly scheduling layer.
 
-## Friendly scheduling integration (2026-11-09)
+## Composed Telegram flow
 
-Merged c240922 in cdd0375; coordinator wiring ad81604. Feature readiness and 401 tests
-passed again; 409 combined tests passed, including 8 destination/conversation tests.
-No live service, schedule execution or provider call was activated.
-
-After saved setup and Telegram pairing:
-    senai cron create
-asks name, task, first run (for example today at 10pm, tomorrow at 1 am, in 2 minutes),
-recurrence, authorized destination, then a complete timezone-aware preview and yes/no.
-Nothing is saved until confirmation. Non-TTY use requires the documented full flags.
-The CLI reads existing local authorization without polling Telegram. It supplies matching
-Destination options and the account-specific authorized store. Revocation is rechecked
-on create. No usable destination means a clear error, not an unsendable local task.
-With one eligible account, account-store management is selected automatically; multiple
-accounts require an explicit selection. --telegram-account remains available.
---local selects the advanced local store explicitly. Full create flags with --scope
-retain their legacy local behavior unless --telegram-account is explicitly selected.
-
-In a cron-enabled bot:
-    /cron create
-asks name -> task -> first run -> repeat -> preview -> yes/no. Delivery is fixed to
-that authorized private chat. /cancel discards the ephemeral draft; timeout is ten
-minutes from creation. Drafts are per-user and disappear on process restart.
-Duplicate updates do not create twice. Revocation cancels the draft. Invalid time/
-repeat input retries the same question with actionable help. Confirmation revalidates
-the previewed fixed instant and authorization. JSON advanced creation remains supported.
-
-Both interfaces consume shared parse_when/build_draft/preview_draft/commit_draft; there
-is no second date parser. Existing claim/retry/deadline/delivery/session semantics remain.
-Saving does not start a worker. Normal senai telegram start opts into the existing cron
-loop; no bot was started or restarted during this integration.
-
-Evidence:
-- feature outputs/cron-qa/coordinator-ux-review.log
-- main outputs/friendly-routing-red.log and friendly-routing-green.log
-- main outputs/friendly-cron-combined.log
-
-Manual checks for later: create from CLI and Telegram, cancel, enter an invalid/past time,
-confirm the resolved local timezone/time and destination, and verify list/show use the
-same account store. Live UX acceptance is still pending explicit operator testing.
+/cron create uses the same parser/draft helpers and asks name, task, time, repeat,
+preview, then Confirm or /cancel. It fixes delivery to the authorized private chat.
+Drafts expire after ten minutes; valid drafts survive restart. Invalid fields retry,
+/status remains a command and duplicate/uncertain confirmations are fenced by durable
+conversation state. See [Telegram](../telegram/README.md) and [manual acceptance](../../docs/all-features-demonstration.md).

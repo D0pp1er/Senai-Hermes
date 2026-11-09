@@ -1,5 +1,10 @@
 # Changes
 
+## Documentation cleanup
+- Removed 12 duplicate/stale navigation, setup, scorecard and aggregate-progress files; replaced historical cron/learning guides with current operational docs. Git retains prior versions.
+- Kept one 134-case scorecard, comprehensive feature and skills walkthroughs, detailed module architecture and recovery contracts. Refreshed integrated module guidance and requirement statuses.
+- Retained source/tests, contributor policies, workstream delivery records and all runtime/configuration state. Verification is documentation/link/syntax checks only; no bot restart, live schedule or provider call.
+
 ## All-feature manual QA
 - Added complete onboarding/coding/native session/memory/Telegram/voice/photo/cron/skills/architecture demonstrations and a 134-case fillable checklist.
 - Replaced the outdated core-only manual entry point with links to the comprehensive plan; marked live opt-in and offline failure-injection evidence separately.

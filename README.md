@@ -7,7 +7,7 @@ tasks with authorized delivery.
 **Verified baseline:** WSL2 Ubuntu 22.04, Python 3.10, Codex CLI 0.167.0.
 Python >=3.10 is required. The full harness uses POSIX locks/process groups and is
 not supported directly on Windows; use WSL. Other platforms remain unverified.
-Latest combined offline suite: **622 passing tests**. Skills merge 0667ad5; shared wiring 57d6c2e.
+Latest recorded combined offline suite: **622 passing tests** (historical run; see CHANGELOG).
 Provider access and live behavior must be verified with your account.
 
 For manual acceptance or a project presentation, use the [all-feature demonstration guide](docs/all-features-demonstration.md) and [134-case fillable checklist](docs/all-features-checklist.csv). They cover onboarding, coding, sessions, profiles, Telegram, media/voice, scheduling, skills and recovery, with offline/live checks marked separately.
@@ -145,7 +145,7 @@ senai memory --installation ROOT add "Detailed fact" --provenance human
 ~~~
 
 Those explicit advanced add/provenance forms write SQLite facts. The simple
-senai memory add form appends MEMORY.md. See [learning details](projectprogress/memory-learning.md).
+senai memory add form appends MEMORY.md. See [learning details](docs/memory-learning.md).
 
 ## 4. Telegram
 
@@ -292,11 +292,11 @@ External execution/delivery is not guaranteed exactly once. Review effects befor
 manual recovery. Pausing/deleting future work does not retract pending results.
 Scheduled delivery is currently text, not voice/photos.
 
-Detailed calendar/DST/retry/recovery rules: [cron guide](projectprogress/cron.md).
+Detailed calendar/DST/retry/recovery rules: [cron guide](docs/cron-recovery.md).
 
 # Registry skills: basic use, learning and Obsidian
 
-For a viewer presentation, follow the [skills demonstration guide](docs/skills-demonstration.md) and record results in the [48-case checklist](docs/skills-demo-checklist.csv). Offline, live Codex and Obsidian checks are marked separately.
+For a viewer presentation, follow the [skills demonstration guide](docs/skills-demonstration.md) and record results in the [48-case checklist](docs/all-features-checklist.csv). Offline, live Codex and Obsidian checks are marked separately.
 
 
 ## Basic commands
@@ -454,7 +454,7 @@ python scripts/test.py
 
 Expected: paths point to the saved installation; a fresh coding session recalls
 cobalt blue; cron list starts no execution; dependencies and offline tests pass.
-For full acceptance follow [manual tests](docs/manual-testing.md), using your own
+For full acceptance follow [manual tests](docs/all-features-demonstration.md), using your own
 disposable project/test bot. Live model/speech/provider calls may incur usage.
 
 Telegram checks:
@@ -532,16 +532,16 @@ Module guides:
 - [Memory usage and architecture](senai/memory/README.md)
 - [Telegram usage and architecture](senai/telegram/README.md)
 - [Cron usage and architecture](senai/cron/README.md)
+- [Skills usage and architecture](senai/skills/README.md)
+- [Detailed architecture and storage](docs/architecture.md)
+- [Cron operation and recovery](docs/cron-recovery.md)
 
 ## 9. Delivery status and limitations
 
-Integrated profiles and guarded Telegram composition: 8fe1098.
-Memory feature through 94cb6f4; integrations feature through 2e09f9a.
-Both feature readiness checks passed; independent feature suites passed 393 and
-418 tests; profile/Telegram suite passed 474 tests; the later skills-combined suite passed 622 tests. These are offline checks using
-disposable state and provider fixtures. They do not prove live account availability.
-No production restart, schedule activation, push or deployment was performed for
-this integration.
+The last recorded combined suite passed 622 offline tests using disposable state and
+provider fixtures. That evidence does not prove live provider access; record your own
+results in the [all-feature checklist](docs/all-features-checklist.csv). Merge and
+per-feature verification history is retained in [CHANGELOG](CHANGELOG.md).
 
 Known limits: full native Windows support, Discord, incoming voice transcription,
 automatic snapshot refresh, autonomous milestone classification, automatic/unreviewed skill
@@ -554,29 +554,21 @@ inside the checkout's venv. Do not rebase reviewed main history or force-push to
 conflicts. Contributor history/contracts live under projectprogress/ and are not
 required for ordinary onboarding.
 
-## Main service: cron-first execution
+## Troubleshooting
 
-~~~bash
-senai start
-~~~
+| Symptom | Action |
+| --- | --- |
+| senai not found | Activate this checkout's venv; reinstall with python -m pip install -e . if needed. |
+| Python venv/ensurepip missing | Install matching OS venv support; the setup script asks before sudo package installation. |
+| Codex missing or login error | Install/authenticate Codex in the same WSL environment. |
+| Not inside a trusted directory | Rerun saved setup for your trusted project, or explicitly use --skip-git-repo-check for an advanced request. |
+| Voice gives text | Check the exact project's voice settings and provider access; restart gracefully after configuration. |
+| Missing frozen snapshot | Start a fresh CLI session, or use permitted Telegram /new then Confirm. Preserve old state/history. |
+| Cron does not run | Check authorized account store, due time, pause state and worker startup; management alone does not run jobs. |
+| Pull/rebase conflict | Stop and inspect; use fast-forward-only updates and preserve reviewed history. |
 
-This is an alias for the existing configured Telegram/cron service, not a second
-daemon. It stays in the foreground until Ctrl+C or a fatal service error.
-The main thread handles polling and delivery; one execution worker checks due cron
-work first and runs ordinary requests when none is due. Native calls still share the
-existing execution/session gate. Delivery stays responsive while execution is busy.
+Only WSL2 Ubuntu 22.04/Python 3.10 was verified for the full harness; other Linux/macOS
+platforms remain unverified. POSIX locks/process groups are required. Future Codex
+versions may change supported options. No live account/token/database is bundled.
 
-A running task is not preempted. A continuous cron backlog can delay ordinary
-requests. Existing deadlines, unknown-outcome recovery, singleton locking and
-graceful shutdown remain unchanged. Stop with Ctrl+C and wait for active bounded
-work. Nothing installs boot autostart, starts a second poller, or activates a service
-merely from installation. The separate cron worker command remains an alternative,
-not something to run alongside this service for the same bot/project.
-
-## Skills integration verification
-
-Skills integrated through 82230b2 (tested feature source 4dbe998788e1601a464f4a7d26077848c19d7f32), merge 0667ad5, shared wiring 57d6c2e. Added singular basic skill list/use/import/show/export obsidian and plural advanced CLI. Consolidated PyYAML==6.0.3. Saved project selection feeds immutable exact-version/digest instructions/resources into the EXISTING executor, preserving native --skill, JSON options, memory, pairing and exact Telegram shared-session resume. Ordinary outcomes remain unverified without independently supplied Checks. No automatic proposal activation or model-prose verification. Obsidian path is prompted/saved on explicit export and shown on list/show; refresh stays explicit.
-
-Verification: feature ownership/readiness passed; feature 272 tests passed when its own installed command and isolated config were used. Combined main 622 tests passed, including 9 new skills-composition tests and actual offline Telegram wrapper-child context/resume coverage. Dependency check passed. Initial non-isolated runs loaded operator defaults and failed; scripts/test.py now provides repeatable isolated tests, and the explicitly unconfigured test mocks configuration instead of assuming the user's home is empty. Logs: outputs/skills-combined-regression.log, skills-composition-green.log and skills-install.log. Historical feature handoff reports actual public import/model authoring/checked acceptance/reuse/rollback and user-confirmed Windows Obsidian viewing; those LIVE checks were not rerun by the coordinator.
-
-Remaining explicit/separate paths: advanced skills run is a standalone authoring/evidence pipeline, not the Telegram session executor. Normal requests capture context/outcomes but do not create authoring run reports or auto-stage generated packages. Revision validation is a trusted Python callback/demo; no high-level validation wizard. No Telegram skill-management commands, vault watcher, automatic activation or weight training. Imported content is not security-scanned; origin/check records rely on trusted local state. No production state, live provider calls, push or deployment used.
+Contributor contracts and historical records: [projectprogress](projectprogress/README.md).

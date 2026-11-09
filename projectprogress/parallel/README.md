@@ -2,7 +2,7 @@
 
 # Four parallel workstreams
 
-This is the shared preparation baseline, not an implementation of the four features.
+These are the contributor workstream boundaries. Product usage is documented in README.md.
 All worktrees use the same Git repository/history with independent working files.
 The original /path/to/workspace/senai checkout remains main and the integration coordinator.
 
@@ -40,7 +40,7 @@ parallel bots, memory stores, skill importers, or schedulers at the production p
 ## Ownership and integration
 
 Read [execution-contract.md](execution-contract.md). Stable current APIs are frozen;
-future shared hooks described there are proposals, not implemented functions.
+any older proposal wording there must be checked against current source before use.
 
 Each feature owns its source package, test directory, and workstream progress directory.
 Root cli.py, codex.py, prompts.py, options.py, workspace.py, pyproject.toml, requirements-dev.txt,
@@ -49,7 +49,7 @@ are maintained by the integration coordinator. Do not edit them simultaneously.
 
 If a shared-file change is needed, document the minimal patch/interface requirement in
 that feature's current task.md and continue independent module tests. Feature-local CLI
-modules can be demonstrated without wiring the shared top-level router yet.
+modules remain independently testable; shared routing changes belong to the coordinator.
 Declare feature dependencies in a uniquely named requirements-<feature>.txt if needed;
 install only into your own .venv. The coordinator consolidates packaging later.
 
@@ -57,28 +57,12 @@ At completion, provide commit IDs, tests and QA evidence, dependencies, proposed
 patches, migration needs, and limits. Do not merge yourself. The coordinator merges one
 branch at a time, wires hooks, updates aggregate docs, and verifies the combined pipeline.
 
-## Environment reproduction
+## Current versus historical state
 
-WSL system Python lacks ensurepip. The initial environments are created with venv
---without-pip, then bootstrapped with pinned packaging wheels using pip --python.
-A shared read-only wheel cache is under main's outputs/parallel/wheels. It contains
-packaging tools, not runtime state or secrets. Final setup evidence is recorded in
-main's outputs/parallel/environment-report.json and setup logs.
-
-No feature implementation, Discord connection, live cron job, shared memory database,
-or global skill import is enabled by this preparation.
-
-## Prepared environment status
-
-All four worktrees/environments have been created and validated:
-- Own .venv and editable package binding, verified from /tmp rather than repository cwd.
-- User site packages disabled in each environment; no global senai reinstall.
-- Installed senai --help works, all 126 baseline tests pass per worktree, and checkouts are clean.
-- outputs/qa-project exists independently in each worktree for later runtime fixtures.
-- Four full handoff prompts are in prompts/. No new chats were created automatically.
-
-The prompts authorize scoped feature implementation when pasted into their respective
-new chats. Preparation itself did not implement the four new features.
+The four modules are integrated on main. This file describes contributor isolation,
+not pending product integration. Use the root setup script for a new checkout; do not
+assume original local worktrees, wheel caches or QA state are distributed in a clone.
+Old preparation counts and environment logs remain in Git history/CHANGELOG.
 
 Mandatory additional guidance: [merge policy](MERGE_POLICY.md) and [ownership map](ownership.json). Fill the per-feature delivery.json and run the scope guard before committing or handing off.
 

@@ -1,5 +1,3 @@
-> Main composition is integrated at 8fe1098. See the repository README for current root commands, permissions and startup. Earlier proposal wording below documents the feature API boundary.
-
 # Telegram
 
 ## Usage
@@ -37,12 +35,9 @@ private result routing is not a partition of that shared model context.
 
 ### Guided schedules
 
-The new UX is exposed by `create_conversation_router` and requires coordinator wiring
-with the cron team's parser and authorized destination/creation callbacks. The legacy
-startup is not silently replaced in this feature branch. Without those callbacks,
-requests get an actionable operator message and cannot create an unsendable schedule.
-
-Once composed, `/cron create` asks one question at a time:
+The shared composition wires create_conversation_router to the cron parser,
+authorized account-store creation and the existing execution/delivery gate.
+/cron create asks one question at a time:
 
 1. A short unique name, such as Tea break.
 2. The task, such as Remind me to make tea.
@@ -93,11 +88,8 @@ memory defaults; the installation owner must not change per request.
 
 Use `/status` for jobs, `/session` for the active conversation and the local voice-check
 command for saved voice settings. Saved settings are not proof of a running process's
-active configuration. No automatic restart or remote reload is implemented. A future
-status command should show only redacted startup-snapshot capabilities. A future key-only
-reload should be local/operator-authorized, idle-gated and atomically update both speech
-and routing; it must not retarget project/installation defaults. Coordinator review is
-required before exposing that behavior. Until then, use the normal graceful restart.
+active configuration. No automatic restart or remote reload is implemented;
+stop gracefully and restart once after local credential changes.
 
 ## Architecture
 
@@ -117,12 +109,11 @@ Public entry points:
 - `bind_schedule_creator(store, *, project, authorize_target, scope='telegram-shared')`.
 - `SessionGate(*, is_idle=None)`, `.execution()`, `.idle()`, `.wrap(runner)`.
 
-The proposed parser contract, awaiting cron/coordinator composition:
+The composed parser contract is:
 `parse_schedule(when, repeat, *, now, timezone) -> dict` with an aware future `at`,
 optional matching `timezone`, positive integer `every` seconds or `cron` (mutually
-exclusive). The cron owner must reject ambiguous dates/years/DST folds/gaps rather than
-silently choose an interpretation. Tests inject this parser; no unmerged sibling import
-or natural-language implementation is added here.
+exclusive). The shared cron parser rejects ambiguous dates/years/DST folds/gaps rather than
+silently choosing an interpretation; feature tests can still inject a parser.
 
 `create_schedule(spec, *, target, request_key) -> nonempty schedule ID` receives a canonical
 account/project/user/private-chat destination. Reauthorize it in the backend. The helper
@@ -146,10 +137,8 @@ Fresh confirmation uses the same gate as execution. `JobStore.fresh_shared_sessi
 locks its existing DB transaction, rechecks authorization/all pending jobs/the expected
 UUID, archives the old UUID as a reserved `telegram-history:` session row, then removes
 only the active pointer. Existing session schema is reused; no jobs/pairing/media migration.
-`session_history()` is a protected local API, not a public history browser. The coordinator
-must wrap both foreground and cron runners in the same gate and supply an additional
-idle check for scheduler pending/running/retrying/unknown state; a plain status read is
-not an execution lock.
+`session_history()` is a protected local API, not a public history browser. Shared composition wraps foreground and cron runners in the same gate and checks
+scheduler pending/running/retrying/unknown state; a plain status read is not a lock.
 
 ### Configured memory and installation pinning
 
@@ -172,10 +161,10 @@ No import starts a worker, contacts an API, creates a database or activates a sc
 
 ### Verification
 
-Run `.venv/bin/python -m unittest discover -s tests -v` and
+Run `python scripts/test.py` and
 `.venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready`.
 Focused UX tests: `tests.integrations.test_conversations`,
 `tests.integrations.test_new_session`, `tests.integrations.test_telegram_ux_memory`.
-They use injected clocks/parsers, fake Codex and temporary state only. Live Telegram,
-natural-language parser composition, credentials, bot restart and actual scheduling
-remain coordinator/operator acceptance tasks.
+They use injected clocks/parsers, fake Codex and temporary state only. Combined composition tests cover the actual parser and shared hooks. Live Telegram,
+credentials, bot restart and actual scheduling need separate operator acceptance; see
+[manual guide](../../docs/all-features-demonstration.md).

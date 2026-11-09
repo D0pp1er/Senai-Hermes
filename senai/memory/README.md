@@ -1,12 +1,10 @@
-> Main composition is integrated at 8fe1098. See the repository README for current root commands, permissions and startup. Earlier proposal wording below documents the feature API boundary.
-
 # Memory
 
 One senai installation has one owner and shared profiles across projects and sessions.
 
 ## Usage
 
-The coordinator's target short commands are:
+After senai setup, use the saved installation:
 
 ```bash
 senai memory add "Finished the first release"
@@ -16,17 +14,9 @@ senai memory show
 senai user path
 ```
 
-This feature branch supplies the shortcut helper; root routing is coordinator-owned.
-Use the standalone demo now, with an explicit installation root:
-
-```bash
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation memory setup
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation memory add "Finished the first release"
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation user add "Prefers concise replies"
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation soul add
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation user show
-.venv/bin/python -m senai.memory.profile_cli --installation /path/to/installation soul path
-```
+The root CLI supplies the saved installation and streams to profile_main. For an
+explicit standalone adapter, use python -m senai.memory.profile_cli --installation ROOT
+followed by memory, user or soul and its action. Root commands need no repeated path.
 
 Every kind supports `add [TEXT]`, `show`, `path`, and explicit `setup`.
 Without TEXT, add prompts once with an example when stdin is a terminal.
@@ -54,8 +44,8 @@ content is rejected. Duplicate notes (case/whitespace normalized) are not append
 
 A session uses a frozen copy loaded at its start. Editing profiles does not rewrite
 existing native chats. To load changes, start a fresh request without --resume/--last.
-Telegram fresh-session commands belong to integrations; do not delete profile files or
-snapshot databases to force a refresh.
+For Telegram, an explicitly permitted /new followed by Confirm starts a fresh shared
+session; do not delete profile files or snapshot databases to force a refresh.
 
 Advanced APIs remain available:
 
@@ -101,10 +91,11 @@ Shortcut statuses: 0 success/help/duplicate, 2 actionable validation/storage/usa
 130 cancelled input. Text is not echoed in error messages. No new dependencies or
 schema migration are introduced; WSL/POSIX file locking is required.
 
-Verify in the assigned worktree:
+Verify from an installed checkout using isolated defaults:
 
-```bash
-.venv/bin/python -m unittest discover -s tests/memory -p test_profile_commands.py -v
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python scripts/check_workstream_scope.py --feature memory --ready
-```
+~~~bash
+python scripts/test.py discover -s tests/memory -v
+~~~
+
+See [learning contract](../../docs/memory-learning.md), [architecture](../../docs/architecture.md)
+and [manual acceptance](../../docs/all-features-demonstration.md).

@@ -18,7 +18,7 @@ No credentials are copied into this repository.
 | ID | Task | Status | Verifiable approach / TDD |
 | --- | --- | --- | --- |
 | D1 | Research Hermes and compare it with Codex CLI and Claude Code | Pending | Documentation acceptance check: primary sources, comparison of persistence/skills/autonomy/channels, and dated findings. Verify links and distinguish observed behavior from claims. TDD applies to code examples, not prose. |
-| D2 | Build on Codex CLI and reuse its existing functionality | In progress | Test argument forwarding against installed CLI help; verify a real local run. Keep adapters small and document unsupported combinations. |
+| D2 | Build on Codex CLI and reuse its existing functionality | Implemented; provider/version limits apply | Test argument forwarding against installed CLI help; verify a real local run. Keep adapters small and document unsupported combinations. |
 | D3 | Disclose language and open-source tools | Done | README and pyproject.toml disclose Python, unittest, setuptools, Git, and Codex CLI. Check that dependency list matches installed runtime needs. |
 | D4 | Use only the permitted AI tools (ChatGPT/ChatGPT Work/Codex CLI) | Ongoing | Record tools used in development history; no other AI service integration. This is a process audit, not a unit-test claim. |
 | D5 | Preserve complete development chat history | Pending export | Keep this chat and Codex session history; include an authentic exported transcript in submission. Do not substitute CHANGELOG.md for complete chat history. Verify export completeness manually. |
@@ -29,9 +29,9 @@ No credentials are copied into this repository.
 
 | ID | Task | Status | Verifiable approach / TDD |
 | --- | --- | --- | --- |
-| H1 | Persistent memory across conversations | Optional backlog | Red: saved fact missing after restart. Green: store/retrieve relevant facts, test isolation, deletion, corrupt storage. Native resume is context continuity, not automatic semantic memory. |
-| H2 | Skills created/updated from experience | Optional backlog | Red: successful workflow cannot be reused. Green: versioned skill persistence/retrieval; test failed-run exclusion and revisions. Selecting an existing Codex skill does not implement automatic learning. |
-| H3 | Autonomous execution / scheduling | Optional backlog | Red: due task not run or duplicates after restart. Green: persistent schedule, controlled execution, retries/idempotency tests using a fake clock. |
+| H1 | Persistent memory across conversations | Integrated: installation profiles and frozen session snapshots | Red: saved fact missing after restart. Green: store/retrieve relevant facts, test isolation, deletion, corrupt storage. Native resume is context continuity, not automatic semantic memory. |
+| H2 | Skills created/updated from experience | Integrated: explicit checked staging/revision/acceptance/rollback | Red: successful workflow cannot be reused. Green: versioned skill persistence/retrieval; test failed-run exclusion and revisions. Selecting an existing Codex skill does not implement automatic learning. |
+| H3 | Autonomous execution / scheduling | Integrated: durable schedules and opt-in authorized execution/delivery; live QA separate | Red: due task not run or duplicates after restart. Green: persistent schedule, controlled execution, retries/idempotency tests using a fake clock. |
 | H4 | Multi-channel access (Telegram, Slack, email, etc.) | Telegram text adapter implemented; live operation confirmed by user | Red: incoming event not routed. Green: adapter contract, identity isolation, deduplication, mocked sends; live checks require account setup. |
 | H5 | Install/experiment with Hermes | Optional backlog | Optional only; isolate installation and document observations. Do not use supplied account credentials automatically. |
 
@@ -40,7 +40,7 @@ No credentials are copied into this repository.
 | ID | Task | Status | Verifiable approach / TDD |
 | --- | --- | --- | --- |
 | S1 | Source code plus setup/execution instructions | Done, maintain | Fresh editable install, senai --help, tests, and disposable live demo. |
-| S2 | Architecture, features, decisions, and limitations | Partial | README covers implementation; add research/tradeoffs and final implemented-vs-unimplemented matrix. Follow documented commands and compare claims with tests. |
+| S2 | Architecture, features, decisions, and limitations | Documented; research/deck acceptance remains separate | README, docs/architecture.md and the 134-case manual checklist describe integrated behavior and limits. Verify live claims using actual evidence. |
 | S3 | Complete development chat history | Pending export | Same acceptance check as D5; export and review for completeness before submission. |
 | S4 | Google Slides demonstration and design discussion | Pending | Create deck covering demonstration, decisions, successes, and failures; verify each claim with demo evidence. Check rendering/readability and user account access for upload. No unit tests for slide prose. |
 
@@ -53,7 +53,7 @@ No credentials are copied into this repository.
 
 ## User requirements and current compatibility milestones
 
-- WSL checkout is authoritative: /home/rk/SentiensHermes/senai.
+- The project checkout in the WSL Linux filesystem is authoritative; paths are chosen during setup.
 - Generated product files belong under outputs/; package source, tests, and progress records remain outside it.
 - Use the installed senai command, tests/, and projectprogress/.
 - Keep short commit messages; one newly achieved Codex capability per commit.
@@ -73,6 +73,6 @@ transport verification, installed-CLI parser checks, and live model checks.
 
 - [x] Non-Git execution and installed exec option parity: tests/test_git_option.py and tests/test_exec_compat.py; JSON/retained outputs in tests/test_output_options.py.
 
-- [x] Telegram adapter on feature/telegram-bot: authorized private requests (now one persistent shared conversation), durable queue/status/results, offline tests. Live operation confirmed by the user on 2026-11-08.
+- [x] Telegram adapter on main: authorized private requests (now one persistent shared conversation), durable queue/status/results, offline tests. Live operation confirmed by the user on 2026-11-08.
 
-- [x] Operator-independent Telegram setup script, protected per-project config, local-code pairing/revocation, and shared-session persistence on feature/telegram-sessions. New pairing/wizard live acceptance remains pending.
+- [x] Operator-independent Telegram setup script, protected per-project config, local-code pairing/revocation, and shared-session persistence on main. Live pairing/wizard acceptance must be recorded separately for each test installation.

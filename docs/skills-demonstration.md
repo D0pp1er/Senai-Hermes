@@ -2,9 +2,9 @@
 
 For the whole harness, use the [all-feature guide](all-features-demonstration.md) and [combined checklist](all-features-checklist.csv).
 
-Use this guide with [the fillable CSV](skills-demo-checklist.csv). It covers the skills
+Use this guide with [the combined CSV (rows S01-S48)](all-features-checklist.csv). It covers the skills
 workstream and its shared CLI/session integration, not just one successful model reply.
-For coding/memory/Telegram/cron outside skills, also use [core manual QA](manual-testing.md).
+For coding/memory/Telegram/cron outside skills, also use [core manual QA](all-features-demonstration.md).
 
 **272 tests were an automated suite, not 272 distinct product features.** That feature
 baseline included 136 skills tests plus inherited core tests. After integration,
@@ -486,7 +486,7 @@ fixtures, not your live credentials. Passing them does not establish account sup
 
 ## L. Evidence and viewer scorecard
 
-Fill docs/skills-demo-checklist.csv, or copy it under DEMO to record results.
+Copy docs/all-features-checklist.csv under DEMO and fill rows S01-S48 to record results.
 For each row record:
 - actual command/action and project/registry;
 - Pass / Fail / Not run;
