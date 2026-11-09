@@ -1,11 +1,15 @@
 # Current task
 
-Single-user installation-wide memory is ready for coordinator integration.
-Code commit d3fbff9; 176 full offline tests pass, including 40 memory tests.
-USER.md and MEMORY.md are global across this installation's task projects/sessions.
-SOUL.md is human-only. App retention accepts a real user request or a trusted verified
-noteworthy-event decision; no independent classifier runs in this module.
-Legacy scoped APIs remain intact; no real old data is copied or deleted.
-Updated integration-notes.md supersedes prior multi-user recommendations.
-Coordinator still owns installation configuration, shared CLI, session lifecycle and
-app event judgment wiring. No live model/production checks run.
+Noteworthy extension ready for coordinator review.
+Code commit bd37417: 248 full offline tests pass, including 53 memory tests
+(13 new evaluator tests). Full exact-commit log and synthetic CLI QA retained under
+outputs/qa-project/memory-noteworthy-*; delivery.json records exact API and evidence.
+
+User decision: user preferences/habits/likes/dislikes/choices require explicit retention
+confirmation, never repetition alone. Significant validator-verified milestones may
+qualify automatically. Evaluator returns proposals only and cannot target SOUL.
+Baseline main 1357cdd already integrates installation memory and native snapshot reuse.
+
+Next coordinator work: collect trusted run evidence, ask/record actual user confirmation,
+adapt proposals to the existing learning callback and verify combined behavior.
+No shared/core files changed, no new schema/dependency, no live evaluator activation.

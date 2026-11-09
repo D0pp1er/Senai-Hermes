@@ -25,3 +25,11 @@ remain compatible. TDD red: missing InstallationMemory export; green: 40 memory 
 
 - d3fbff9: single-owner installation memory implemented. Full regression 176 PASS,
   including 40 memory tests; disposable installation CLI QA and scope/readiness PASS.
+
+2026-11-09: added deterministic noteworthy proposals, confirmed-user-fact policy,
+verified milestone policy, budgets/duplicates/content filtering and evaluate-events
+dry-run CLI. TDD red: missing evaluator exports, then missing CLI command.
+Thirteen new behavior tests pass, including integrated callback success/failure paths.
+
+- bd37417: noteworthy extension. Exact-commit regression 248 PASS, including 53
+  memory tests (13 new). Synthetic CLI QA and ownership/readiness checks pass.

@@ -35,3 +35,11 @@ Forty memory tests pass; full current-revision evidence is being finalized.
 Final installation verification: d3fbff9, 176 full offline tests PASS (40 memory).
 CLI subprocesses confirm flat global files, fresh-session reload and other-installation
 isolation. Evidence retained in outputs/qa-project/memory-installation-*.
+
+Noteworthy extension: user selected explicit confirmation rather than repeated-statement
+retention. Pure structured-evidence evaluator and dry-run CLI implemented. Thirteen new
+offline tests pass; no SOUL proposal path and no arbitrary model-output validation.
+
+Final noteworthy verification at bd37417: 248 full offline tests PASS (53 memory).
+Recorded fixture emits exactly two proposals and saves no facts. New live evidence
+collection/confirmation interface remains coordinator work; no live evaluator claim.

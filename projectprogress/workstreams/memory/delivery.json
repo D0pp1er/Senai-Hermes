@@ -9,7 +9,8 @@
     "senai.memory.profiles",
     "senai.memory.session",
     "senai.memory.__main__",
-    "senai.memory.installation"
+    "senai.memory.installation",
+    "senai.memory.noteworthy"
   ],
   "public_api": [
     {
@@ -141,6 +142,21 @@
       "name": "senai.memory.InstallationMemory.remember",
       "signature": "InstallationMemory.remember(self, name, text, *, user_requested=False, noteworthy=False, verified=False)",
       "purpose": "Append a validated fact on user request or trusted noteworthy-event judgment."
+    },
+    {
+      "name": "senai.memory.MemoryEvent",
+      "signature": "MemoryEvent(event_id: str, kind: str, text: str, source: str, verified: bool = False, confirmed: bool = False, significant: bool = False) -> None",
+      "purpose": "App evidence. confirmed means explicit user approval to retain this user fact."
+    },
+    {
+      "name": "senai.memory.NoteworthyProposal",
+      "signature": "NoteworthyProposal(name: str, text: str, reason: str, evidence_id: str, noteworthy: bool = True, verified: bool = True) -> None",
+      "purpose": "Immutable fact proposal with target, reason, evidence ID and save-gating flags"
+    },
+    {
+      "name": "senai.memory.evaluate_noteworthy",
+      "signature": "evaluate_noteworthy(events, *, existing=None, max_candidates=5, max_chars=1200)",
+      "purpose": "Propose confirmed user facts or validator-verified significant milestones."
     }
   ],
   "commands": [
@@ -151,7 +167,8 @@
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-show NAME",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-apply PROPOSAL_JSON --approve",
-    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]"
+    "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]",
+    "python -m senai.memory --installation REPO evaluate-events EVENTS_JSON [--max-candidates N] [--max-chars N]"
   ],
   "executor_contract": {
     "interface": "executor(prompt, workspace, **executor_kwargs) -> str (synchronous run_codex signature)",
@@ -181,37 +198,42 @@
       "Disposable profile CLI subprocess QA: outputs/qa-project/memory-multifile-qa.json",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
-      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json"
+      "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v"
     ],
     "offline_result": "passed",
-    "offline_test_count": 176,
-    "tested_commit": "d3fbff9c41c4a56516db3868187bb0befef4d063",
-    "live_result": "not-run",
+    "offline_test_count": 248,
+    "tested_commit": "bd374173e05ef98d618d7689bf66906f167b162a",
+    "live_result": "not-run for new evaluator; integrated baseline acceptance documented separately",
     "evidence_logs": [
       "outputs/qa-project/memory-multifile-tests.log",
       "outputs/qa-project/memory-multifile-qa.json",
       "outputs/qa-project/memory-transport-tests.log",
       "outputs/qa-project/memory-installation-tests.log",
-      "outputs/qa-project/memory-installation-qa.json"
+      "outputs/qa-project/memory-installation-qa.json",
+      "outputs/qa-project/memory-noteworthy-tests.log",
+      "outputs/qa-project/memory-noteworthy-qa.json"
     ],
-    "memory_test_count": 40
+    "memory_test_count": 53
   },
   "integration": {
     "shared_file_changes": [
       "Supersedes earlier multi-user proposal: configure one explicit installation root and use InstallationMemory.snapshot for fresh sessions across projects",
       "Coordinator wires user-request/noteworthy/verified judgments into InstallationMemory.remember; SOUL remains human-only",
-      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md"
+      "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md",
+      "New extension: trusted structured evidence + explicit user confirmation -> evaluate_noteworthy -> existing LearningDecision callback; see latest integration-notes.md"
     ],
     "sibling_requirements": []
   },
   "limitations": [
-    "Installation-wide mode assumes exactly one owner; not suitable for independent users sharing an installation",
-    "Coordinator CLI/native lifecycle now wired and isolated-live tested; noteworthy-event classification remains a trusted injected validator, not an autonomous model classifier",
-    "Decision flags are trusted caller assertions, not authorization or verification by the memory module",
-    "Legacy scoped data is preserved but not automatically migrated or loaded",
-    "Files remain bounded, frozen snapshots do not update mid-session; no automatic compaction/semantic deduplication",
-    "WSL/POSIX fcntl required; no new dependencies; unencrypted local data and incomplete credential pattern filters",
-    "Concurrent edits raise conflicts; no secure erasure or retraction of old session context"
+    "Baseline installation runtime is integrated; new noteworthy evidence sourcing, user confirmation interaction and evaluator activation remain coordinator-owned",
+    "Structured rule evaluator only; no NLP classifier, raw-conversation mining, model calls or observation history",
+    "Explicit retention confirmation required for user preferences/habits/likes/dislikes/choices; repetition never substitutes",
+    "Evidence source/verified/confirmed/significant fields are trusted caller assertions, not cryptographic authorization",
+    "Normalized textual deduplication and per-batch event IDs only; no semantic deduplication or persistent event ledger",
+    "Pure evaluator writes no facts; dry-run CLI can initialize normal installation storage while reading existing profiles",
+    "Profile capacity/secret filters and frozen snapshots remain; no automatic compaction, secure erasure or retroactive context retraction",
+    "No new live evaluator tests or production bot/state changes performed"
   ],
   "coordinator_integration": {
     "merge_commit": "0f0c979",

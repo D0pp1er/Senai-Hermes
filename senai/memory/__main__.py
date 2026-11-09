@@ -12,6 +12,7 @@ from .store import MemoryStore, Namespace
 from .profiles import ProfileStore, ProfileProposal
 from .session import start_session
 from .installation import InstallationMemory
+from .noteworthy import MemoryEvent, evaluate_noteworthy
 
 
 def main(argv=None):
@@ -55,13 +56,17 @@ def main(argv=None):
     child.add_argument("--user-requested", action="store_true")
     child.add_argument("--noteworthy", action="store_true")
     child.add_argument("--verified", action="store_true")
+    child = sub.add_parser("evaluate-events", help="Dry-run proposals from trusted structured evidence")
+    child.add_argument("events", type=Path)
+    child.add_argument("--max-candidates", type=int, default=5)
+    child.add_argument("--max-chars", type=int, default=1200)
     args = parser.parse_args(argv)
     if args.installation is not None and (args.scope is not None or args.user_id is not None):
         parser.error("installation mode has one owner and no project scope selection")
     if args.project is not None and not args.scope:
         parser.error("legacy project mode requires --scope")
-    if args.command == "remember" and args.installation is None:
-        parser.error("remember requires --installation")
+    if args.command in ("remember", "evaluate-events") and args.installation is None:
+        parser.error("this command requires --installation")
     try:
         installation = InstallationMemory(args.installation) if args.installation is not None else None
         if installation is not None:
@@ -79,7 +84,20 @@ def main(argv=None):
             store = MemoryStore(path)
             path.chmod(0o600)
             profiles = ProfileStore(directory / "profiles", namespace, user_id=args.user_id)
-        if args.command == "remember":
+        if args.command == "evaluate-events":
+            with args.events.open("rb") as stream:
+                payload = stream.read(100001)
+            if len(payload) > 100000:
+                raise ValueError("events exceed input limit")
+            records = json.loads(payload)
+            if not isinstance(records, list) or len(records) > 100:
+                raise ValueError("events must be a bounded list")
+            events = [MemoryEvent(**record) for record in records]
+            existing = {name: profiles.read(name).text for name in ("USER.md", "MEMORY.md")}
+            result = [asdict(p) for p in evaluate_noteworthy(
+                events, existing=existing, max_candidates=args.max_candidates,
+                max_chars=args.max_chars)]
+        elif args.command == "remember":
             document = installation.remember(args.name, args.text, user_requested=args.user_requested,
                                               noteworthy=args.noteworthy, verified=args.verified)
             result = asdict(document)

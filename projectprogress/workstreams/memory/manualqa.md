@@ -97,3 +97,23 @@ Installation code commit d3fbff9: 176 full offline tests PASS, including 40 memo
 Retained exact-commit log: outputs/qa-project/memory-installation-tests.log.
 Disposable subprocess QA: outputs/qa-project/memory-installation-qa.json PASS.
 No live classifier, app integration or production state used.
+
+## Noteworthy dry-run QA
+
+From this WSL worktree, create a disposable installation and run:
+
+    mkdir -p outputs/qa-project/noteworthy-demo
+    .venv/bin/python -m senai.memory --installation outputs/qa-project/noteworthy-demo evaluate-events tests/memory/fixtures/noteworthy-events.json
+
+Expected: two JSON proposals: USER.md concise preference (explicitly confirmed) and
+MEMORY.md release milestone (validator-verified significant). Two unconfirmed preference
+observations and ordinary model output produce no additional proposal.
+No USER.md/MEMORY.md facts are saved by this command. Input is synthetic demo evidence;
+production code must derive flags from actual trusted validation/confirmation.
+Live evidence-collection/confirmation/callback activation: NOT RUN.
+
+Noteworthy exact-commit evidence: bd37417, 248 full offline tests PASS, including
+53 memory tests. Thirteen evaluator tests include real integrated runtime callback
+adaptation and failure exclusion. Synthetic fixture CLI QA PASS (two proposals,
+no USER/MEMORY writes). Logs: outputs/qa-project/memory-noteworthy-tests.log and
+memory-noteworthy-qa.json. Live extension: NOT RUN.
