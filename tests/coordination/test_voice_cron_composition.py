@@ -23,7 +23,7 @@ class VoiceCronCompositionTests(unittest.TestCase):
                     out, err = io.StringIO(), io.StringIO()
                     with patch.dict(os.environ, {
                             "XDG_CONFIG_HOME": str(root / "config"),
-                            "OPENAI_API_KEY": "native-auth-fixture"}, clear=True), \
+                            "OPENAI_API_KEY": "native-auth-fixture", "SENAI_INSTALLATION_ROOT": str(root)}, clear=True), \
                          patch("senai.telegram.cli.load_credentials", return_value=("123:synthetic", frozenset({7}))), \
                          patch("senai.telegram.cli.BotAPI"), \
                          patch("senai.telegram.cli.identify_bot", return_value={"id":123,"username":"test_bot"}), \
@@ -39,10 +39,15 @@ class VoiceCronCompositionTests(unittest.TestCase):
                         self.assertEqual(os.environ["OPENAI_API_KEY"],"native-auth-fixture")
                     load.assert_called_once_with(str(project))
                     self.assertEqual(runner.call_args_list[0].kwargs["execution_timeout"],77)
+                    self.assertEqual(runner.call_args_list[0].kwargs["installation"],str(root))
+                    self.assertEqual(runner.call_args_list[1].kwargs["installation"],str(root))
+                    self.assertEqual(service.call_args.args[3].gate,
+                                     service.call_args.args[2].router.session_guard.__self__)
                     self.assertIs(runner.call_args_list[1].kwargs["speech"],speech if configured else None)
                     args,kwargs = service.call_args
-                    scheduler = args[2].router
-                    self.assertEqual(scheduler.router.voice_enabled,configured)
+                    conversation = args[2].router
+                    scheduler = conversation.advanced_handler.__self__
+                    self.assertEqual(conversation.base.voice_enabled,configured)
                     self.assertEqual(kwargs["idle_work"],scheduler.worker.tick)
                     self.assertEqual(kwargs["idle_delivery"],scheduler.sender.tick)
                     self.assertIs(runner.call_args_list[0].kwargs["store"],

@@ -55,6 +55,20 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
         from .cron_runtime import manage_cli as cron_main
         with redirect_stdout(stdout), redirect_stderr(stderr):
             return cron_main(argv[1:], stdin=stdin, stdout=stdout, stderr=stderr)
+    if argv and argv[0] in ('memory','user','soul'):
+        kind = argv[0]
+        tail = argv[1:]
+        advanced = kind == 'memory' and any(
+            value.split('=')[0] in ('--provenance','--project','--scope','--user-id')
+            for value in tail)
+        selector = argparse.ArgumentParser(add_help=False)
+        selector.add_argument('--installation')
+        selected, commands = selector.parse_known_args(tail)
+        if kind != 'memory' or (commands and commands[0] in ('add','show','path','setup') and not advanced):
+            from .memory import profile_main
+            installation = selected.installation or os.environ.get('SENAI_INSTALLATION_ROOT') or defaults.get('installation')
+            return profile_main(kind,commands,installation=installation,
+                                stdin=stdin,stdout=stdout,stderr=stderr)
     if argv and argv[0] == 'memory':
         from contextlib import redirect_stdout, redirect_stderr
         from .memory.__main__ import main as memory_main

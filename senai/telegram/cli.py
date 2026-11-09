@@ -1,6 +1,7 @@
 """Run or configure the WSL Telegram bot adapter."""
 
 import argparse
+import os
 from pathlib import Path
 import secrets
 
@@ -57,6 +58,7 @@ def telegram_main(argv, stdout, stderr):
     modes.add_argument('--pair-code', action='store_true', help='Print a new single-use local pairing code; works while the bot runs.')
     modes.add_argument('--revoke-user', type=int, metavar='ID', help='Locally revoke a paired or legacy allowed user.')
     modes.add_argument('--check', action='store_true', help='Check bot identity and webhook compatibility, without polling or execution.')
+    parser.add_argument('--new-session-user',type=int,action='append',default=[],metavar='ID',help='Explicit local operator allowed to confirm /new; repeatable, disabled by default.')
     parser.add_argument('--cron-execution-timeout', type=float, default=300, help='Cron native-process deadline in seconds (1-3600; default 300).')
     parser.add_argument('--enable-cron', action='store_true', help='Explicitly enable /cron management and due work on the existing single worker.')
     parser.add_argument('--start', action='store_true', help='Start polling after --configure completes.')
@@ -70,6 +72,12 @@ def telegram_main(argv, stdout, stderr):
     args = parser.parse_args(argv)
     api = None
     try:
+        from ..defaults import load_defaults
+        startup = load_defaults()
+        installation = os.environ.get('SENAI_INSTALLATION_ROOT') or startup.get('installation') or ''
+        startup_timezone = startup.get('timezone','Asia/Dhaka')
+        if any(user <= 0 for user in args.new_session_user):
+            raise ValueError('/new operators must be positive user IDs.')
         if not 1 <= args.max_pending <= 100 or not 1 <= args.poll_timeout <= 30:
             raise ValueError('Use --max-pending between 1 and 100 and --poll-timeout between 1 and 30.')
         if args.start and not args.configure:
@@ -121,12 +129,16 @@ def telegram_main(argv, stdout, stderr):
                 from ..cron_runtime import TelegramCron
                 scheduled_runner = CommandRunner(args.project, state, store=store,
                     skip_git_repo_check=args.skip_git_repo_check, model=args.model,
-                    profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, execution_timeout=args.cron_execution_timeout)
+                    profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, execution_timeout=args.cron_execution_timeout, installation=installation)
                 scheduler = TelegramCron(project=args.project, account=str(identity['id']),
-                                         router=base_router, runner=scheduled_runner, api=api)
-            router = TelegramAdapter(scheduler or base_router, api,
-                                     project=args.project, account=str(identity['id']))
-            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media, speech=speech)
+                                         router=base_router, runner=scheduled_runner, api=api, timezone=startup_timezone)
+            from ..telegram_composition import compose_router
+            conversation, execution_gate = compose_router(base_router,scheduler,
+                project=args.project,account=str(identity['id']),operators=args.new_session_user,
+                timezone=startup_timezone)
+            router = TelegramAdapter(conversation, api, project=args.project, account=str(identity['id']))
+            runner = CommandRunner(args.project, state, store=store, skip_git_repo_check=args.skip_git_repo_check, model=args.model, profile=args.profile, search=args.search, skills=tuple(args.skill), chat_style=True, media=media, speech=speech, installation=installation)
+            runner = execution_gate.wrap(runner)
             runner.recover_session()
             store.recover_interrupted()
             service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media, idle_work=scheduler.worker.tick if scheduler else None, idle_delivery=scheduler.sender.tick if scheduler else None)

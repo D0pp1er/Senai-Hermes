@@ -202,10 +202,12 @@ def worker_main(argv, stdout, stderr, *, status_only=False):
                 if db.execute("SELECT 1 FROM jobs WHERE status='running' LIMIT 1").fetchone():
                     raise ValueError("A prior Telegram execution needs local review before starting cron.")
             router = Router(store, users, identity["username"])
+            from .defaults import load_defaults
+            startup_installation = os.environ.get('SENAI_INSTALLATION_ROOT') or load_defaults().get('installation') or ''
             runner = CommandRunner(project, state, store=store,
                 skip_git_repo_check=args.skip_git_repo_check, model=args.model,
                 profile=args.profile, search=args.search, skills=tuple(args.skill),
-                chat_style=True, execution_timeout=args.execution_timeout)
+                chat_style=True, execution_timeout=args.execution_timeout, installation=startup_installation)
             manager = TelegramCron(project=project, account=account, router=router, runner=runner, api=api)
             if (manager.store.path.parent / "worker.lock").is_symlink():
                 raise ValueError("Worker lock cannot be symlinked.")

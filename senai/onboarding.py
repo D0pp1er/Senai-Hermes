@@ -22,14 +22,9 @@ def setup_main(argv,stdout,stderr,stdin):
   zone=ask("Timezone (example Asia/Dhaka)","Asia/Dhaka")
   values={"project":str(project),"installation":str(root),"timezone":zone,"skip_git_repo_check":True}
   path=save_defaults(values)
-  from .memory import InstallationMemory
-  memory=InstallationMemory(root)
-  for name in ("SOUL.md","USER.md","MEMORY.md"):
-   document=memory.profiles.read(name)
-   if not document.path.exists():
-    with document.path.open("x") as stream:stream.write("")
-    document.path.chmod(0o600)
-   print(name+": "+str(document.path),file=stdout)
+  from .memory import setup_profiles
+  for name,path_value in setup_profiles(root).items():
+   print(name+": "+str(path_value),file=stdout)
   print("Saved local defaults: "+str(path),file=stdout)
   print("This project is trusted for non-Git requests. Existing profile contents were preserved.",file=stdout)
   if ask("Configure Telegram now? Y/n","Y").lower() in ("y","yes"):
