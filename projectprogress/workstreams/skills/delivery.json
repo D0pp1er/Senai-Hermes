@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "feature": "skills",
+  "status": "ready",
+  "modules": [
+    "senai.skills",
+    "senai.skills.cli",
+    "senai.skills.demo",
+    "senai.skills.review",
+    "senai.skills.metadata",
+    "senai.skills.errors",
+    "senai.skills.live_demo",
+    "senai.skills.sources",
+    "senai.skills.run",
+    "senai.skills.learning",
+    "senai.skills.origins",
+    "senai.skills.obsidian"
+  ],
+  "public_api": [
+    {
+      "name": "senai.skills.Registry",
+      "signature": "Registry(root)",
+      "purpose": "Open an explicit isolated registry and apply idempotent additive schema migrations."
+    },
+    {
+      "name": "senai.skills.Registry.import_local",
+      "signature": "Registry.import_local(source, *, demo=False) -> Skill",
+      "purpose": "Validate/copy a local instruction package and record imported or explicit demo origin."
+    },
+    {
+      "name": "senai.skills.Registry.list",
+      "signature": "Registry.list() -> list[Skill]",
+      "purpose": "List active packages after hash validation."
+    },
+    {
+      "name": "senai.skills.Registry.select",
+      "signature": "Registry.select(names, *, compatibility_check=None) -> list[Skill]",
+      "purpose": "Load explicit active packages with optional caller compatibility checks."
+    },
+    {
+      "name": "senai.skills.Registry.execute",
+      "signature": "Registry.execute(request, names, *, executor, compatibility_check=None)",
+      "purpose": "Invoke an injected callback with request and selected immutable skill records."
+    },
+    {
+      "name": "senai.skills.Registry.record_outcome",
+      "signature": "Registry.record_outcome(name, *, digest, request, result, checks=(), correction=\"\") -> Outcome",
+      "purpose": "Persist observed checks or unverified output against an exact accepted digest."
+    },
+    {
+      "name": "senai.skills.Registry.outcomes",
+      "signature": "Registry.outcomes(name) -> list[Outcome]",
+      "purpose": "Read stored outcome evidence for one registered skill."
+    },
+    {
+      "name": "senai.skills.Check",
+      "signature": "Check(name, passed, evidence)",
+      "purpose": "Immutable public Check record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Outcome",
+      "signature": "Outcome(id, skill_name, skill_version, skill_digest, request, result, checks, correction, status, created_at)",
+      "purpose": "Immutable public Outcome record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Registry.propose_revision",
+      "signature": "Registry.propose_revision(name, *, document, outcome_ids, reason) -> Revision",
+      "purpose": "Stage an inactive instruction revision linked to exact-base observed outcomes."
+    },
+    {
+      "name": "senai.skills.Registry.revisions",
+      "signature": "Registry.revisions(name) -> list[Revision]",
+      "purpose": "Read validated revision snapshots and proposed/active/accepted status."
+    },
+    {
+      "name": "senai.skills.Revision",
+      "signature": "Revision(id, skill_name, version, base_digest, digest, source, outcome_ids, reason, status, path, instructions, created_at)",
+      "purpose": "Immutable public Revision record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Registry.validate_revision",
+      "signature": "Registry.validate_revision(revision_id, *, validator) -> Validation",
+      "purpose": "Run injected independent regression checks and retain each attempt."
+    },
+    {
+      "name": "senai.skills.Registry.validations",
+      "signature": "Registry.validations(revision_id) -> list[Validation]",
+      "purpose": "Read revision validation history in insertion order."
+    },
+    {
+      "name": "senai.skills.Validation",
+      "signature": "Validation(id, revision_id, base_digest, candidate_digest, checks, status, error, created_at)",
+      "purpose": "Immutable public Validation record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Registry.activate_revision",
+      "signature": "Registry.activate_revision(revision_id) -> Skill",
+      "purpose": "Explicitly activate only the latest passing validation for the current base."
+    },
+    {
+      "name": "senai.skills.Registry.rollback",
+      "signature": "Registry.rollback(name, *, digest, reason) -> Skill",
+      "purpose": "Restore an intact previously accepted version and retain audit history."
+    },
+    {
+      "name": "senai.skills.Registry.versions",
+      "signature": "Registry.versions(name) -> list[Skill]",
+      "purpose": "List accepted package versions, excluding unaccepted proposals."
+    },
+    {
+      "name": "senai.skills.Registry.history",
+      "signature": "Registry.history(name) -> list[Activation]",
+      "purpose": "Read import, activation and rollback audit events."
+    },
+    {
+      "name": "senai.skills.Activation",
+      "signature": "Activation(id, skill_name, action, from_digest, to_digest, revision_id, validation_id, reason, created_at)",
+      "purpose": "Immutable public Activation record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.cli.main",
+      "signature": "senai.skills.cli.main(argv=None, stdout=None, stderr=None) -> int",
+      "purpose": "Parse feature-local commands, return JSON results and preserve failure exit codes."
+    },
+    {
+      "name": "senai.skills.demo.run_demo",
+      "signature": "senai.skills.demo.run_demo(project) -> dict",
+      "purpose": "Retain an explicitly synthetic offline lifecycle demonstration."
+    },
+    {
+      "name": "senai.skills.ReviewResult",
+      "signature": "ReviewResult(status, reason, revision)",
+      "purpose": "Immutable public ReviewResult record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.review_skill",
+      "signature": "review_skill(registry, name, *, outcome_ids, reviewer) -> ReviewResult",
+      "purpose": "Use bounded selected evidence with an injected JSON reviewer to propose or decline a revision."
+    },
+    {
+      "name": "senai.skills.review_with_codex",
+      "signature": "review_with_codex(registry, name, *, outcome_ids, project, model=None, executor=None) -> ReviewResult",
+      "purpose": "Request one explicit read-only structured review through the stable Codex wrapper."
+    },
+    {
+      "name": "senai.skills.Registry.metadata",
+      "signature": "Registry.metadata(name) -> dict",
+      "purpose": "Read validated inert optional package declarations."
+    },
+    {
+      "name": "senai.skills.live_demo.run_live_demo",
+      "signature": "run_live_demo(project, *, executor=None, model=None, emit=None) -> dict",
+      "purpose": "Run a controlled live correction/check/reuse/rollback example with actual JSON comparisons."
+    },
+    {
+      "name": "senai.skills.Registry.import_github",
+      "signature": "Registry.import_github(repository, *, commit, path, fetch=None) -> Skill",
+      "purpose": "Acquire and validate a public package pinned to an exact GitHub commit."
+    },
+    {
+      "name": "senai.skills.run_request",
+      "signature": "run_request(registry, request, names, *, project, model=None, read_only=False, native_skills=(), executor=None, checker=None, compatibility_check=None) -> RunResult",
+      "purpose": "Execute an ordinary request with exact saved contexts and retained observed/unverified outcomes."
+    },
+    {
+      "name": "senai.skills.RunResult",
+      "signature": "RunResult(id, status, verification, response, workspace, report_path, skills, outcome_ids, error)",
+      "purpose": "Immutable public RunResult record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.RunSkill",
+      "signature": "RunSkill(name, version, digest, source)",
+      "purpose": "Immutable public RunSkill record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Registry.stage_learning",
+      "signature": "Registry.stage_learning(run_id, *, path, reason) -> LearningCandidate",
+      "purpose": "Snapshot a generated package from a checked project run without activation."
+    },
+    {
+      "name": "senai.skills.Registry.learning_candidates",
+      "signature": "Registry.learning_candidates() -> list[LearningCandidate]",
+      "purpose": "Read generated-package candidates and acceptance status."
+    },
+    {
+      "name": "senai.skills.Registry.check_learning",
+      "signature": "Registry.check_learning(candidate_id, *, validator) -> LearningValidation",
+      "purpose": "Persist injected independent checks for an exact proposed generated package."
+    },
+    {
+      "name": "senai.skills.Registry.learning_checks",
+      "signature": "Registry.learning_checks(candidate_id) -> list[LearningValidation]",
+      "purpose": "Read all observed acceptance-check attempts."
+    },
+    {
+      "name": "senai.skills.Registry.accept_learning",
+      "signature": "Registry.accept_learning(candidate_id) -> Skill",
+      "purpose": "Atomically register a new learned package only after latest independent checks pass."
+    },
+    {
+      "name": "senai.skills.Registry.origin",
+      "signature": "Registry.origin(name) -> Origin",
+      "purpose": "Read durable imported/learned/unknown/demo source and local revision identity."
+    },
+    {
+      "name": "senai.skills.check_with_codex",
+      "signature": "check_with_codex(registry, candidate_id, *, cases, project, model=None, executor=None) -> LearningValidation",
+      "purpose": "Evaluate inactive generated instructions on declared JSON cases and compare actual results independently."
+    },
+    {
+      "name": "senai.skills.Origin",
+      "signature": "Origin(name, kind, source_kind, source, source_run_id, source_outcome_ids, reason, original_digest, validation_id, created_at, locally_revised)",
+      "purpose": "Immutable public Origin record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.LearningCandidate",
+      "signature": "LearningCandidate(id, name, version, digest, source_run_id, source_path, source_outcome_ids, reason, path, instructions, status, created_at)",
+      "purpose": "Immutable public LearningCandidate record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.LearningValidation",
+      "signature": "LearningValidation(id, candidate_id, digest, checks, status, error, created_at)",
+      "purpose": "Immutable public LearningValidation record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.export_vault",
+      "signature": "export_vault(registry, *, project, destination=None) -> VaultExport",
+      "purpose": "Create/refresh owned Obsidian Markdown notes in a project or explicit local vault destination."
+    },
+    {
+      "name": "senai.skills.VaultExport",
+      "signature": "VaultExport(vault_path, index_path, skill_count, generated_files, windows_path=\"\")",
+      "purpose": "Immutable public VaultExport record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.Skill",
+      "signature": "Skill(name, version, description, source, digest, validation, path, instructions)",
+      "purpose": "Immutable public Skill record carrying the fields listed in its signature."
+    },
+    {
+      "name": "senai.skills.SkillError",
+      "signature": "SkillError(message)",
+      "purpose": "Raise a user-facing validation/lifecycle error without modifying unrelated state."
+    }
+  ],
+  "commands": [
+    "python -m senai.skills --project PROJECT import SOURCE_DIRECTORY",
+    "python -m senai.skills --project PROJECT list",
+    "python -m senai.skills --project PROJECT show NAME",
+    "python -m senai.skills --project PROJECT context NAME REQUEST",
+    "python -m senai.skills --project PROJECT {outcomes,versions,history,revisions} NAME",
+    "python -m senai.skills --project PROJECT validations REVISION_ID",
+    "python -m senai.skills --project PROJECT activate REVISION_ID",
+    "python -m senai.skills --project PROJECT rollback NAME --digest DIGEST --reason REASON",
+    "python -m senai.skills --project PROJECT demo",
+    "python -m senai.skills --project PROJECT review NAME --outcome ID [--outcome ID ...] [--model MODEL]",
+    "python -m senai.skills --project PROJECT metadata NAME",
+    "python -m senai.skills --project PROJECT demo --live [--model MODEL]",
+    "python -m senai.skills --project PROJECT import-github OWNER/REPO --commit SHA --path DIRECTORY",
+    "python -m senai.skills --project PROJECT run NAME REQUEST [--skill NAME] [--native-skill NAME] [--model MODEL] [--read-only] [--expect-file PATH]",
+    "python -m senai.skills --project PROJECT learn --run ID --path PACKAGE --reason TEXT",
+    "python -m senai.skills --project PROJECT learning",
+    "python -m senai.skills --project PROJECT check-learning ID --cases JSON_FILE [--model MODEL]",
+    "python -m senai.skills --project PROJECT learning-checks ID",
+    "python -m senai.skills --project PROJECT accept-learning ID",
+    "python -m senai.skills --project PROJECT origin NAME",
+    "python -m senai.skills --project PROJECT export-obsidian [--destination WINDOWS_OR_LOCAL_PATH]"
+  ],
+  "executor_contract": {
+    "interface": "Registry.execute: executor(request, skills); native adapters: executor(prompt, workspace, *, options); reviewer(prompt); validator(candidate) or validator(base,candidate,outcomes)",
+    "inputs": [
+      "request: nonempty str",
+      "skills: tuple[Skill, ...]",
+      "reviewer(prompt: str) -> strict JSON text for review_skill",
+      "optional review executor(prompt, workspace, *, options) -> str for review_with_codex",
+      "ordinary checker(response: str, workspace: Path) -> Iterable[Check]; no checker means unverified outcome"
+    ],
+    "outputs": [
+      "Executor return value is returned unchanged; exceptions propagate. No outcome verification implied.",
+      "Review returns inactive proposal or no_change; no validation or activation implied."
+    ]
+  },
+  "dependencies": {
+    "runtime": [
+      "PyYAML==6.0.3"
+    ],
+    "development": []
+  },
+  "storage": {
+    "namespace": "<explicit project>/outputs/skills/",
+    "schema_version": 6,
+    "migration_notes": "Additive outcomes table/index on initialization; prior skills table and content directories retained. No core DB migration. Additive revisions table with per-skill unique versions; prior data unchanged. Additive validations table/index; prior skills/outcomes/revisions preserved. Additive accepted_versions/activation_history; idempotent backfill of existing active skills as accepted import baselines. Additive origins/learning_candidates/learning_validations; idempotent legacy origins from known audit evidence or unknown."
+  },
+  "verification": {
+    "offline_commands": [
+      ".venv/bin/python -m unittest discover -s tests/skills -v",
+      ".venv/bin/python -m unittest discover -s tests -v",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature skills",
+      ".venv/bin/python -m pip check",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature skills --ready"
+    ],
+    "offline_result": "passed",
+    "offline_test_count": 272,
+    "tested_commit": "4dbe998788e1601a464f4a7d26077848c19d7f32",
+    "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution. Ordinary CLI imported skill-creator request PASS: generated local csv-identifiers/SKILL.md; explicit existence and separate format/name checks passed. Report outputs/skills-qa/run-live-report.json. Not automatic acquisition or behavioral improvement proof. Learned acceptance PASS: user source run c0f1248ce000468e8303cf4cc1f3fc98, candidate f9f3b4739b2647048767cd79af1926c6, two native-model cases independently matched expected JSON, accepted csv-identifiers as learned_here; source origin/evidence survived restart. Log outputs/skills-qa/learn-live-checks.json. User confirmed Windows-local Obsidian viewing after UNC EISDIR. Command adopted/refreshed exact local projection twice; settings preserved. Five notes/ten links checked. Logs outputs/skills-qa/windows-vault-report.json and obsidian-artifact-check.json.",
+    "evidence_notes": "Exact source commit verified by final-offline-suite.log/final-offline-report.json; dependency check passed and package resolves in assigned .venv/worktree. Windows-local vault double refresh and user viewing separately verified. Final delivery commit changes owned records only."
+  },
+  "integration": {
+    "shared_file_changes": [
+      "Proposed only: add senai skills dispatch to senai.skills.cli.main.",
+      "Proposed only: add explicit registry-skill context option/hook without replacing native --skill or Telegram shared-session handling.",
+      "Proposed only: consolidate PyYAML==6.0.3 into shared packaging.",
+      "User-approved exception already applied: coordinator README byte-identical to main; no feature code or other shared file edits. See handoff.md for exact interfaces."
+    ],
+    "sibling_requirements": []
+  },
+  "limitations": [
+    "Coordinator normal CLI/Telegram production wiring not applied. Reviewer/learning acceptance explicit, not automatic.",
+    "Trusted caller supplies checks; status does not authenticate evidence.",
+    "Bounded YAML subset; Hermes metadata inert, no full runtime compatibility or source-folder/name conformance claim.",
+    "Live model checks passed only for the controlled CSV demo; normal production integration unverified.",
+    "Proposals modify SKILL.md only; supporting files preserved unchanged.",
+    "One controlled live correction/reuse passed; broad reviewer quality or general skill improvement unverified.",
+    "No-change review results are returned but do not have a separate durable attempt log.",
+    "Native Codex config/auth/tool settings apply; prompt/read-only mode are not independent tool isolation.",
+    "Runtime compatibility is checked only when caller injects compatibility_check; allowed-tools grants no permissions.",
+    "Obsidian projection is one-way and refreshed explicitly; edited managed pages are protected rather than overwritten. Windows-local destination avoids user-observed UNC EISDIR.",
+    "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition.",
+    "Ordinary runs standalone, not shared execution/session pipeline. File checks prove existence only; generated artifacts require explicit staged behavioral checks and acceptance to register as learned.",
+    "Learning cases establish only declared expected results; source-run reports/check adapters are trusted local state, not cryptographically authenticated proof or weight training."
+  ]
+}
