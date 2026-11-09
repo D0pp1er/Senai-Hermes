@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "skills",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.skills",
     "senai.skills.cli",
@@ -282,7 +282,7 @@
   },
   "dependencies": {
     "runtime": [
-      "PyYAML==6.0.3 (requirements-skills.txt)"
+      "PyYAML==6.0.3"
     ],
     "development": []
   },
@@ -295,17 +295,22 @@
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests/skills -v",
       ".venv/bin/python -m unittest discover -s tests -v",
-      ".venv/bin/python scripts/check_workstream_scope.py --feature skills"
+      ".venv/bin/python scripts/check_workstream_scope.py --feature skills",
+      ".venv/bin/python -m pip check",
+      ".venv/bin/python scripts/check_workstream_scope.py --feature skills --ready"
     ],
     "offline_result": "passed",
     "offline_test_count": 272,
-    "tested_commit": "",
+    "tested_commit": "4dbe998788e1601a464f4a7d26077848c19d7f32",
     "live_result": "PASS: actual installed-Codex controlled CSV demo: baseline lost zeros, candidate regression 4/4, held-out reuse 2/2, activation and rollback retained. Report outputs/skills-qa/live-demo-report.json; isolated project outputs/skills-live-demo/run-bv8i5d3a. Not production/general-improvement verification. Public network CLI acquisition PASS: official openai/skills skill-creator at 49f948faa9258a0c61caceaf225e179651397431, seven files and provenance verified after restart; log outputs/skills-qa/github-import-report.json. No imported script execution. Ordinary CLI imported skill-creator request PASS: generated local csv-identifiers/SKILL.md; explicit existence and separate format/name checks passed. Report outputs/skills-qa/run-live-report.json. Not automatic acquisition or behavioral improvement proof. Learned acceptance PASS: user source run c0f1248ce000468e8303cf4cc1f3fc98, candidate f9f3b4739b2647048767cd79af1926c6, two native-model cases independently matched expected JSON, accepted csv-identifiers as learned_here; source origin/evidence survived restart. Log outputs/skills-qa/learn-live-checks.json. User confirmed Windows-local Obsidian viewing after UNC EISDIR. Command adopted/refreshed exact local projection twice; settings preserved. Five notes/ten links checked. Logs outputs/skills-qa/windows-vault-report.json and obsidian-artifact-check.json.",
-    "evidence_notes": "272 tests on current feature working tree; exact code-commit verification pending. Logs outputs/skills-qa/windows-vault-suite.log and windows-vault-report.json. User approved canonical README sync; ownership guard passed."
+    "evidence_notes": "Exact source commit verified by final-offline-suite.log/final-offline-report.json; dependency check passed and package resolves in assigned .venv/worktree. Windows-local vault double refresh and user viewing separately verified. Final delivery commit changes owned records only."
   },
   "integration": {
     "shared_file_changes": [
-      "Coordinator may inject selected skill context and independently verified outcomes through existing execution seams; no shared files edited."
+      "Proposed only: add senai skills dispatch to senai.skills.cli.main.",
+      "Proposed only: add explicit registry-skill context option/hook without replacing native --skill or Telegram shared-session handling.",
+      "Proposed only: consolidate PyYAML==6.0.3 into shared packaging.",
+      "User-approved exception already applied: coordinator README byte-identical to main; no feature code or other shared file edits. See handoff.md for exact interfaces."
     ],
     "sibling_requirements": []
   },

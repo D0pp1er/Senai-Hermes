@@ -32,3 +32,5 @@
 - Eleven learned-acceptance tests pass. User-generated csv-identifiers accepted after 2/2 actual native-model JSON cases; reopened registry distinguishes learned_here from imported and retains source run/outcomes/check history. Imported local revisions never relabel origin.
 
 - Obsidian/local view completed: twenty export tests and full 272-test suite passed. Two origins/five pages/ten links checked. User viewed the Windows copy; new API/CLI adopted and refreshed it twice preserving settings. Coordinator handoff prepared; no production merge/router change.
+
+- Final source commit 4dbe998788e1601a464f4a7d26077848c19d7f32 verified with all 272 offline tests and pip check. Typed delivery contract, source/dependency/storage details and minimal coordinator integration handoff completed. No production merge/wiring claimed.

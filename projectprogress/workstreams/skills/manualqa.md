@@ -239,3 +239,7 @@ Observed: official Obsidian 1.15.0 installed for Windows user with explicit auth
 Tests verify personal/unowned note preservation, edited-page refusal, namespace/symlink guards, interrupted/failing swap recovery, empty index, source-registry byte preservation, concurrent-change rejection, origin/history/version updates, inert instruction markup and Windows path translation without shell. Red logs obsidian-red.log and windows-vault-red.log; full log windows-vault-suite.log. User app viewing is user-confirmed; automated native UI traversal was not completed.
 
 Full offline suite PASS: 272 tests (136 skills tests). Ownership guard initially rejected historical coordinator README mismatch; user explicitly approved exact README sync from main, after which guard PASS. No feature rebase/merge/push or other shared-file edits. Final exact commit verification/readiness follows in delivery.json.
+
+## Exact-commit final verification
+
+Source commit 4dbe998788e1601a464f4a7d26077848c19d7f32: PASS, 272 offline tests. Retained final-offline-suite.log and final-offline-report.json under outputs/skills-qa/. pip check PASS (no broken requirements). sys.executable and senai.__file__ resolve inside the assigned worktree .venv/source. Export command parser verified. Final record-only commit does not change tested source. Scope/readiness check evidence follows delivery contract. Production combined routing is coordinator-owned and unverified here.

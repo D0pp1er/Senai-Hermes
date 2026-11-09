@@ -38,3 +38,6 @@
 
 - 2026-11-09, 67e492c: checked learned acceptance/origins.
 - 2026-11-09, Obsidian/local-view milestone: generated index/skills/history, owned-note refresh/recovery, explicit Windows-local destination, verified manual-copy adoption, twenty TDD tests and two actual local refreshes. User confirmed viewing; canonical README sync explicitly approved.
+
+- 2026-11-09, 4dbe998: committed Obsidian/Windows-local export and approved canonical README sync.
+- 2026-11-09, delivery records: exact commit 4dbe998788e1601a464f4a7d26077848c19d7f32 passed 272 tests; dependency/binding checks passed. Typed API contract finalized for coordinator readiness. No source changes in final delivery record commit.

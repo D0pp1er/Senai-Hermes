@@ -93,3 +93,7 @@ Actual user-generated artifact was accepted only after two independent real-outp
 export_vault(registry, *, project, destination=None) -> VaultExport and CLI export-obsidian [--destination PATH]. Windows C:\ paths or /mnt/c paths accepted from WSL. No background sync/app launch/install is part of the API. Dedicated generated section preserves personal notes/settings and refuses modified managed notes; exact prior manual projection can be adopted conservatively.
 
 Twenty export tests plus actual Windows-local double refresh passed. User confirmed Obsidian viewing. No new dependency/schema migration. User explicitly authorized only a canonical README sync from main to resolve a historical scope mismatch; this byte-identical shared documentation exception contains no feature logic. Source/tests/other records stay owned. Coordinator handoff and minimal shared hook proposals now in handoff.md. Normal production wiring remains unapplied.
+
+## Final module readiness
+
+Exact tested source commit: 4dbe998788e1601a464f4a7d26077848c19d7f32, 272 offline tests passed; PyYAML dependency healthy. delivery.json public_api is now typed with exact names/signatures/purposes and records source commit/commands. handoff.md is the concise coordinator entrypoint. Normal production integration/merge remain unapplied. Approved canonical README is the only shared-file exception.
