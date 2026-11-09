@@ -1,3 +1,5 @@
+> Main composition is integrated at 8fe1098. See the repository README for current root commands, permissions and startup. Earlier proposal wording below documents the feature API boundary.
+
 # Telegram
 
 ## Usage

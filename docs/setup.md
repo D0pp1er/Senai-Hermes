@@ -53,16 +53,13 @@ export SENAI_INSTALLATION_ROOT="$PWD/outputs/manual-installation"
 
 Alternatively use --installation ROOT for ordinary requests. Profiles live at
 ROOT/outputs/.senai-memory/. One installation has one owner. SOUL.md is human-controlled.
-Enable memory before creating a fresh native session. Existing older sessions
-without snapshots cannot silently adopt current memory; no session-reset/migration
-CLI exists. For a bot with such an old session, memory can be disabled just for its process:
-~~~bash
-env -u SENAI_INSTALLATION_ROOT senai telegram --project PROJECT --skip-git-repo-check
-~~~
-
-Exact --resume uses a frozen snapshot, so later facts appear only in fresh sessions.
-Memory mode rejects --last and --ephemeral. Interactive/native passthrough does not
-inject Senai memory. See [learning](../projectprogress/memory-learning.md).
+Enable memory before a fresh session. Profile shortcuts are now available:
+senai memory add/show/path, senai user add/show/path, senai soul add/show/path.
+Edited profiles load in fresh sessions; old snapshots remain frozen.
+An explicitly authorized Telegram /new followed by Confirm starts a fresh native
+conversation without deleting history. Grant permissions locally with
+senai telegram start --new-session-user ID. Pairing alone does not grant /new.
+See the current README for full setup, permissions and test commands.
 
 ## Scheduling
 

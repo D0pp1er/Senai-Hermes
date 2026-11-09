@@ -96,3 +96,7 @@ Coordinator validation: 376 offline tests passed (outputs/ux-defaults-regression
 ## Friendly cron composition (2026-11-09)
 
 Integrated friendly cron through c240922 (merge cdd0375, wiring ad81604). Authorized CLI destinations match account stores, with revocation checks at save; Telegram uses shared draft helpers for sequential creation, preview/confirmation/cancel/timeout and duplicate suppression. Saved timezone and explicit advanced local workflows preserved. Feature readiness/401 tests and combined 409 tests passed. No push, bot restart, live scheduling or production-state QA.
+
+## Profiles and guarded Telegram composition
+
+Integrated memory 94cb6f4 and integrations 2e09f9a; wiring 8fe1098. 474 combined offline tests passed. Profile shortcuts/setup, shared cron parser and durable conversation factory, explicit /new operators, startup pinning and foreground/cron/claim gating composed. Consolidated usage/API smoke tests and architecture in README.md. No push, production restart or live operation.
