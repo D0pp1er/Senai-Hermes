@@ -141,7 +141,7 @@ def telegram_main(argv, stdout, stderr):
             runner = execution_gate.wrap(runner)
             runner.recover_session()
             store.recover_interrupted()
-            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media, idle_work=scheduler.worker.tick if scheduler else None, idle_delivery=scheduler.sender.tick if scheduler else None)
+            service = BotService(api, store, router, runner, poll_timeout=args.poll_timeout, transport=router, media=media, scheduled_work=scheduler.worker.tick if scheduler else None, idle_delivery=scheduler.sender.tick if scheduler else None)
             service.skip_pending()
             code = PairingManager(store).issue()
             print(f'Local pairing code (single use, 10 minutes): /pair {code}', file=stdout, flush=True)

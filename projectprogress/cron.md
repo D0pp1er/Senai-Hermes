@@ -45,7 +45,7 @@ Authorized private-chat syntax:
 Create JSON also accepts timezone, every OR cron, misfire, grace_seconds, retries and retry_delay. Chat defaults to skip after 120 seconds. Confirmations show ID, name, next local time, timezone, recurrence, misfire, this-chat destination and revision. Management is explicit structured input, not a model's inferred intent. Owner/account/project/scope are fixed by the adapter; chat cannot override destination or manage another user's schedules. Updates are deduplicated using the existing Telegram cursor; a crash between cursor consumption and management commit can require user inspection/reissue. Stale edits are rejected for fresh review.
 
 ## Execution, memory and delivery
-Foreground jobs get priority. Only when its queue is empty does the existing worker execute one cron occurrence. The polling thread drains scheduled delivery independently, including while Codex is busy. A sustained foreground backlog can delay cron and trigger its configured misfire policy. There is no independent hidden execution pipeline.
+Due cron jobs now get priority in the main service. The existing execution worker checks due cron before claiming an ordinary request. The polling thread drains scheduled delivery independently, including while Codex is busy. A sustained foreground backlog can delay cron and trigger its configured misfire policy. There is no independent hidden execution pipeline.
 
 Scheduled requests use the existing CommandRunner with the same Telegram JobStore/native shared session and execution flags; separate cron UUID/attempt log directories avoid normal-job collisions. Scheduled results use text delivery (image/voice scheduling is not wired). Exact native resume and SENAI_INSTALLATION_ROOT memory behavior are preserved. A configured installation needs an existing frozen snapshot for an existing native session, as documented by memory integration.
 
@@ -88,7 +88,7 @@ The worker uses the existing CommandRunner/Codex wrapper and exact Telegram shar
 
 Ctrl+C or SIGTERM stops new claims, prints stopping status, and waits for active bounded execution and bounded network/DB calls to settle. Any result still pending delivery remains saved for the next start. Do not force-kill and immediately reclaim work: effects may already exist.
 
-The ordinary bot's opt-in --enable-cron mode also now separates execution from delivery: existing execution worker runs due tasks only when foreground work is idle; its polling thread drains delivery independently. --cron-execution-timeout sets the scheduled native deadline (default 300). This alternative retains chat management and incoming messages; it must not run alongside the standalone worker.
+The ordinary bot's opt-in --enable-cron mode also now separates execution from delivery: existing execution worker prioritizes due scheduled work; its polling thread drains delivery independently. --cron-execution-timeout sets the scheduled native deadline (default 300). This alternative retains chat management and incoming messages; it must not run alongside the standalone worker.
 
 ### Recovery and uncertainty
 - pending delivery: restart the same worker/configuration; it sends the saved result without rerunning Codex.

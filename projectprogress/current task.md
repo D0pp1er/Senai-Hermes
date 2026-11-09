@@ -100,3 +100,7 @@ Integrated friendly cron through c240922 (merge cdd0375, wiring ad81604). Author
 ## Profiles and guarded Telegram composition
 
 Integrated memory 94cb6f4 and integrations 2e09f9a; wiring 8fe1098. 474 combined offline tests passed. Profile shortcuts/setup, shared cron parser and durable conversation factory, explicit /new operators, startup pinning and foreground/cron/claim gating composed. Consolidated usage/API smoke tests and architecture in README.md. No push, production restart or live operation.
+
+## Cron-first main service
+
+senai start now routes to the existing persistent Telegram/cron service. Its single execution worker checks due cron before ordinary jobs; main-thread polling/delivery remains independent. Existing session gate, deadlines, singleton and shutdown behavior retained. No extra daemon/boot autostart or production startup. The preceding offline run passed 477 tests; no further tests run after the user requested integration only.

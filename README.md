@@ -48,7 +48,7 @@ After setup, ordinary commands do not need project/installation/trust flags:
 ~~~bash
 senai "Create hello.py that prints Hello"
 senai cron list
-senai telegram start
+senai start
 ~~~
 
 Non-secret defaults live at ~/.config/senai/defaults.json (or XDG_CONFIG_HOME);
@@ -267,8 +267,7 @@ creation receipt requires review instead of automatic repetition.
 
 ### Execution and delivery
 
-Saving/listing a schedule does not start a worker. For normal Telegram use,
-senai telegram start enables the existing cron loop and receives chat commands.
+Saving/listing a schedule does not start a worker. For the persistent main service, run senai start. It uses the existing Telegram service, enables cron, and gives due cron work priority over ordinary requests. Telegram must already be configured.
 
 An alternative standalone foreground supervisor is available:
 
@@ -428,3 +427,22 @@ To update: stop active work, check git status, use git pull --ff-only, then rein
 inside the checkout's venv. Do not rebase reviewed main history or force-push to hide
 conflicts. Contributor history/contracts live under projectprogress/ and are not
 required for ordinary onboarding.
+
+## Main service: cron-first execution
+
+~~~bash
+senai start
+~~~
+
+This is an alias for the existing configured Telegram/cron service, not a second
+daemon. It stays in the foreground until Ctrl+C or a fatal service error.
+The main thread handles polling and delivery; one execution worker checks due cron
+work first and runs ordinary requests when none is due. Native calls still share the
+existing execution/session gate. Delivery stays responsive while execution is busy.
+
+A running task is not preempted. A continuous cron backlog can delay ordinary
+requests. Existing deadlines, unknown-outcome recovery, singleton locking and
+graceful shutdown remain unchanged. Stop with Ctrl+C and wait for active bounded
+work. Nothing installs boot autostart, starts a second poller, or activates a service
+merely from installation. The separate cron worker command remains an alternative,
+not something to run alongside this service for the same bot/project.

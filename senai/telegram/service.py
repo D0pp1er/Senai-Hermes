@@ -27,10 +27,11 @@ def instance_lock(path):
 
 
 class BotService:
-    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None, media=None, idle_work=None, idle_delivery=None):
+    def __init__(self, api, store, router, runner, *, poll_timeout=10, transport=None, media=None, idle_work=None, idle_delivery=None, scheduled_work=None):
         self.api, self.store, self.router, self.runner = api, store, router, runner
         self.media = media
         self.idle_work = idle_work
+        self.scheduled_work = scheduled_work
         self.idle_delivery = idle_delivery
         self.transport = transport
         self.poll_timeout = poll_timeout
@@ -92,6 +93,8 @@ class BotService:
         self.deliver_results()
 
     def run_one(self):
+        if self.scheduled_work is not None and self.scheduled_work():
+            return True
         job = self.store.claim_next()
         if job is None:
             return bool(self.idle_work()) if self.idle_work is not None else False

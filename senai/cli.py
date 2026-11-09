@@ -40,6 +40,8 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     stderr = stderr if stderr is not None else sys.stderr
     stdin = stdin if stdin is not None else sys.stdin
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == 'start':
+        argv = ['telegram', 'start', *argv[1:]]
     if argv and argv[0] == 'setup':
         from .onboarding import setup_main
         return setup_main(argv[1:], stdout, stderr, stdin)

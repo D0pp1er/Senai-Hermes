@@ -48,7 +48,7 @@ class VoiceCronCompositionTests(unittest.TestCase):
                     conversation = args[2].router
                     scheduler = conversation.advanced_handler.__self__
                     self.assertEqual(conversation.base.voice_enabled,configured)
-                    self.assertEqual(kwargs["idle_work"],scheduler.worker.tick)
+                    self.assertEqual(kwargs["scheduled_work"],scheduler.worker.tick)
                     self.assertEqual(kwargs["idle_delivery"],scheduler.sender.tick)
                     self.assertIs(runner.call_args_list[0].kwargs["store"],
                                   runner.call_args_list[1].kwargs["store"])
