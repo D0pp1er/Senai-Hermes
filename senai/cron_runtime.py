@@ -33,12 +33,15 @@ class TelegramCron:
     """Composition owned by coordinator. Construct only after explicit --enable-cron."""
     scope = "telegram-shared"
 
-    def __init__(self, *, project, account, router, runner, api, clock=None):
+    def __init__(self, *, project, account, router, runner, api, clock=None, timezone=None):
         self.project = str(Path(project).expanduser().resolve())
         if not isinstance(account, str) or not account.isascii() or not account.isdecimal():
             raise ValueError("Cron requires a verified numeric bot account.")
         self.account, self.router, self.runner, self.api = account, router, runner, api
         self.store = telegram_store(self.project, account, clock=clock)
+        from .defaults import load_defaults
+        from .cron_chat import CronConversation
+        self.conversation = CronConversation(self, timezone=timezone or load_defaults().get("timezone","Asia/Dhaka"))
         self.worker = Worker(self.store, self.execute)
         self.sender = DeliveryWorker(self.store, self.send, max_attempts=3, retry_delay=60)
 
@@ -131,6 +134,16 @@ class TelegramCron:
         if parsed is None:
             return self.router.handle(update)
         identifier, user, chat, text = parsed
+        token = text.strip().split(maxsplit=1)[0] if text.strip() else ""
+        if "@" in token and token.partition("@")[2].lower() != self.router.username:
+            return self.router.handle(update)
+        if self.conversation.wants(user, text):
+            if self.router.store.consume(identifier) == "duplicate":
+                return []
+            if not self.is_authorized(user):
+                self.conversation.cancel(user)
+                return []
+            return [(chat, self.conversation.reply(user, text))]
         parts = text.strip().split(maxsplit=1)
         command, _, mention = (parts[0] if parts else "").partition("@")
         if command != "/cron":
@@ -231,8 +244,12 @@ def telegram_store(project, account, *, clock=None):
     return store
 
 
-def manage_cli(argv):
+def manage_cli(argv, *, stdin=None, stdout=None, stderr=None):
     """Manage schedules through shared CLI without starting a worker."""
+    import sys
+    stdin = sys.stdin if stdin is None else stdin
+    stdout = sys.stdout if stdout is None else stdout
+    stderr = sys.stderr if stderr is None else stderr
     from .cron.__main__ import main
     routing = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     routing.add_argument("--project")
@@ -250,6 +267,29 @@ def manage_cli(argv):
         return worker_main(arguments, sys.stdout, sys.stderr, status_only=route.command == "worker-status")
     parser = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     parser.add_argument("--telegram-account")
+    parser.add_argument("--local",action="store_true",help="Manage the advanced local store explicitly.")
     args, remaining = parser.parse_known_args(argv)
-    factory = (lambda project: telegram_store(project, args.telegram_account)) if args.telegram_account else None
-    return main(remaining, store_factory=factory)
+    from .cron_routing import accounts, destinations, authorized_store
+    from .defaults import load_defaults
+    account=args.telegram_account
+    project=Path(route.project).expanduser().resolve() if route.project else None
+    try:
+        if args.local and account:
+            raise ValueError("--local and --telegram-account are mutually exclusive.")
+        advanced_local = route.command == "create" and any(v == "--scope" or v.startswith("--scope=") for v in remaining)
+        if project and account is None and not args.local and not advanced_local:
+            available=accounts(project)
+            if len(available)==1:account=available[0]
+            elif len(available)>1:
+                if not stdin.isatty():
+                    raise ValueError("Multiple Telegram accounts: choose --telegram-account.")
+                print("Choose Telegram bot ID: "+", ".join(available),file=stdout)
+                account=stdin.readline().strip()
+                if account not in available:raise ValueError("Choose a listed Telegram account.")
+        options=destinations(project,account) if project and account else ()
+        factory=(lambda project: authorized_store(project,account)) if account else None
+        return main(remaining,store_factory=factory,stdin=stdin,stdout=stdout,stderr=stderr,
+                    timezone=load_defaults().get("timezone"),destinations=options)
+    except (ValueError,PermissionError,OSError,sqlite3.Error) as error:
+        print(str(error),file=stderr)
+        return 2

@@ -54,7 +54,7 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
         from contextlib import redirect_stdout, redirect_stderr
         from .cron_runtime import manage_cli as cron_main
         with redirect_stdout(stdout), redirect_stderr(stderr):
-            return cron_main(argv[1:])
+            return cron_main(argv[1:], stdin=stdin, stdout=stdout, stderr=stderr)
     if argv and argv[0] == 'memory':
         from contextlib import redirect_stdout, redirect_stderr
         from .memory.__main__ import main as memory_main
