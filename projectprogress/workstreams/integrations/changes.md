@@ -102,3 +102,9 @@ Voice-only implementation commit c858952; exact tested commit c858952a171916d28e
 ## UX cron conversation increment
 
 Fast-forwarded clean feature worktree to e4791e8 as authorized. Baseline 376 tests passed. RED missing conversation module and calendar-preview mismatch reproduced; GREEN 18 conversation tests and 394 full tests pass. Added separate draft state/factory and injected parser/creator contracts. No shared code, production state, service or actual scheduler activation touched.
+
+## Safe fresh conversation and memory context
+
+Cron conversation commit: 8d59901. Added explicit local /new permission and execution gate, atomic all-user pending/running checks, auth/expected-UUID confirmation and archived prior pointers. Preserved jobs/pairing/media and refused archived UUID rebinding. Added startup installation pin hook without changing legacy child-default behavior. Added combined source README, field-level JSON corrections and scope guards. RED: session_policy missing, pinned installation kwarg missing, fresh project-scope mismatch and invalid JSON/length UX. GREEN focused/full evidence follows.
+
+Final session UX increment: 42 focused UX tests and 418 combined tests PASS. Added interrupted-creation/reset cancellation recovery: clear only the draft, retain prior outcomes/history, require review and never auto-expire an uncertain receipt into a second action. Source README and coordinator hooks completed.

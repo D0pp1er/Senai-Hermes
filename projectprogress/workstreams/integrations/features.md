@@ -1,3 +1,5 @@
+Current module usage/architecture: [Telegram README](../../../senai/telegram/README.md). This workstream file is retained as a historical milestone record.
+
 > Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
 
 # Telegram optional voice setup

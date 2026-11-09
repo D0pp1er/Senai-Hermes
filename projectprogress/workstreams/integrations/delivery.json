@@ -7,15 +7,16 @@
     "senai.integrations.telegram",
     "senai.telegram.api",
     "senai.telegram.chat",
+    "senai.telegram.conversation",
+    "senai.telegram.conversation_state",
     "senai.telegram.media",
     "senai.telegram.router",
     "senai.telegram.runner",
     "senai.telegram.service",
+    "senai.telegram.session_policy",
     "senai.telegram.speech",
     "senai.telegram.store",
-    "senai.telegram.voice_config",
-    "senai.telegram.conversation",
-    "senai.telegram.conversation_state"
+    "senai.telegram.voice_config"
   ],
   "public_api": [
     {
@@ -25,7 +26,7 @@
     },
     {
       "name": "CommandRunner",
-      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None)",
+      "signature": "CommandRunner(project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None, installation=None)",
       "purpose": "Use existing exact native session/executor; prepare selected media and optional speech."
     },
     {
@@ -77,6 +78,31 @@
       "name": "resolve_voice_key",
       "signature": "resolve_voice_key(project, *, environ=None) -> VoiceKey | None",
       "purpose": "Return secret-free-repr selection with source; no environment mutation or network."
+    },
+    {
+      "name": "ConversationRouter",
+      "signature": "ConversationRouter(base_router, *, project, account, parse_schedule=None, create_schedule=None, advanced_handler=None, timezone='Asia/Dhaka', clock=None, draft_ttl=600, new_session_users=(), session_guard=None)",
+      "purpose": "Isolated durable conversational cron drafts and locally permitted fresh-session confirmation."
+    },
+    {
+      "name": "create_conversation_router",
+      "signature": "create_conversation_router(base_router, **kwargs) -> ConversationRouter",
+      "purpose": "Feature-owned outer conversation factory for coordinator TelegramCron/adapter wiring."
+    },
+    {
+      "name": "bind_schedule_creator",
+      "signature": "bind_schedule_creator(store, *, project, authorize_target, scope='telegram-shared') -> callable",
+      "purpose": "Adapt merged cron Store.create with authorization and safe field rejections."
+    },
+    {
+      "name": "SessionGate",
+      "signature": "SessionGate(*, is_idle=None); execution(); idle(); wrap(runner)",
+      "purpose": "Share native-execution exclusion with fresh-session confirmation and scheduler idle checks."
+    },
+    {
+      "name": "JobStore fresh-session methods",
+      "signature": "has_pending_jobs() -> bool; fresh_shared_session(*, expected_session, authorize) -> str; session_history() -> list[dict]",
+      "purpose": "Atomically preserve prior native mapping, check pending work/current authorization and clear only active pointer."
     }
   ],
   "commands": [
@@ -86,7 +112,10 @@
     "Telegram text request: generate/select images for actual photo attachment",
     "senai telegram --project PROJECT --voice-configure",
     "senai telegram --project PROJECT --voice-check",
-    "senai telegram --project PROJECT --voice-remove"
+    "senai telegram --project PROJECT --voice-remove",
+    "Telegram /cron create: sequential name/task/when/repeat/preview/Confirm after coordinator wiring",
+    "Telegram /cancel: cancel own active UX draft",
+    "Telegram /new: locally permitted fresh shared conversation with explicit Confirm and execution guard"
   ],
   "executor_contract": {
     "interface": "CommandRunner.__call__(job) -> tuple[str, str]",
@@ -104,7 +133,7 @@
   "storage": {
     "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git",
     "schema_version": 1,
-    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration. Additive voice_delivery(job_id,outcome) table in media.sqlite3 records audio/fallback decisions; existing jobs/media/text cursors and protected voice JSON untouched."
+    "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration. Additive voice_delivery(job_id,outcome) table in media.sqlite3 records audio/fallback decisions; existing jobs/media/text cursors and protected voice JSON untouched. Separate mode-600 conversations.sqlite3 namespace/drafts tables; existing sessions table reused for explicit telegram-history:<UUID> archived pointers. No new Telegram columns/deletion; old jobs/pairing/media/profile snapshots preserved."
   },
   "verification": {
     "offline_commands": [
@@ -114,8 +143,8 @@
       "git diff --check"
     ],
     "offline_result": "passed",
-    "offline_test_count": 394,
-    "tested_commit": "cron conversation working tree before commit",
+    "offline_test_count": 418,
+    "tested_commit": "session UX candidate before commit",
     "live_result": "not-run",
     "evidence_logs": [
       "outputs/qa-integrations/voice-only-red.log",
@@ -125,17 +154,24 @@
     ]
   },
   "integration": {
-    "shared_file_changes": [],
-    "sibling_requirements": []
+    "shared_file_changes": [
+      "Coordinator cron_runtime/Telegram startup: compose ConversationRouter outside legacy cron handler; pass cron parser and authorized creator.",
+      "Coordinator startup context: freeze installation/project/timezone; pass installation to both CommandRunner instances.",
+      "Coordinator runtime: one SessionGate around foreground and cron runners, scheduler idle predicate and explicit local /new operator allowlist."
+    ],
+    "sibling_requirements": [
+      "Cron parse_schedule(when, repeat, *, now: aware datetime, timezone) -> dict with aware future at, optional matching timezone/every int/cron; reject ambiguous date/year/DST."
+    ]
   },
   "limitations": [
-    "--voice-check verifies local availability/permissions only, not API authorization/billing/audio quality.",
-    "Changes apply at startup; a running bot needs an operator-managed graceful restart. No restart/merge was performed.",
-    "Existing image/media limits and at-least-once delivery behavior remain unchanged.",
-    "Voice upload failures choose text fallback; fatal authorization errors cannot deliver either format.",
-    "Remote acceptance followed by network/local-cursor failure can remain ambiguous; no exactly-once guarantee."
+    "Ready means feature-owned module review, not completed coordinator UX deployment. Natural-language parser/composition remains pending.",
+    "/new is disabled unless local operator policy and execution guard are explicitly supplied; guard must cover cron/foreground and scheduler pending/uncertain states.",
+    "No live bot restart, API/model calls, real schedules, production state or push/merge performed.",
+    "Separate queue/draft writes can lose a field transition after a crash; persisted creation claim avoids automatic duplicate creation and may require /cron list review.",
+    "Existing voice/media external-acceptance ambiguities remain; no exactly-once remote delivery guarantee.",
+    "Uncertain confirmation receipts require explicit review/cancellation instead of normal timeout; cancellation does not undo a possibly completed action."
   ],
-  "delivery_scope": "Telegram UX conversation and safe session transition work in progress.",
+  "delivery_scope": "Feature-owned guided Telegram cron conversation, safe explicit fresh-session policy, existing voice/media retention and pinned-memory hook; coordinator composes runtime.",
   "external_services": [
     "Optional OpenAI Speech API: dedicated env key, saved protected voice file, then generic OpenAI env key; local setup/check makes no network call.",
     "Installed Codex built-in image generation when available; no image API client/key added"

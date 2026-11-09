@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 
 from ..integrations.telegram import parse_private_update
 from .conversation_state import ConversationState
+from .store import SessionBusyError, SessionChangedError
 
 __all__ = ['ConversationRouter', 'DraftFieldError', 'create_conversation_router', 'bind_schedule_creator']
 
@@ -56,6 +57,9 @@ class ConversationRouter:
                  clock=None, draft_ttl=600, new_session_users=(), session_guard=None):
         self.base, self.store, self.username = base_router, base_router.store, base_router.username
         self.project = str(Path(project).expanduser().resolve())
+        workspace = Path(self.project) / 'outputs'
+        if not Path(self.project).is_dir() or workspace.is_symlink() or not self.store.path.resolve().is_relative_to(workspace):
+            raise ValueError('Conversation state must belong to the configured project outputs/.')
         if not isinstance(account, str) or not account.isascii() or not account.isdecimal():
             raise ValueError('A verified bot account is required.')
         self.account = account
@@ -66,6 +70,9 @@ class ConversationRouter:
         self.clock = clock or (lambda: datetime.now(utc_timezone.utc))
         self.parse_schedule, self.create_schedule = parse_schedule, create_schedule
         self.advanced_handler = advanced_handler
+        new_session_users = frozenset(new_session_users)
+        if any(type(user) is not int or user <= 0 for user in new_session_users):
+            raise ValueError('Fresh-session operators must be positive numeric local account IDs.')
         self.new_session_users, self.session_guard = frozenset(new_session_users), session_guard
         self.state = ConversationState(self.store.path.parent / 'conversations.sqlite3',
                        {'project': self.project, 'account': account})
@@ -176,6 +183,69 @@ class ConversationRouter:
         except (ValueError, TypeError, KeyError, PermissionError, sqlite3.Error):
             return [(chat, help_text)]
 
+    @staticmethod
+    def _new_preview():
+        return ('Start a fresh shared conversation for all authorized accounts and future scheduled tasks? '
+                'Earlier native history and its mapping will be kept. Pairing, jobs, files and media stay unchanged. '
+                'Reply Confirm to continue, or /cancel.')
+
+    def _can_new(self, user):
+        return user in self.new_session_users and self.session_guard is not None and self.is_authorized(user)
+
+    def _start_new(self, user, chat, draft):
+        if not self._can_new(user):
+            return 'Fresh conversations require local operator permission and an execution guard. Ask the local operator.'
+        if draft and draft['phase'] != 'done':
+            return 'Finish your current draft or /cancel before /new.'
+        try:
+            with self.session_guard() as idle:
+                if not idle or self.store.has_pending_jobs():
+                    return 'Senai is busy with queued/running work. Check /status and try /new when it is idle.'
+                prior = self.store.shared_session()
+                if prior is None:
+                    return 'No conversation is saved yet. Your next request will start it.'
+                value = self._new_draft('new')
+                value.update(phase='confirm', prior=prior)
+                self.state.put(user, chat, value)
+        except Exception:
+            return 'Could not verify safe session switching. No conversation was changed; ask the local operator.'
+        return self._new_preview()
+
+    def _continue_new(self, user, chat, draft, text):
+        if not self._can_new(user):
+            self.state.delete(user, chat)
+            return []
+        if draft['phase'] == 'done':
+            return [(chat, 'That fresh-conversation action was already handled. Use /session to review the current conversation.')]
+        if draft['phase'] in ('creating', 'uncertain'):
+            return [(chat, 'The prior session action may have completed. Review /session with the local operator; it will not be repeated automatically.')]
+        if text.lower() != 'confirm':
+            return [(chat, self._new_preview())]
+        try:
+            with self.session_guard() as idle:
+                if not idle:
+                    return [(chat, 'Senai is busy. Wait for pending/running work to finish, then Confirm or /cancel.')]
+                if not self.state.claim_confirmation(user, chat, draft['id']):
+                    return [(chat, 'This session confirmation is already being handled. Check /session.')]
+                self.store.fresh_shared_session(expected_session=draft['prior'], authorize=lambda: self._can_new(user))
+                draft['phase'] = 'done'
+                self.state.put(user, chat, draft)
+                return [(chat, 'Fresh shared conversation ready. Your next request starts it; earlier history was preserved.')]
+        except SessionBusyError:
+            draft['phase'] = 'confirm'
+            self.state.put(user, chat, draft)
+            return [(chat, 'Senai is busy with queued/running requests. Check /status, then Confirm or /cancel.')]
+        except SessionChangedError:
+            self.state.delete(user, chat)
+            return [(chat, 'The conversation changed after the preview. Review /session and start /new again if needed.')]
+        except PermissionError:
+            self.state.delete(user, chat)
+            return []
+        except Exception:
+            draft['phase'] = 'uncertain'
+            self.state.put(user, chat, draft)
+            return [(chat, 'Could not verify the session action. Review /session with the local operator before trying /new again.')]
+
     def handle(self, update):
         with self._lock:
             return self._handle(update)
@@ -196,6 +266,10 @@ class ConversationRouter:
             self.store.consume(identifier)
             return []
         draft = self.state.get(user, chat)
+        if command == '/cron' and len(text) > 8000:
+            if self.store.consume(identifier) == 'duplicate':
+                return []
+            return [(chat, 'Cron messages support at most 8000 characters. Use /cron create for guided name/task/time/repeat steps.')]
         if command == '/cron' and argument.partition(' ')[0] != 'create':
             return self._advanced(update, chat, argument)
         special = command in ('/cron', '/cancel', '/new')
@@ -210,17 +284,19 @@ class ConversationRouter:
         if self.store.consume(identifier) == 'duplicate':
             return []
         now = self._now()
-        expired = draft is not None and draft['expires'] <= now.timestamp()
+        expired = draft is not None and draft['phase'] not in ('creating', 'uncertain') and draft['expires'] <= now.timestamp()
         if expired:
             self.state.delete(user, chat)
             draft = None
         if command == '/cancel' or (active and text.lower() == 'cancel'):
-            if draft and draft['phase'] == 'creating':
-                return [(chat, 'Creation may already be in progress. Review /cron list before starting again.')]
+            if draft and draft['phase'] in ('creating', 'uncertain'):
+                action = '/session' if draft['kind'] == 'new' else '/cron list'
+                self.state.delete(user, chat)
+                return [(chat, 'Draft cleared only. The earlier action may already have completed. Review ' + action + '; no existing schedule or history was removed.')]
             self.state.delete(user, chat)
             return [(chat, 'Draft cancelled. Nothing else was changed.')]
         if command == '/new':
-            return [(chat, 'Fresh conversations are not enabled yet; ask the local operator.')]
+            return [(chat, self._start_new(user, chat, draft))]
         if command == '/cron':
             if draft and draft['phase'] != 'done':
                 return [(chat, 'You already have a draft. Finish it or /cancel before starting another.')]
@@ -232,6 +308,8 @@ class ConversationRouter:
                 try:
                     draft['spec'] = self._validated_spec(json.loads(payload))
                     draft['phase'] = 'confirm'
+                except DraftFieldError as error:
+                    return [(chat, 'JSON field ' + error.field + ': ' + PROMPTS[error.field] + ' Send corrected JSON or use /cron create for guided setup.')]
                 except (ValueError, TypeError, KeyError):
                     return [(chat, 'JSON create needs name, prompt and a future aware at timestamp, with optional timezone/every/cron. Example: /cron create {"name":"Tea","prompt":"Make tea","at":"2030-11-10T09:00:00+06:00"}. Nothing was created.')]
             self.state.put(user, chat, draft)
@@ -240,6 +318,8 @@ class ConversationRouter:
             return [(chat, 'Your draft expired. Start again with /cron create or /new. Nothing was created.')]
         if draft is None:
             return [(chat, 'No active draft. Use /cron create, or send a normal request.')]
+        if draft['kind'] == 'new':
+            return self._continue_new(user, chat, draft, text)
         phase = draft['phase']
         if phase in ('creating', 'uncertain'):
             return [(chat, 'The previous creation outcome is uncertain. Review /cron list before /cancel or starting again. It will not be retried automatically.')]

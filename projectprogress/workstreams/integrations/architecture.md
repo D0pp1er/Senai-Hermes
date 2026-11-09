@@ -116,3 +116,7 @@ failure after remote acceptance can still cause ambiguity; no exactly-once guara
 ## Guided cron conversation milestone
 
 Feature-owned ConversationRouter wraps existing private/auth routing and delegates advanced management. Separate ConversationState persists per-user draft phases, expiry, frozen time preview, confirmation claims and uncertain outcomes. No replacement natural-language parser; parser/creator injected as specified in integration-notes.md. Existing merged calendar helper resolves advanced cron first occurrence. No import-time effects.
+
+## Safe session transition and pinned context
+
+See senai/telegram/README.md for current module architecture. SessionGate serializes native execution with /new confirmation; coordinator must cover foreground and scheduled runners and add scheduler idle-state checks. JobStore archives only the active pointer in existing sessions rows under a reserved history prefix, while keeping every old job/native transcript/profile snapshot. Only an explicit authorized Confirm can act, never startup. CommandRunner installation=None retains shared CLI defaults; an explicitly frozen root (or empty absence) prevents later defaults/env retargeting.

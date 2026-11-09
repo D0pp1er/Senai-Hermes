@@ -213,3 +213,49 @@ class ConversationTests(unittest.TestCase):
         self.parser.return_value = {"at": self.now.replace(tzinfo=None), "timezone": "Asia/Dhaka"}
         self.assertIn("tomorrow", self.say("in 2 minutes"))
         self.create.assert_not_called()
+
+
+    def test_conversation_factory_refuses_project_mismatched_queue_state(self):
+        other = self.project / "another-project"
+        other.mkdir()
+        fresh = Router(JobStore(self.project / "outputs/fresh/state.sqlite3"), {7}, "test_bot")
+        with self.assertRaises(ValueError):
+            create_conversation_router(fresh, project=other, account="123")
+
+
+    def test_invalid_advanced_field_names_the_field_to_fix(self):
+        result = self.say('/cron create {"name":"","prompt":"Make tea","at":"2030-11-10T09:00:00+06:00"}')
+        self.assertIn("JSON field name", result)
+        self.create.assert_not_called()
+
+    def test_oversized_create_is_rejected_before_json_or_parser_work(self):
+        result = self.say('/cron create ' + 'x' * 8000)
+        self.assertIn("8000", result)
+        self.parser.assert_not_called()
+        self.create.assert_not_called()
+
+
+    def test_interrupted_creation_claim_survives_restart_without_calling_backend_twice(self):
+        self.preview()
+        self.create.side_effect = KeyboardInterrupt
+        with self.assertRaises(KeyboardInterrupt):
+            self.say("Confirm")
+        self.router = self.make_router()
+        result = self.say("Confirm")
+        self.assertIn("/cron list", result)
+        self.create.assert_called_once()
+
+
+    def test_cancel_after_interrupted_creation_clears_only_draft_with_review_warning(self):
+        self.preview()
+        self.create.side_effect = KeyboardInterrupt
+        with self.assertRaises(KeyboardInterrupt):
+            self.say("Confirm")
+        self.router = self.make_router()
+        self.now += timedelta(hours=1)
+        self.assertIn("draft", self.say("/cron create"))
+        result = self.say("/cancel")
+        self.assertIn("/cron list", result)
+        self.assertIsNone(self.router.state.get(7, 7))
+        self.create.assert_called_once()
+        self.assertIn("name", self.say("/cron create").lower())

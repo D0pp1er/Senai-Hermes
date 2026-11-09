@@ -8,6 +8,14 @@ import time
 import uuid
 
 
+class SessionBusyError(ValueError):
+    pass
+
+
+class SessionChangedError(ValueError):
+    pass
+
+
 class JobStore:
     def __init__(self, path):
         self.path = Path(path)
@@ -132,6 +140,8 @@ class JobStore:
         with self.connection() as database:
             database.execute('BEGIN IMMEDIATE')
             row = database.execute("SELECT session_id FROM sessions WHERE name='telegram-shared'").fetchone()
+            if row is None and database.execute("SELECT 1 FROM sessions WHERE session_id=? AND name LIKE 'telegram-history:%'", (session_id,)).fetchone():
+                raise ValueError('Codex returned an archived session; the fresh session mapping was preserved.')
             if row and row[0] != session_id:
                 raise ValueError('Codex returned a different session; the shared session mapping was preserved.')
             database.execute("INSERT OR IGNORE INTO sessions(name,session_id,updated) VALUES ('telegram-shared',?,?)", (session_id, time.time()))
@@ -163,3 +173,28 @@ class JobStore:
                                  (identifier, json.dumps(parts)))
             row = database.execute('SELECT parts FROM delivery_snapshots WHERE job_id=?', (identifier,)).fetchone()
             return json.loads(row[0]) if row else None
+
+
+    def has_pending_jobs(self):
+        with self.connection() as database:
+            return database.execute("SELECT 1 FROM jobs WHERE status IN ('queued','running') LIMIT 1").fetchone() is not None
+
+    def fresh_shared_session(self, *, expected_session, authorize):
+        """Explicit local-policy action only; caller holds the shared execution gate."""
+        with self.connection() as database:
+            database.execute('BEGIN IMMEDIATE')
+            if not authorize():
+                raise PermissionError('Fresh-session permission was revoked.')
+            if database.execute("SELECT 1 FROM jobs WHERE status IN ('queued','running') LIMIT 1").fetchone():
+                raise SessionBusyError('Requests are pending or running.')
+            row = database.execute("SELECT session_id FROM sessions WHERE name='telegram-shared'").fetchone()
+            if row is None or row[0] != expected_session:
+                raise SessionChangedError('Shared conversation changed since preview.')
+            database.execute('INSERT OR IGNORE INTO sessions(name,session_id,updated) VALUES (?,?,?)',
+                             ('telegram-history:' + row[0], row[0], time.time()))
+            database.execute("DELETE FROM sessions WHERE name='telegram-shared'")
+            return row[0]
+
+    def session_history(self):
+        with self.connection() as database:
+            return [dict(row) for row in database.execute("SELECT name,session_id,updated FROM sessions WHERE name LIKE 'telegram-history:%' ORDER BY updated DESC")]

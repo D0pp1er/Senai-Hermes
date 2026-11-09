@@ -167,3 +167,51 @@ receipts/uncertainty over restart. Telegram queue cursor handles duplicate event
 No schedules created until explicit Confirm. JSON advanced create also previews.
 Parser/creation callback absence yields an actionable local-operator message, never
 an unsendable schedule or model execution. Fresh-session policy is the next increment.
+
+## Fresh-session / memory UX handoff
+
+Current user/module documentation is senai/telegram/README.md (Usage + Architecture).
+Root docs, defaults, aliases, cron_runtime and shared composition were left untouched.
+
+New local policy: ConversationRouter new_session_users defaults empty; session_guard
+defaults None. /new is denied unless both are explicitly supplied. Do not infer this
+permission from pairing. SessionGate(*, is_idle=None).wrap(runner) wraps __call__ while
+preserving other runner attributes; use the SAME gate for foreground and scheduled
+execution. Pass gate.idle as session_guard. The is_idle callback must also reject
+pending/running/retrying/unknown cron work for this bot; use the existing singleton
+process ownership. A bare status callback without an execution gate is insufficient.
+This contract is exposed for coordinator composition; the live/root startup is not wired
+by this feature. Missing policy/guard fails closed rather than offering an unsafe reset.
+
+/new confirmation invokes JobStore.fresh_shared_session(*, expected_session, authorize)
+under the gate. Its immediate transaction checks auth, ALL queued/running foreground
+jobs and the previewed UUID. It archives the prior pointer as a reserved
+telegram-history:<UUID> row in the EXISTING sessions table, then removes only the active
+pointer. No table/column migration, transcript deletion, pairing/job/media mutation.
+SessionBusyError/SessionChangedError give retry/review UX. session_history() is a
+protected local inspection API; archived UUIDs cannot silently bind as a fresh session.
+Startup does not call this action. Completed outbox deliveries remain intact.
+
+CommandRunner now has optional installation=None AFTER execution_timeout=None.
+None retains existing shared child-CLI defaults (configured memory already enabled).
+installation=STARTUP_ROOT pins the owner using explicit child --installation; '' pins
+an unconfigured/no-memory context. Coordinator must resolve the configured root ONCE
+and pass the same value to BOTH runners, rather than infer another installation or
+reload active defaults per request. No shared defaults/root routing code was changed.
+A real fake-Codex child test proves default profile recall, exact-ID continuation,
+profile refresh after /new, and refusal to retarget a pinned runner if defaults/env change.
+
+Status/reload proposal only: keep current /status, /session, and local voice-check.
+A future capability-status command must report the redacted RUNNING startup snapshot,
+not claim that reading a saved file reflects the live process. Any key-only reload must
+be locally authorized, idle-gated and atomically swap speech/router capability together;
+never reload project/installation defaults or auto-restart. Until reviewed, no remote
+reload/automatic restart is exposed. Existing optional setup and voice retry policy stay.
+
+No new dependencies; only already-merged Store/calendar/defaults/memory seams are used.
+Natural-language parser and final coordinator factory/gate/context wiring remain required
+before live UX activation. Do not import unmerged feature branches or implement a second
+parser. Advanced ISO/calendar creation remains usable through the injected creator and
+also requires explicit preview/Confirm. No live bot, real schedule or production state QA.
+
+Recovery detail: creating/uncertain receipts do not auto-expire. Explicit /cancel can clear only that receipt, warning that the earlier action may have completed and directing /cron list or /session review. Existing schedules/history are never deleted by cancellation. One router instance under the bot singleton serializes live callbacks.

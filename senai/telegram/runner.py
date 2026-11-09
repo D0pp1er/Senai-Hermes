@@ -16,7 +16,7 @@ import math
 
 
 class CommandRunner:
-    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None):
+    def __init__(self, project, state_dir, *, store=None, skip_git_repo_check=False, model=None, profile=None, search=False, skills=(), chat_style=False, media=None, speech=None, execution_timeout=None, installation=None):
         self.project = Path(project).expanduser().resolve()
         self.workspace = prepare_workspace(self.project)
         self.state_dir = Path(state_dir).resolve()
@@ -30,6 +30,14 @@ class CommandRunner:
         self.media = media
         self.chat_style = chat_style
         self.flags = ['--ask-for-approval', 'never']
+        # None preserves shared child-CLI defaults. An explicit startup value pins
+        # the installation; empty string pins the absence of memory configuration.
+        self.installation = None
+        if installation is not None:
+            self.installation = str(Path(installation).expanduser().resolve()) if str(installation) else ''
+            if self.installation and not Path(self.installation).is_dir():
+                raise ValueError('Configured memory installation must be an existing directory.')
+            self.flags.extend(['--installation', self.installation])
         if skip_git_repo_check:
             self.flags.append('--skip-git-repo-check')
         if model:

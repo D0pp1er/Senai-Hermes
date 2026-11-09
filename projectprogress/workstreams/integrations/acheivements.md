@@ -33,3 +33,7 @@ Optional voice setup verified at fa9c209: 210 regression tests, 26 setup/config 
 Voice-only response policy: 216 offline tests pass, including 23 voice tests covering audio success and text fallbacks/retries.
 
 UX cron milestone: 18 conversation tests and 394 combined offline tests pass. Callback and cron-team contracts documented; no live scheduling.
+
+Safe /new and configured-memory integration tested with temporary state and real fake-Codex children. Source-module README unifies Usage/Architecture. No production activity or shared source edits.
+
+Session/memory UX milestone: 42 focused tests and 418 combined offline tests pass. Scope/dependency/whitespace checks pass; no live operation.

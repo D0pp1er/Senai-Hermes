@@ -30,3 +30,8 @@
 
 - [x] Guided cron draft/validation/preview/confirm/cancel/expiry, duplicates/restart/auth tests.
 - [ ] Explicit protected fresh-session transition and complete source-module README.
+
+- [x] Safe /new policy/guard/confirmation/history, pending/running and transition tests.
+- [x] Existing child memory defaults + explicit startup installation pin hook tested.
+- [x] Combined senai/telegram/README.md, safe status/reload proposal and composition notes.
+- [ ] Coordinator cron-parser/factory/gate/default-context composition and live acceptance.

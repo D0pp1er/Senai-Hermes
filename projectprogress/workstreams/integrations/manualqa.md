@@ -139,3 +139,30 @@ Live API/audio checks NOT RUN; no production process/state was touched.
 Final voice-only verification: c858952a171916d28ed34941417c5ce56e4a4baf, 216 regression tests PASS and 23 voice tests PASS. Exact log: outputs/qa-integrations/voice-only-regression.log. Readiness metadata now records this source commit. No live playback/restart performed.
 
 UX cron offline checks: .venv/bin/python -m unittest tests.integrations.test_conversations -v (18 PASS), full discovery (394 PASS). Logs: outputs/qa-integrations/conversation-{red,green}.log, conversation-calendar-red.log, ux-regression.log. Tests inject an aware clock/parser and temp stores; no live scheduling.
+
+## UX transition acceptance
+
+Focused command: .venv/bin/python -m unittest tests.integrations.test_conversations tests.integrations.test_new_session tests.integrations.test_telegram_ux_memory -v
+Full command: .venv/bin/python -m unittest discover -s tests -v
+Logs: outputs/qa-integrations/ux-focused.log and ux-regression.log. RED logs:
+new-session-red.log, ux-memory-red.log, ux-scope-red.log and ux-field-red.log.
+
+All state/config/profile data is disposable. Fake Codex is a real child process with
+controlled native UUID events; no model/API/credential/production read is involved.
+Verified /new local policy, missing guard, all-user queue/running refusal, scheduler gate,
+preview-to-confirm races, expired/cancelled/replayed/restarted actions, prior history and
+old data preservation, archived-ID refusal, wrapped runner gate, and atomic permission check.
+Memory test verifies configured installation profiles on the first native turn, exact old
+resume, updated profiles after confirmed /new, and pinned root/absence against defaults changes.
+
+Later operator acceptance (NOT RUN): after coordinator supplies parser/creator/gate and
+pins startup context in an isolated QA project, run /cron create through all steps; verify
+full resolved local preview before Confirm and /cancel/expiry. Try independent paired-user
+drafts and revocation, JSON advanced create, field retries and scheduler delivery to same
+chat. Enable /new for a designated local operator only; verify busy refusal and explicit
+warning/Confirm, new native UUID on next request and protected prior mapping. Confirm
+voice-only/fallback and media retries still work. Never test by restarting production or
+activating real schedules in this workstream. Natural date/DST ambiguity is the cron parser
+owner's acceptance check; no competing date parser has been claimed here.
+
+Final candidate UX evidence: 42 focused / 418 combined tests PASS. Additional crash recovery verifies /cancel clears only stale confirmation state, warns to review /cron list or /session, preserves committed history, and does not auto-expire uncertainty into another action.
