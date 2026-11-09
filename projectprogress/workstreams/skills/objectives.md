@@ -23,3 +23,6 @@ Approximate expanded-scope progress: 60%; not a production-readiness claim. Exis
 - [x] Ordinary feature-local CLI requests using saved skills, retained artifacts and explicit observed checks; real imported-skill request passed narrow artifact/format QA.
 
 - [x] Explicit durable origins and independently checked acceptance of locally authored packages; actual new CSV skill acquired from user source run. Checks cover only declared cases; general improvement not claimed.
+
+- [x] Obsidian skill index/pages, truthful origins and short history; Windows-local create/refresh command/API verified and user confirmed viewing.
+- [x] Coordinator integration proposals and delivery handoff prepared; normal production wiring remains coordinator work.

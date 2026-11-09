@@ -1,15 +1,17 @@
+> Contributor workflow template. Paths below are examples; existing worktrees and environments are not included in a clone. Ordinary users should follow the repository README.
+
 # Four parallel workstreams
 
 This is the shared preparation baseline, not an implementation of the four features.
 All worktrees use the same Git repository/history with independent working files.
-The original /home/rk/SentiensHermes/senai checkout remains main and the integration coordinator.
+The original /path/to/workspace/senai checkout remains main and the integration coordinator.
 
 | Workstream | Branch | WSL folder | Handoff |
 | --- | --- | --- | --- |
-| Integrations | feature/integrations | /home/rk/SentiensHermes/senai-integrations | [Prompt 1](prompts/01-integrations.md) |
-| Memory | feature/memory | /home/rk/SentiensHermes/senai-memory | [Prompt 2](prompts/02-memory.md) |
-| Cron | feature/cron | /home/rk/SentiensHermes/senai-cron | [Prompt 3](prompts/03-cron.md) |
-| Skills | feature/skills | /home/rk/SentiensHermes/senai-skills | [Prompt 4](prompts/04-skills.md) |
+| Integrations | feature/integrations | /path/to/workspace/senai-integrations | [Prompt 1](prompts/01-integrations.md) |
+| Memory | feature/memory | /path/to/workspace/senai-memory | [Prompt 2](prompts/02-memory.md) |
+| Cron | feature/cron | /path/to/workspace/senai-cron | [Prompt 3](prompts/03-cron.md) |
+| Skills | feature/skills | /path/to/workspace/senai-skills | [Prompt 4](prompts/04-skills.md) |
 
 ## Use a worktree
 
@@ -33,7 +35,7 @@ The existing global user senai command continues to point at the main checkout.
 
 Use outputs/qa-project in the assigned worktree for runtime experiments. Do not point
 parallel bots, memory stores, skill importers, or schedulers at the production project
-/home/rk/SentiensHermes. Do not duplicate production tokens or private configuration.
+/path/to/workspace. Do not duplicate production tokens or private configuration.
 
 ## Ownership and integration
 
@@ -79,3 +81,5 @@ The prompts authorize scoped feature implementation when pasted into their respe
 new chats. Preparation itself did not implement the four new features.
 
 Mandatory additional guidance: [merge policy](MERGE_POLICY.md) and [ownership map](ownership.json). Fill the per-feature delivery.json and run the scope guard before committing or handing off.
+
+Git pull/push and recovery guidance: [GIT_WORKFLOW.md](GIT_WORKFLOW.md). Preserve reviewed main merge history; use fast-forward-only pulls.

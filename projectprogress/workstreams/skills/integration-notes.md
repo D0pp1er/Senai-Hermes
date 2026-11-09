@@ -87,3 +87,9 @@ CLI: learn --run ID --path RELATIVE_PACKAGE --reason TEXT; learning; check-learn
 Additive DB tables origins/learning_candidates/learning_validations; no destructive data migration/dependency change. Existing origin inferred only from recognized import audit evidence; other legacy data unknown. Imported plus locally revised stays imported. Source run reports are trusted project state; not cryptographically authenticated author evidence. JSON checks establish only the selected cases.
 
 Actual user-generated artifact was accepted only after two independent real-output checks. Source run ID, observed outcome IDs and validation ID persist in learned origin. Production shared routing still coordinator-owned/unapplied; no automatic background reviews or imports introduced. Obsidian export LAST.
+
+## Obsidian/local copy delivery
+
+export_vault(registry, *, project, destination=None) -> VaultExport and CLI export-obsidian [--destination PATH]. Windows C:\ paths or /mnt/c paths accepted from WSL. No background sync/app launch/install is part of the API. Dedicated generated section preserves personal notes/settings and refuses modified managed notes; exact prior manual projection can be adopted conservatively.
+
+Twenty export tests plus actual Windows-local double refresh passed. User confirmed Obsidian viewing. No new dependency/schema migration. User explicitly authorized only a canonical README sync from main to resolve a historical scope mismatch; this byte-identical shared documentation exception contains no feature logic. Source/tests/other records stay owned. Coordinator handoff and minimal shared hook proposals now in handoff.md. Normal production wiring remains unapplied.

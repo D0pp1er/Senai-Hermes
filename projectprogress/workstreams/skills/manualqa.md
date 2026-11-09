@@ -211,3 +211,31 @@ Inspect now:
 For a future generated skill: learn --run RUN_ID --path RELATIVE_PACKAGE --reason TEXT, inspect proposed candidate, provide independent cases to check-learning CANDIDATE_ID --cases FILE, then accept-learning CANDIDATE_ID only if latest checks pass. Staging never activates. Reusing an accepted name requires versioned revisions, not duplicate learning acceptance. Cases JSON is a list of objects with name, request and expected_json. No-check/error/failed cases cannot activate.
 
 Learned-acceptance full offline suite: PASS, 252 tests (116 skills tests). Scope guard: PASS. Log outputs/skills-qa/learning-suite.log. Separate actual candidate checks/acceptance PASS as detailed above.
+
+## Obsidian and Windows-local vault refresh
+
+Twenty export tests:
+
+```bash
+.venv/bin/python -m unittest tests.skills.test_obsidian -v
+```
+
+Creates/refreshes default WSL vault:
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k export-obsidian
+```
+
+Creates/refreshes the actual Windows vault the user opened (run from WSL):
+
+```bash
+.venv/bin/python -m senai.skills --project outputs/skills-import-demo/run-izmdpt0k export-obsidian --destination 'C:\Users\shari\.codex\visualizations\2026\11\08\01a1bc69-061d-7392-b538-42a1f2acb9e3\HermesSkillsVault'
+```
+
+Expected: skill_count 2, generated_files 5, a Windows windows_path and Generated/Index.md. Open that Windows folder as vault and read Generated/Index. API equivalent: export_vault(registry, project=project, destination=windows_folder). Source registry stays WSL; generated note copy updates only when command/API called.
+
+Observed: official Obsidian 1.15.0 installed for Windows user with explicit authorization. WSL UNC existed/readable but user hit EISDIR in Obsidian. Separate Windows-local notes solved it; user confirmed visibility. Implemented CLI then adopted the byte-matching manual projection and refreshed twice while preserving app settings. Report outputs/skills-qa/windows-vault-report.json. Two origins, five generated notes and ten valid internal links: obsidian-artifact-check.json. No raw transcript export.
+
+Tests verify personal/unowned note preservation, edited-page refusal, namespace/symlink guards, interrupted/failing swap recovery, empty index, source-registry byte preservation, concurrent-change rejection, origin/history/version updates, inert instruction markup and Windows path translation without shell. Red logs obsidian-red.log and windows-vault-red.log; full log windows-vault-suite.log. User app viewing is user-confirmed; automated native UI traversal was not completed.
+
+Full offline suite PASS: 272 tests (136 skills tests). Ownership guard initially rejected historical coordinator README mismatch; user explicitly approved exact README sync from main, after which guard PASS. No feature rebase/merge/push or other shared-file edits. Final exact commit verification/readiness follows in delivery.json.

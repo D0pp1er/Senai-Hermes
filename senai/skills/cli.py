@@ -13,12 +13,15 @@ from .live_demo import run_live_demo
 from .review import review_with_codex
 from .run import run_request, expected_files_checker
 from .learning import check_with_codex
+from .obsidian import export_vault
 
 
 def _parser():
     parser = argparse.ArgumentParser(prog="python -m senai.skills", description="Manage isolated project skills. Context export does not execute Codex.")
     parser.add_argument("--project", default=".", help="Existing project; registry is outputs/skills/")
     commands = parser.add_subparsers(dest="command", required=True)
+    export = commands.add_parser("export-obsidian", help="Create/refresh a Markdown vault with skill origins and concise history")
+    export.add_argument("--destination", default=None, help="Dedicated local vault folder; Windows C:\\ paths or WSL /mnt/c paths accepted")
     commands.add_parser("list", help="List active skills without loading their instructions into output")
     importer = commands.add_parser("import", help="Import a local SKILL.md package directory; never runs code")
     importer.add_argument("source")
@@ -114,6 +117,8 @@ def main(argv=None, stdout=None, stderr=None):
                     result.append(record)
             elif args.command == "show":
                 result = _record(registry.select([args.name])[0])
+            elif args.command == "export-obsidian":
+                result = _record(export_vault(registry, project=project, destination=args.destination))
             elif args.command == "origin":
                 result = _record(registry.origin(args.name))
             elif args.command == "learning":

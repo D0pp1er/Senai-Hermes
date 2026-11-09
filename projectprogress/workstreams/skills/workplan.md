@@ -20,10 +20,10 @@ DONE: explicit imported/learned_here/unknown/demo origin records, with latest-ch
 
 Coordinator wires context, observed outcomes and optional review hooks into normal CLI/Telegram while preserving native --skill and shared sessions. Verify combined pipeline on isolated state. Keep feature dependencies/migrations in owned paths and declare exact tested commits in final delivery; run --ready when scope is actually complete. No merge/push/deploy is authorized by this plan.
 
-## 5. Obsidian export (LAST; not currently implemented)
+## 5. Obsidian export (completed after user reprioritization)
 
 One-way Markdown projection from registry into a separate outputs/skills-vault/ folder: Index.md, Skills/<name>.md and concise History/<name>.md. Show active instructions, source, version, imported/learned labels, local revisions, checks and rollbacks. Use flat Obsidian properties and stable links; preserve unrelated notes/.obsidian settings and never edit hashed packages. Empty inventories remain empty, unknown origins unknown, demo evidence synthetic/controlled. No community plugin or personal vault needed by default.
 
-TDD acceptance when resumed: empty export, origin correctness, concise history/link accuracy, refresh after revision/rollback, unchanged registry, user-note preservation, symlink/path rejection and failed-export handling. User then opens the generated folder as an existing vault. No export work or Obsidian UI operation is part of the current demo milestone.
+TDD acceptance when resumed: empty export, origin correctness, concise history/link accuracy, refresh after revision/rollback, unchanged registry, user-note preservation, symlink/path rejection and failed-export handling. User then opens the generated folder as an existing vault. Completed: one-way projection and explicit Windows-local create/refresh. User confirmed local vault viewing; twenty export tests and double refresh preserve registry/settings. Final coordinator handoff/readiness is next; no normal production routing applied.
 
 References retained for later: https://obsidian.md/help/manage-vaults and https://obsidian.md/help/properties .

@@ -35,3 +35,6 @@
 
 - 2026-11-09, 3cb011e: ordinary saved-skill requests.
 - 2026-11-09, learning acceptance: inactive generated-package staging, independent exact-output checks, latest-pass atomic acceptance and persistent truthful origins. Eleven new tests; actual user-authored CSV skill passed 2/2 live cases and was accepted as learned_here.
+
+- 2026-11-09, 67e492c: checked learned acceptance/origins.
+- 2026-11-09, Obsidian/local-view milestone: generated index/skills/history, owned-note refresh/recovery, explicit Windows-local destination, verified manual-copy adoption, twenty TDD tests and two actual local refreshes. User confirmed viewing; canonical README sync explicitly approved.

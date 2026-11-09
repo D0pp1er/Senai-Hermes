@@ -30,3 +30,5 @@
 - Ordinary CLI requests now use exact saved instructions and resources via the existing Codex wrapper. Thirteen behavior tests passed. Real imported skill-creator generated a workspace-local csv-identifiers/SKILL.md; artifact existence and separate format/name checks passed. No automatic registry/learned-origin activation of the generated artifact.
 
 - Eleven learned-acceptance tests pass. User-generated csv-identifiers accepted after 2/2 actual native-model JSON cases; reopened registry distinguishes learned_here from imported and retains source run/outcomes/check history. Imported local revisions never relabel origin.
+
+- Obsidian/local view completed: twenty export tests and full 272-test suite passed. Two origins/five pages/ten links checked. User viewed the Windows copy; new API/CLI adopted and refreshed it twice preserving settings. Coordinator handoff prepared; no production merge/router change.
