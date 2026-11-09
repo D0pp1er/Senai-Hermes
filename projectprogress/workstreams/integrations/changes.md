@@ -98,3 +98,22 @@ TDD: missing voice_config module reproduced, then 13 tests passed for private fi
 User requested audio-only /voice success, text fallback. Updated durable delivery choice, omitted voice acknowledgements, added no-key/legacy/retry coverage and revised setup/help/docs. 216 offline tests pass. No changes to credentials/native auth/shared session, no live restart or merge.
 
 Voice-only implementation commit c858952; exact tested commit c858952a171916d28ed34941417c5ce56e4a4baf. 216 full tests and 23 voice tests PASS; scope/diff PASS. Ready for coordinator review, live playback NOT RUN.
+
+## UX cron conversation increment
+
+Fast-forwarded clean feature worktree to e4791e8 as authorized. Baseline 376 tests passed. RED missing conversation module and calendar-preview mismatch reproduced; GREEN 18 conversation tests and 394 full tests pass. Added separate draft state/factory and injected parser/creator contracts. No shared code, production state, service or actual scheduler activation touched.
+
+## Safe fresh conversation and memory context
+
+Cron conversation commit: 8d59901. Added explicit local /new permission and execution gate, atomic all-user pending/running checks, auth/expected-UUID confirmation and archived prior pointers. Preserved jobs/pairing/media and refused archived UUID rebinding. Added startup installation pin hook without changing legacy child-default behavior. Added combined source README, field-level JSON corrections and scope guards. RED: session_policy missing, pinned installation kwarg missing, fresh project-scope mismatch and invalid JSON/length UX. GREEN focused/full evidence follows.
+
+Final session UX increment: 42 focused UX tests and 418 combined tests PASS. Added interrupted-creation/reset cancellation recovery: clear only the draft, retain prior outcomes/history, require review and never auto-expire an uncertain receipt into a second action. Source README and coordinator hooks completed.
+
+## Final UX delivery evidence
+
+- 8d59901: guided cron conversation.
+- 4bb15ca: protected session transitions, context hook and module README.
+- Exact tested source: 4bb15ca2a32c42d22a30d98bd48859f218ef1c2f.
+- 418 combined tests / 42 focused UX tests PASS; scope, pip check, diff check PASS.
+- Ready for coordinator module review; parser/runtime wiring and live acceptance remain
+  explicit limitations. No shared source, production operation, merge or push.

@@ -126,3 +126,94 @@ Stop if the tree is not clean or the branch is not feature/integrations. Then:
     python -m unittest discover -s tests -v
     python scripts/check_workstream_scope.py --feature integrations --ready
 Reinstalling in this worktree's .venv includes the cron dependencies now present on main; never use pip --user or reinstall globally. If fast-forward refuses because new feature commits were added, stop for coordinator review; do not reset or automatically rebase. These commands do not restart the bot or migrate live runtime state.
+
+## Telegram UX contract proposal — cron conversation
+
+Feature-owned factory: create_conversation_router(base_router, **kwargs) returns
+ConversationRouter(base_router, *, project, account, parse_schedule=None,
+create_schedule=None, advanced_handler=None, timezone='Asia/Dhaka', clock=None,
+draft_ttl=600, new_session_users=(), session_guard=None).
+
+Requested cron-team parser seam (not yet merged; injected in tests):
+parse_schedule(when: str, repeat: str, *, now: aware datetime, timezone: str) -> dict
+with at (aware datetime), optional timezone (must match input), every (positive int
+seconds or None), cron (five fields or None). No additional natural-language parser
+is implemented here. Cron owner must reject past/ambiguous date/year/DST interpretations
+and support the UX-contract examples. Relative reference time is frozen when the
+user answers when; confirmation checks future time again instead of moving a relative
+reminder. Explicit advanced ISO/calendar inputs reuse datetime and merged next_after.
+
+create_schedule(spec, *, target, request_key) -> nonempty schedule ID. spec contains
+name,prompt,at(aware),timezone, optional every/cron, misfire,grace_seconds,retries,
+retry_delay. target is canonical Telegram account/project/scope/user/private-chat.
+request_key is stable per draft, reserved for coordinator/backend idempotency support.
+A persisted 'creating' claim precedes callback execution; unknown callback outcomes
+remain uncertain and are not automatically retried. DraftFieldError(field,message)
+certifies no schedule was persisted and safely retries the named field. Raw exception
+messages are never shown. bind_schedule_creator(store, *, project, authorize_target,
+scope='telegram-shared') adapts the already merged Store with destination authorization.
+
+Coordinator composition: construct TelegramCron as today; pass its handle method as
+advanced_handler, bind its store/authorize through the helper, supply the cron parser,
+then wrap the conversation router in TelegramAdapter. Leave the existing foreground,
+cron worker and delivery callbacks unchanged. Do not put TelegramCron outside this
+router: its legacy /cron create handler would intercept wizard messages first.
+Other advanced actions delegate; old generic rejection text is mapped to action-level
+instructions. No shared source/router/defaults changes applied by this feature.
+
+State: protected conversations.sqlite3 beside the per-bot state DB, bound to canonical
+account/project. Drafts isolated by user/chat, expire after 10 minutes, preserve creation
+receipts/uncertainty over restart. Telegram queue cursor handles duplicate events.
+No schedules created until explicit Confirm. JSON advanced create also previews.
+Parser/creation callback absence yields an actionable local-operator message, never
+an unsendable schedule or model execution. Fresh-session policy is the next increment.
+
+## Fresh-session / memory UX handoff
+
+Current user/module documentation is senai/telegram/README.md (Usage + Architecture).
+Root docs, defaults, aliases, cron_runtime and shared composition were left untouched.
+
+New local policy: ConversationRouter new_session_users defaults empty; session_guard
+defaults None. /new is denied unless both are explicitly supplied. Do not infer this
+permission from pairing. SessionGate(*, is_idle=None).wrap(runner) wraps __call__ while
+preserving other runner attributes; use the SAME gate for foreground and scheduled
+execution. Pass gate.idle as session_guard. The is_idle callback must also reject
+pending/running/retrying/unknown cron work for this bot; use the existing singleton
+process ownership. A bare status callback without an execution gate is insufficient.
+This contract is exposed for coordinator composition; the live/root startup is not wired
+by this feature. Missing policy/guard fails closed rather than offering an unsafe reset.
+
+/new confirmation invokes JobStore.fresh_shared_session(*, expected_session, authorize)
+under the gate. Its immediate transaction checks auth, ALL queued/running foreground
+jobs and the previewed UUID. It archives the prior pointer as a reserved
+telegram-history:<UUID> row in the EXISTING sessions table, then removes only the active
+pointer. No table/column migration, transcript deletion, pairing/job/media mutation.
+SessionBusyError/SessionChangedError give retry/review UX. session_history() is a
+protected local inspection API; archived UUIDs cannot silently bind as a fresh session.
+Startup does not call this action. Completed outbox deliveries remain intact.
+
+CommandRunner now has optional installation=None AFTER execution_timeout=None.
+None retains existing shared child-CLI defaults (configured memory already enabled).
+installation=STARTUP_ROOT pins the owner using explicit child --installation; '' pins
+an unconfigured/no-memory context. Coordinator must resolve the configured root ONCE
+and pass the same value to BOTH runners, rather than infer another installation or
+reload active defaults per request. No shared defaults/root routing code was changed.
+A real fake-Codex child test proves default profile recall, exact-ID continuation,
+profile refresh after /new, and refusal to retarget a pinned runner if defaults/env change.
+
+Status/reload proposal only: keep current /status, /session, and local voice-check.
+A future capability-status command must report the redacted RUNNING startup snapshot,
+not claim that reading a saved file reflects the live process. Any key-only reload must
+be locally authorized, idle-gated and atomically swap speech/router capability together;
+never reload project/installation defaults or auto-restart. Until reviewed, no remote
+reload/automatic restart is exposed. Existing optional setup and voice retry policy stay.
+
+No new dependencies; only already-merged Store/calendar/defaults/memory seams are used.
+Natural-language parser and final coordinator factory/gate/context wiring remain required
+before live UX activation. Do not import unmerged feature branches or implement a second
+parser. Advanced ISO/calendar creation remains usable through the injected creator and
+also requires explicit preview/Confirm. No live bot, real schedule or production state QA.
+
+Recovery detail: creating/uncertain receipts do not auto-expire. Explicit /cancel can clear only that receipt, warning that the earlier action may have completed and directing /cron list or /session review. Existing schedules/history are never deleted by cancellation. One router instance under the bot singleton serializes live callbacks.
+
+Final tested source: 4bb15ca (full hash in delivery.json), 418 combined and 42 focused tests pass. Source and worktree remain unmerged; coordinator hooks/parser/guard/context composition above are unapplied. Readiness means the owned module is reviewable, not that the live bot has the UX yet.
