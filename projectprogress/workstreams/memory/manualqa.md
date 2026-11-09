@@ -119,3 +119,28 @@ Noteworthy exact-commit evidence: bd37417, 248 full offline tests PASS, includin
 adaptation and failure exclusion. Synthetic fixture CLI QA PASS (two proposals,
 no USER/MEMORY writes). Logs: outputs/qa-project/memory-noteworthy-tests.log and
 memory-noteworthy-qa.json. Live extension: NOT RUN.
+
+## Profile UX QA
+
+From the assigned WSL worktree, use a disposable installation:
+
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo memory setup
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo memory add 'Finished first release'
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo user add 'Prefers concise replies'
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo soul add 'Be thoughtful'
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo memory show
+    .venv/bin/python -m senai.memory.profile_cli --installation outputs/qa-project/profile-ux-demo user path
+
+Expected: plain human output, preserved text, exact absolute path. Repeating an add
+prints Already present and keeps content unchanged. No text in a terminal prompts with
+an example; no text with redirected stdin returns 2 and an example command without reading.
+Missing configuration/folder/setup, full files, corrupt UTF-8, symlinks and conflicts
+have specific actionable errors. No facts are automatically learned by this helper.
+Live root-router/Telegram /new checks are NOT RUN; coordinator owns those hooks.
+
+Final UX code commit e5459f8: 393 full offline tests PASS (70 memory, 17 new shortcut).
+Retained exact-commit log: outputs/qa-project/memory-profile-ux-tests.log.
+Subprocess + pseudo-TTY QA: outputs/qa-project/memory-profile-ux-qa.json PASS.
+Editable environment refreshed after main update; initial dependency-only cron baseline
+failures resolved by installing integrated pyproject dependencies into this .venv.
+Pip check PASS: outputs/qa-project/memory-profile-ux-env.log. No dependency files changed.

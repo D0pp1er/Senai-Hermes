@@ -1,3 +1,67 @@
+# Profile UX helper handoff (current extension)
+
+New user-facing API:
+    profile_main(kind, argv, *, installation, stdin, stdout, stderr) -> int
+    setup_profiles(installation) -> dict[str, Path]
+
+Both are exported from senai.memory. kind is memory/user/soul. argv is only the
+shortcut tail: add [TEXT], show, path, setup. stdout/stderr/stdin are injectable;
+TTY prompt uses stdin.isatty and bounded readline; missing non-TTY text fails promptly.
+Return codes: 0 success/help/duplicate, 2 usage/validation/storage, 130 cancellation.
+No SystemExit leaks from the helper, including subcommand --help.
+
+## Proposed root routing (coordinator only)
+
+Obtain installation from the existing resolved saved defaults/explicit configuration,
+then call the helper for human shortcut invocations. No settings are loaded or inferred
+by the helper. Do not use it from automatic learning or parse model output into it.
+
+Preserve advanced root memory routes: the existing python -m senai.memory CLI is unchanged,
+including SQLite add TEXT --provenance SOURCE and legacy scoped flags. Do not blindly
+replace every memory add route: short human add appends MEMORY.md; explicit advanced
+commands/flags must keep SQLite behavior. Coordinator owns disambiguation and flags.
+user/soul use the same human helper with their corresponding kind. Normal UX requires
+no installation/scope/user-ID arguments once setup has saved defaults.
+
+Use setup_profiles during explicit onboarding/setup instead of duplicating file creation.
+It creates missing installation folders and empty profiles with private creation modes;
+existing contents are validated and preserved. It writes no defaults or SQLite and
+returns exact absolute paths. Keep missing configuration errors actionable (senai setup).
+Add requires the profile directory already initialized; a missing target file can be
+created by the explicit human append. Show/path/help remain read-only.
+
+## Fresh sessions and integrations /new handoff
+
+Edits never mutate a frozen snapshot. Helpers report that a fresh session loads changes.
+No CLI/core or Telegram/session files are changed here.
+
+Integration proposal: /new should select a genuinely fresh native execution after the
+current active job boundary, omitting the old --resume ID. The existing runtime then
+calls InstallationMemory.snapshot and binds the new native ID. Preserve prior native
+history and snapshot records. Do not delete profiles/snapshot DBs or reuse the previous
+snapshot under a new ID. Confirm the installed root remains pinned to bot startup
+configuration. Existing snapshot API is sufficient; memory adds no separate reset API.
+Queue/session ownership and exact /new public API remain integrations/coordinator work.
+No Telegram /new implementation is claimed by this feature.
+
+## Validation/compatibility
+
+Human append preserves old text, deduplicates case/whitespace-normalized notes,
+including multiline notes, and uses the existing revision/atomic-write rules.
+Full files fail with an actionable path/shorten message; no eviction.
+Automatic SOUL learning stays blocked. Explicit confirmed human soul add uses human
+origin; this is the only intended shortcut entry path. Confirmation-only personal
+observations and verified-only significant milestone learning are unchanged.
+
+Standalone demo: python -m senai.memory.profile_cli --installation ROOT KIND add TEXT.
+Module guide: senai/memory/README.md (Usage and Architecture). No dependency/schema
+change, no model/network/service operations, no global settings changes.
+Tests include a real subprocess demo and unchanged advanced SQLite add.
+New live root-router or Telegram /new acceptance has not been run.
+
+---
+Earlier integrated memory/evaluator contracts follow for reference.
+
 > Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
 
 # Noteworthy evaluator extension (current handoff)

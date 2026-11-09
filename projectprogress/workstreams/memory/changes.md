@@ -35,3 +35,12 @@ Thirteen new behavior tests pass, including integrated callback success/failure 
 
 - bd37417: noteworthy extension. Exact-commit regression 248 PASS, including 53
   memory tests (13 new). Synthetic CLI QA and ownership/readiness checks pass.
+
+2026-11-09 UX objective: authorized fast-forward to e4791e8; refreshed own .venv editable
+install to obtain integrated cron dependencies, pip check PASS. Added human profile
+shortcuts/setup/demo/README. TDD red: missing exports; additional red tests exposed
+subparser stream leakage and multiline duplicate append, both fixed. 17 focused tests pass.
+
+- e5459f8: human profile UX helper/setup/demo/README. 393 full offline tests PASS,
+  including 70 memory tests (17 new focused tests). Pseudo-TTY/subprocess QA and pip
+  check PASS; exact-commit evidence retained. No shared source or production changes.

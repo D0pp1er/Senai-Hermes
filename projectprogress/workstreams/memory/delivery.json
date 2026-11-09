@@ -10,7 +10,9 @@
     "senai.memory.session",
     "senai.memory.__main__",
     "senai.memory.installation",
-    "senai.memory.noteworthy"
+    "senai.memory.noteworthy",
+    "senai.memory.profile_commands",
+    "senai.memory.profile_cli"
   ],
   "public_api": [
     {
@@ -157,6 +159,16 @@
       "name": "senai.memory.evaluate_noteworthy",
       "signature": "evaluate_noteworthy(events, *, existing=None, max_candidates=5, max_chars=1200)",
       "purpose": "Propose confirmed user facts or validator-verified significant milestones."
+    },
+    {
+      "name": "senai.memory.profile_main",
+      "signature": "profile_main(kind, argv, *, installation, stdin, stdout, stderr) -> int",
+      "purpose": "Handle an explicitly HUMAN memory/user/soul add/show/path/setup command."
+    },
+    {
+      "name": "senai.memory.setup_profiles",
+      "signature": "setup_profiles(installation)",
+      "purpose": "Explicit setup: create missing installation/profile paths; preserve existing files."
     }
   ],
   "commands": [
@@ -168,7 +180,9 @@
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-propose NAME TEXT [--origin human|outcome] [--verified]",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] profile-apply PROPOSAL_JSON --approve",
     "python -m senai.memory --project PROJECT --scope SCOPE [--user-id ID] session-context REQUEST [--include-user] [--max-chars N]",
-    "python -m senai.memory --installation REPO evaluate-events EVENTS_JSON [--max-candidates N] [--max-chars N]"
+    "python -m senai.memory --installation REPO evaluate-events EVENTS_JSON [--max-candidates N] [--max-chars N]",
+    "Proposed root: senai {memory,user,soul} {add [TEXT],show,path,setup}; coordinator routing pending",
+    "python -m senai.memory.profile_cli --installation ROOT {memory,user,soul} {add [TEXT],show,path,setup}"
   ],
   "executor_contract": {
     "interface": "executor(prompt, workspace, **executor_kwargs) -> str (synchronous run_codex signature)",
@@ -199,12 +213,15 @@
       ".venv/bin/python -m unittest discover -s tests/memory -p test_transport.py -v",
       ".venv/bin/python -m unittest discover -s tests/memory -p test_installation.py -v",
       "Disposable installation CLI QA: outputs/qa-project/memory-installation-qa.json",
-      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v"
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_noteworthy.py -v",
+      ".venv/bin/python -m unittest discover -s tests/memory -p test_profile_commands.py -v",
+      ".venv/bin/python -m pip check",
+      "Disposable subprocess + pseudo-TTY profile UX: outputs/qa-project/memory-profile-ux-qa.json"
     ],
     "offline_result": "passed",
-    "offline_test_count": 248,
-    "tested_commit": "bd374173e05ef98d618d7689bf66906f167b162a",
-    "live_result": "not-run for new evaluator; integrated baseline acceptance documented separately",
+    "offline_test_count": 393,
+    "tested_commit": "e5459f8796d92a266b3dab4e8214c54d2fcbbb16",
+    "live_result": "not-run for new UX/root-router/Telegram fresh-session flow",
     "evidence_logs": [
       "outputs/qa-project/memory-multifile-tests.log",
       "outputs/qa-project/memory-multifile-qa.json",
@@ -212,16 +229,22 @@
       "outputs/qa-project/memory-installation-tests.log",
       "outputs/qa-project/memory-installation-qa.json",
       "outputs/qa-project/memory-noteworthy-tests.log",
-      "outputs/qa-project/memory-noteworthy-qa.json"
+      "outputs/qa-project/memory-noteworthy-qa.json",
+      "outputs/qa-project/memory-profile-ux-tests.log",
+      "outputs/qa-project/memory-profile-ux-qa.json",
+      "outputs/qa-project/memory-profile-ux-env.log"
     ],
-    "memory_test_count": 53
+    "memory_test_count": 70
   },
   "integration": {
     "shared_file_changes": [
       "Supersedes earlier multi-user proposal: configure one explicit installation root and use InstallationMemory.snapshot for fresh sessions across projects",
       "Coordinator wires user-request/noteworthy/verified judgments into InstallationMemory.remember; SOUL remains human-only",
       "Keep snapshot reuse on resume and native session behavior; shared CLI routing remains proposed; see integration-notes.md",
-      "New extension: trusted structured evidence + explicit user confirmation -> evaluate_noteworthy -> existing LearningDecision callback; see latest integration-notes.md"
+      "New extension: trusted structured evidence + explicit user confirmation -> evaluate_noteworthy -> existing LearningDecision callback; see latest integration-notes.md",
+      "UX: call profile_main with resolved saved installation and injected streams; preserve advanced memory flags/routes",
+      "UX setup: use setup_profiles in explicit onboarding; helper does not load/save defaults",
+      "Integrations /new: start fresh native execution without old --resume; preserve profiles/history and pinned installation; see latest integration-notes.md"
     ],
     "sibling_requirements": []
   },
@@ -233,7 +256,13 @@
     "Normalized textual deduplication and per-batch event IDs only; no semantic deduplication or persistent event ledger",
     "Pure evaluator writes no facts; dry-run CLI can initialize normal installation storage while reading existing profiles",
     "Profile capacity/secret filters and frozen snapshots remain; no automatic compaction, secure erasure or retroactive context retraction",
-    "No new live evaluator tests or production bot/state changes performed"
+    "No new live evaluator tests or production bot/state changes performed",
+    "New root shortcuts and Telegram /new not wired here; standalone demo and public helper work",
+    "Human-only shortcut is an authorized caller boundary, not an autonomous-learning entry point",
+    "setup_profiles creates explicitly requested directories/profiles; read-only show/path make no storage",
+    "Deduplication is textual case/whitespace normalization; no semantic rewriting; conflicts require reread/retry",
+    "UX helper/setup does not infer or save configuration; coordinator must supply the saved installation",
+    "No live root-router or Telegram /new test; feature-local subprocess and pseudo-TTY checks passed"
   ],
   "coordinator_integration": {
     "merge_commit": "0f0c979",

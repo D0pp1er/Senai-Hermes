@@ -1,17 +1,16 @@
-> Historical workstream record. For current user setup, compatibility and manual tests, start at the repository README. Earlier counts and plans describe their recorded milestone.
-
 # Current task
 
-Noteworthy extension ready for coordinator review.
-Code commit bd37417: 248 full offline tests pass, including 53 memory tests
-(13 new evaluator tests). Full exact-commit log and synthetic CLI QA retained under
-outputs/qa-project/memory-noteworthy-*; delivery.json records exact API and evidence.
+Human profile UX ready for coordinator integration.
+Tested code commit e5459f8: 393 full offline tests PASS, including 70 memory tests
+and 17 focused shortcut tests. Exact-commit verbose log and subprocess/pseudo-TTY
+QA retained at outputs/qa-project/memory-profile-ux-*.
 
-User decision: user preferences/habits/likes/dislikes/choices require explicit retention
-confirmation, never repetition alone. Significant validator-verified milestones may
-qualify automatically. Evaluator returns proposals only and cannot target SOUL.
-Baseline main 1357cdd already integrates installation memory and native snapshot reuse.
+Public exports: profile_main(kind, argv, *, installation, stdin, stdout, stderr) -> int
+and setup_profiles(installation). Module README includes Usage and Architecture.
+No shared source, root docs, packaging, Telegram files or defaults edited.
 
-Next coordinator work: collect trusted run evidence, ask/record actual user confirmation,
-adapt proposals to the existing learning callback and verify combined behavior.
-No shared/core files changed, no new schema/dependency, no live evaluator activation.
+Next coordinator work: route human root memory/user/soul shortcuts using resolved
+saved installation; keep advanced SQLite routes compatible; call setup_profiles from
+explicit onboarding and compose integrations /new at the native-session boundary.
+Helpers keep SOUL human-only and preserve confirmation/verified milestone policies.
+No new dependency/schema; own editable .venv refreshed and pip check PASS.

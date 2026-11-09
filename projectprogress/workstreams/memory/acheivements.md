@@ -45,3 +45,12 @@ offline tests pass; no SOUL proposal path and no arbitrary model-output validati
 Final noteworthy verification at bd37417: 248 full offline tests PASS (53 memory).
 Recorded fixture emits exactly two proposals and saves no facts. New live evidence
 collection/confirmation interface remains coordinator work; no live evaluator claim.
+
+Human UX extension: simple profile add/show/path/setup helper, bounded interactive prompt,
+actionable noninteractive errors, preserved content/dedupe/conflicts, human SOUL path,
+read-only inspection and non-overwriting setup. Seventeen focused tests pass, including
+real subprocess demo, advanced API compatibility and frozen/fresh snapshots.
+
+Final UX verification at e5459f8: 393 full offline tests PASS, 70 memory tests.
+Seventeen new shortcut tests plus disposable real subprocess/pseudo-TTY QA PASS.
+Root routing and Telegram /new remain coordinator work; no live UX claim.
