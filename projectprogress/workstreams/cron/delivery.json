@@ -9,7 +9,10 @@
     "senai.cron.__main__",
     "senai.cron.calendar",
     "senai.cron_supervisor",
-    "senai.processes"
+    "senai.processes",
+    "senai.cron.when",
+    "senai.cron.draft",
+    "senai.cron.wizard"
   ],
   "public_api": [
     {
@@ -86,6 +89,41 @@
       "name": "Supervisor",
       "signature": "Supervisor(manager, *, interval=1, status_interval=5); run(stdout, *, once=False, signals=False) -> int",
       "purpose": "Supervise separate bounded-execution and durable-delivery loops with visible status and graceful stop."
+    },
+    {
+      "name": "parse_when",
+      "signature": "parse_when(text, *, now, timezone) -> datetime",
+      "purpose": "Pure aware future-time resolution; TimeClarification(ValueError) requests actionable clarification"
+    },
+    {
+      "name": "Destination",
+      "signature": "Destination(key, label, scope, target, execution_hint)",
+      "purpose": "Immutable adapter-provided destination; target property returns a defensive JSON copy"
+    },
+    {
+      "name": "ScheduleDraft",
+      "signature": "ScheduleDraft(name, prompt, at, timezone, recurrence, destination, every=None, cron=None)",
+      "purpose": "Immutable pure schedule preview state; adapters own authorization and draft lifecycle"
+    },
+    {
+      "name": "build_draft",
+      "signature": "build_draft(*, name, prompt, when, recurrence, destination, now, timezone, parser=parse_when) -> ScheduleDraft",
+      "purpose": "Validate first time/repeat and resolve actual calendar first match without writes"
+    },
+    {
+      "name": "preview_draft",
+      "signature": "preview_draft(draft) -> str",
+      "purpose": "Present full local datetime/timezone, task, recurrence, destination, execution instructions and safe defaults"
+    },
+    {
+      "name": "commit_draft",
+      "signature": "commit_draft(store, draft, *, project, now, confirmed) -> str | None",
+      "purpose": "Require explicit True, recheck fixed previewed future instant and persist through existing Store.create"
+    },
+    {
+      "name": "cron.__main__.main",
+      "signature": "main(argv=None, *, store_factory=None, stdin=None, stdout=None, stderr=None, clock=None, timezone=None, destinations=()) -> int",
+      "purpose": "Inject matching store and authorized destination options for confirmed terminal wizard; preserve advanced CLI"
     }
   ],
   "commands": [
@@ -93,7 +131,9 @@
     "create supports --cron EXPR or --every SECONDS; --misfire coalesce|skip; --grace-seconds N; --timezone IANA; aware --at required",
     "show ID; edit ID --expected-revision N [--prompt TEXT] [--at ISO] [--cron EXPR|--every SECONDS|--once] [other supported create fields except project/scope]",
     "senai cron worker --project PROJECT --telegram-account BOT_ID [--once] [--execution-timeout SECONDS] [--interval SECONDS] [--status-interval SECONDS]",
-    "senai cron worker-status --project PROJECT --telegram-account BOT_ID"
+    "senai cron worker-status --project PROJECT --telegram-account BOT_ID",
+    "senai cron create: sequential wizard when TTY and matching destination/store hooks are supplied",
+    "create --when \"tomorrow at 1 am\" (advanced flags path); --at ISO remains compatible"
   ],
   "executor_contract": {
     "interface": "executor(run: dict) -> str; send(item: dict) -> None",
@@ -118,23 +158,27 @@
   "storage": {
     "namespace": "<project>/outputs/.senai-cron/cron.db",
     "schema_version": 4,
-    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes. Add revision INTEGER NOT NULL DEFAULT 1; old records preserved. Due advance, retry claims, pause/resume and edits increment revision. Additive unknown execution status: transaction pauses schedule and optionally queues its notification; existing TEXT status columns require no DDL migration. Protected worker-status.json and worker.lock are account-local. Telegram DB schema remains unchanged."
+    "migration_notes": "Add nullable schedules.cron, misfire default coalesce, grace_seconds default 120 and misfires table; existing schedules/runs/delivery rows preserved. Migration column checks serialized. No Telegram changes. Add revision INTEGER NOT NULL DEFAULT 1; old records preserved. Due advance, retry claims, pause/resume and edits increment revision. Additive unknown execution status: transaction pauses schedule and optionally queues its notification; existing TEXT status columns require no DDL migration. Protected worker-status.json and worker.lock are account-local. Telegram DB schema remains unchanged. Friendly scheduling UX introduces no schema changes or migrations."
   },
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
       ".venv/bin/python -m pip check",
-      ".venv/bin/python scripts/check_workstream_scope.py --feature cron"
+      ".venv/bin/python scripts/check_workstream_scope.py --feature cron",
+      "Real PTY wizard with injected fake destination and disposable store: outputs/cron-qa/ux-acceptance.json"
     ],
     "offline_result": "passed",
-    "offline_test_count": 184,
-    "tested_commit": "67b8776a67da9449cd05f00271037f9be3b9a308",
-    "live_result": "not-run",
-    "log": "outputs/cron-qa/management-tests.log"
+    "offline_test_count": 401,
+    "tested_commit": "20f3245a0848655f681dceb7b82280b7de71f12b",
+    "live_result": "not-run (friendly UX feature; no service activation)",
+    "log": "outputs/cron-qa/ux-tests.log"
   },
   "integration": {
     "shared_file_changes": [
-      "Coordinator only: route main CLI to cron.__main__.main; inject authorized execution/session and delivery adapters"
+      "Coordinator only: route main CLI to cron.__main__.main; inject authorized execution/session and delivery adapters",
+      "Coordinator: supply authorized Destination options and matching account store_factory to cron CLI main; do not default to unsendable local tasks",
+      "Integrations: consume parse_when/build_draft/preview_draft/commit_draft for per-user Telegram conversations; enforce duplicate-update suppression, timeout, cancel, authorization and confirmation",
+      "Coordinator: pin configured project/timezone/installation/account at startup; friendly helpers never mutate saved defaults"
     ],
     "sibling_requirements": []
   },
@@ -146,7 +190,12 @@
     "At most 100 due schedules examined per claim; call tick again after a large skipped backlog",
     "Unknown execution/send outcomes require operator review; external effects are not exactly once",
     "Destination JSON is metadata; adapters must enforce current authorization and preserve session policy",
-    "Coordinator CLI/chat/execution/delivery integration is wired and offline tested; live channel/model/daemon scheduling checks remain unperformed"
+    "Coordinator CLI/chat/execution/delivery integration is wired and offline tested; live channel/model/daemon scheduling checks remain unperformed",
+    "Friendly English grammar is deliberately bounded, not arbitrary natural language; yearless dates use current local year only",
+    "Wizard refuses if coordinator has not supplied an authorized destination and matching execution/store route; final CLI account selection still needs composition",
+    "Draft helper commits are not idempotent themselves; Telegram adapter owns duplicate confirmation suppression and per-user timeout/cancel",
+    "Friendly wizard defaults skip after 120 seconds with zero execution retries; custom advanced policies require full flags",
+    "Friendly times must be future; legacy advanced --at and raw Store APIs retain past-date compatibility"
   ],
   "coordinator_integration": {
     "merge_commit": "6a50762",

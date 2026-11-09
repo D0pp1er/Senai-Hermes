@@ -20,3 +20,13 @@
 - 67b8776: safe show/edit management, 184 full offline tests passed on exact commit.
 - Edit-versus-claim race, stale editor, paused/consumed task, active retry and delivery snapshot
   behavior verified. Feature-only schema revision upgrade; no new dependencies or live checks.
+
+- Friendly scheduling UX: all 401 offline tests pass, including 73 cron tests.
+- Parser/draft API committed in fa67c50. Sequential wizard, confirmation/cancellation, missing
+  first-run guidance, non-TTY refusal, saved timezone and complete advanced flags verified.
+- Own worktree editable install refreshed with --no-deps; pip check passes. No new dependency.
+- No live schedule/model/message operation in this feature work. Destination/account/chat
+  composition remains explicitly coordinator-owned; missing wizard route fails without writes.
+
+- Exact implementation commit 20f3245: 401 full offline tests passed; real PTY fake-route
+  wizard passed (one saved disposable schedule, zero executions). Evidence in outputs/cron-qa/.

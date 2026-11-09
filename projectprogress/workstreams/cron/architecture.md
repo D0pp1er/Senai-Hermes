@@ -51,3 +51,10 @@ next_due exactly, including NULL for consumed one-shots, and preserve enabled st
 Completed run snapshots and already queued destinations never change. Editing a destination
 changes future occurrences only. CLI show/edit expose these APIs; --expected-revision is
 required. --cron/--every/--once replace the recurrence kind, with --at required for a change.
+
+## Friendly scheduling UX
+Current module documentation is senai/cron/README.md. Pure when/draft helpers use injected
+aware clock and IANA zone; terminal wizard lazily opens the store after yes/future-time check.
+No DB schema or execution/delivery state-machine change. Destination options and selected
+store are injected together by coordinator; missing routes refuse creation rather than
+creating an unsendable task. Shared defaults API supplies timezone; no configuration writes.

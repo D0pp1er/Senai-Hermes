@@ -58,3 +58,18 @@ on saved records, never start execution. Automated CLI verification uses tempora
 
 PASS: 184 full offline tests on exact code commit 67b8776a67da9449cd05f00271037f9be3b9a308; log outputs/cron-qa/management-tests.log.
 Live chat/channel checks remain not run.
+
+## Friendly UX offline checks
+Run .venv/bin/python -m unittest tests.cron.test_when tests.cron.test_draft tests.cron.test_wizard -v.
+These exercise sequential questions, preview/yes, no/cancel/EOF, invalid-input retries,
+non-TTY missing-first-run errors, saved timezone, elapsed duration/DST, immutable destinations,
+and stale confirmation. Fake destinations/temp DBs only. Full suite retains existing execution
+retry, durable delivery, revision, coordinator and advanced CLI coverage.
+No real scheduled run, live send, production poller or Telegram conversation was activated here.
+The terminal wizard requires injected destination/store hooks; a plain unconfigured create must
+fail clearly instead of saving a local task with no execution path. Coordinator hook work is pending.
+
+PASS: exact commit 20f3245, 401 combined offline tests; real PTY wizard with fake route
+accepted sequential answers and explicit yes. One saved temporary schedule, zero executions.
+Logs: outputs/cron-qa/ux-tests.log, ux-pty.log, ux-acceptance.json, ux-install.log.
+Live friendly scheduling/Telegram UI NOT RUN; no workers or production state used.
