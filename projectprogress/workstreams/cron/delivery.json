@@ -192,7 +192,7 @@
     "Destination JSON is metadata; adapters must enforce current authorization and preserve session policy",
     "Coordinator CLI/chat/execution/delivery integration is wired and offline tested; live channel/model/daemon scheduling checks remain unperformed",
     "Friendly English grammar is deliberately bounded, not arbitrary natural language; yearless dates use current local year only",
-    "Wizard refuses if coordinator has not supplied an authorized destination and matching execution/store route; final CLI account selection still needs composition",
+    "Wizard requires authorized destination/store route; coordinator now supplies existing authorized account routes. No usable route means a clear refusal, never an unsendable task.",
     "Draft helper commits are not idempotent themselves; Telegram adapter owns duplicate confirmation suppression and per-user timeout/cancel",
     "Friendly wizard defaults skip after 120 seconds with zero execution retries; custom advanced policies require full flags",
     "Friendly times must be future; legacy advanced --at and raw Store APIs retain past-date compatibility"
@@ -219,5 +219,19 @@
     "supervisor_test_count": 13,
     "offline_worker_acceptance": "passed",
     "live_worker_acceptance": "not-run; requires later explicit instruction"
+  },
+  "friendly_coordinator_integration": {
+    "merge_commit": "cdd0375",
+    "wiring_commit": "ad81604",
+    "feature_test_count": 401,
+    "combined_test_count": 409,
+    "cross_feature_test_count": 8,
+    "result": "passed",
+    "live_operation_activated": false,
+    "production_state_used": false,
+    "evidence": [
+      "outputs/friendly-routing-green.log",
+      "outputs/friendly-cron-combined.log"
+    ]
   }
 }

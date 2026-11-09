@@ -96,6 +96,5 @@ without activating a venv; otherwise activate once per terminal.
 
 After saved setup, senai "REQUEST", senai cron list, senai telegram start and
 senai telegram voice-configure use the configured project. Telegram start opts into
-cron. The fully conversational scheduling wizard and short profile commands are
-ASSIGNED work, not yet shipped. Continue using documented advanced forms until integrated.
+cron. Conversational cron creation is integrated: senai cron create and Telegram /cron create ask sequential questions and confirm before saving. Short profile commands remain assigned, not yet shipped. Continue using documented advanced forms until integrated.
 See docs/development/ux-contract.md for feature-chat boundaries.

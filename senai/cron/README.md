@@ -119,3 +119,45 @@ See the workstream integration notes for exact CLI hook signatures and coordinat
 
 All tests use temporary stores, fake clocks and fake destinations; no live schedules are started.
 No schema migration or new dependency is introduced by the friendly scheduling layer.
+
+## Friendly scheduling integration (2026-11-09)
+
+Merged c240922 in cdd0375; coordinator wiring ad81604. Feature readiness and 401 tests
+passed again; 409 combined tests passed, including 8 destination/conversation tests.
+No live service, schedule execution or provider call was activated.
+
+After saved setup and Telegram pairing:
+    senai cron create
+asks name, task, first run (for example today at 10pm, tomorrow at 1 am, in 2 minutes),
+recurrence, authorized destination, then a complete timezone-aware preview and yes/no.
+Nothing is saved until confirmation. Non-TTY use requires the documented full flags.
+The CLI reads existing local authorization without polling Telegram. It supplies matching
+Destination options and the account-specific authorized store. Revocation is rechecked
+on create. No usable destination means a clear error, not an unsendable local task.
+With one eligible account, account-store management is selected automatically; multiple
+accounts require an explicit selection. --telegram-account remains available.
+--local selects the advanced local store explicitly. Full create flags with --scope
+retain their legacy local behavior unless --telegram-account is explicitly selected.
+
+In a cron-enabled bot:
+    /cron create
+asks name -> task -> first run -> repeat -> preview -> yes/no. Delivery is fixed to
+that authorized private chat. /cancel discards the ephemeral draft; timeout is ten
+minutes from creation. Drafts are per-user and disappear on process restart.
+Duplicate updates do not create twice. Revocation cancels the draft. Invalid time/
+repeat input retries the same question with actionable help. Confirmation revalidates
+the previewed fixed instant and authorization. JSON advanced creation remains supported.
+
+Both interfaces consume shared parse_when/build_draft/preview_draft/commit_draft; there
+is no second date parser. Existing claim/retry/deadline/delivery/session semantics remain.
+Saving does not start a worker. Normal senai telegram start opts into the existing cron
+loop; no bot was started or restarted during this integration.
+
+Evidence:
+- feature outputs/cron-qa/coordinator-ux-review.log
+- main outputs/friendly-routing-red.log and friendly-routing-green.log
+- main outputs/friendly-cron-combined.log
+
+Manual checks for later: create from CLI and Telegram, cancel, enter an invalid/past time,
+confirm the resolved local timezone/time and destination, and verify list/show use the
+same account store. Live UX acceptance is still pending explicit operator testing.

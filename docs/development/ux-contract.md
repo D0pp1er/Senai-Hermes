@@ -68,3 +68,5 @@ No root doc edits from feature chats. TDD, small commits, full suite and --ready
 No push, rebase/reset, prod bot restart, real scheduler activation or secret disclosure.
 
 Coordinator final composition must pin the configured installation/context at bot startup so changing active defaults in another checkout cannot silently retarget a running bot. Wizard/profile helpers and final account destination selection remain pending feature delivery.
+
+Cron composition is now implemented on main in ad81604: senai/cron_chat.py owns the ephemeral conversation adapter called by TelegramCron.handle; integrations should reuse that path rather than implementing a second /cron wizard. senai/cron_routing.py supplies authorization-backed Destination/store composition. Profile shortcuts remain separate pending work.

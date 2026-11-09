@@ -92,3 +92,7 @@ Refreshed portable README/setup/command/compatibility/architecture/manual accept
 Implemented coordinator saved defaults, initial setup/profile paths, short Telegram aliases and setup script. Six focused tests pass. Feature prompts: outputs/ux-prompts/. Contract: docs/development/ux-contract.md. Conversational scheduling/time parsing and short profile commands are delegated, not complete. Removed duplicated historical guide copies (Git history retained); governance and active feature contracts preserved. No production services or configuration changed.
 
 Coordinator validation: 376 offline tests passed (outputs/ux-defaults-regression.log); bash syntax check passed for scripts/setup_senai.sh. Actual installer, OS dependency installation and live onboarding were not executed. No push performed.
+
+## Friendly cron composition (2026-11-09)
+
+Integrated friendly cron through c240922 (merge cdd0375, wiring ad81604). Authorized CLI destinations match account stores, with revocation checks at save; Telegram uses shared draft helpers for sequential creation, preview/confirmation/cancel/timeout and duplicate suppression. Saved timezone and explicit advanced local workflows preserved. Feature readiness/401 tests and combined 409 tests passed. No push, bot restart, live scheduling or production-state QA.

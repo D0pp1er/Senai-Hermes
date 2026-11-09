@@ -26,7 +26,7 @@ Use senai --help and each command's --help for exact arguments.
 Telegram: /pair CODE, /help, /run REQUEST, /status, /result, /session,
 /voice QUESTION and bare /voice. Success sends audio only; unavailable/failed audio
 falls back to text. /result explicitly returns text. There is no /new/reset command.
-Structured /cron management needs --enable-cron; see the cron guide.
+/cron create asks sequential questions with natural time input, preview, confirmation, /cancel and timeout. Cron management needs --enable-cron (included by senai telegram start); JSON remains an advanced option. See the cron guide.
 
 Memory: remember, add/update/list/delete/context, profile-show/propose/apply,
 session-context, evaluate-events. evaluate-events is a dry run, never trusted approval.

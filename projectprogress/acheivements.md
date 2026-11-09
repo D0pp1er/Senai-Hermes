@@ -104,3 +104,7 @@ Integrated 929a2ea in b6c56f7; successful-outcome evaluator wiring 4ffc1aa. Pers
 ## New-user documentation and compatibility audit (2026-11-09)
 
 Refreshed portable README/setup/command/compatibility/architecture/manual acceptance guides. Preserved earlier guides under projectprogress/history and labeled workstream records as historical. Parameterized contributor templates and removed user-wide install advice. Runtime source/scripts contain no developer-specific home paths. Updated CLI help to include memory and cron. Main and isolated fresh-checkout suites: 370 passed each. Local fresh clone dependency/install/entry-point checks passed; host ensurepip limitation is disclosed. No live providers, bot state or services used. No push performed.
+
+## Friendly cron composition (2026-11-09)
+
+Integrated friendly cron through c240922 (merge cdd0375, wiring ad81604). Authorized CLI destinations match account stores, with revocation checks at save; Telegram uses shared draft helpers for sequential creation, preview/confirmation/cancel/timeout and duplicate suppression. Saved timezone and explicit advanced local workflows preserved. Feature readiness/401 tests and combined 409 tests passed. No push, bot restart, live scheduling or production-state QA.
