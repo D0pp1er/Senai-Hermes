@@ -1,7 +1,8 @@
 # Senai presentation
 
-Eight chapters: introduction, setup, CLI, student/BJJ/AI profiles, Telegram, cron,
-UFC fixtures skill and Obsidian. Buildless HTML/CSS/JS with no external font/library,
+The main eight-chapter walkthrough covers introduction, setup, CLI, student/BJJ/AI
+profiles, Telegram, cron, UFC fixtures skill and Obsidian. The linked development.html
+page has six chapters on milestones, TDD, architectural choices, lessons and evidence. Buildless HTML/CSS/JS with no external font/library,
 tracking, server or credential form. All accounts/commands are local to the reader.
 
 ## Preview
@@ -35,10 +36,11 @@ Pages availability. Do not change repository visibility merely to publish this p
 
 ## Updating
 
-Edit index.html, styles.css or app.js. Keep assets/ufc-fixtures/SKILL.md aligned with
+Edit index.html, development.html, styles.css or app.js. Keep assets/ufc-fixtures/SKILL.md aligned with
 the displayed workflow. The fixture example researches official live sources when run;
 no actual upcoming event list is embedded. Source: [UFC events](https://www.ufc.com/events).
 Instructions/provenance do not make the resulting model output independently verified.
 
-Check all eight navigation anchors, presenter next/previous/Escape, copy feedback,
+Check navigation on both pages (eight walkthrough chapters, six development chapters),
+presenter next/previous/Escape, copy feedback,
 mobile horizontal overflow, print layout and the downloadable skill before presenting.

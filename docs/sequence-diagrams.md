@@ -1,7 +1,8 @@
 # Four module sequence diagrams
 
 These describe the integrated execution paths. Message labels avoid literal semicolons,
-which Mermaid treats as statement separators. For component/storage boundaries, see
+which [Mermaid treats as statement separators](https://mermaid.js.org/syntax/sequenceDiagram#entity-codes-to-escape-characters). View the fenced diagrams on GitHub or in a Mermaid-enabled Markdown viewer.
+For component/storage boundaries, see
 [architecture](architecture.md); for exact commands, see [README](../README.md).
 
 ## 1. Chat and integrations: Senai owns input, history and response

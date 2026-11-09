@@ -12,7 +12,7 @@ Provider access and live behavior must be verified with your account.
 
 For manual acceptance or a project presentation, use the [all-feature demonstration guide](docs/all-features-demonstration.md) and [142-case fillable checklist](docs/all-features-checklist.csv). They cover onboarding, coding, sessions, profiles, Telegram, media/voice, scheduling, skills and recovery, with offline/live checks marked separately.
 
-Presentation: [eight-step walkthrough and Pages setup](docs/presentation/README.md). The site source is in docs/presentation/; publishing is handled by the included GitHub Pages workflow.
+Presentation: [eight-step walkthrough and Pages setup](docs/presentation/README.md). The site source is in docs/presentation/; publishing is handled by the included GitHub Pages workflow. The linked development page explains milestones, implementation choices and recorded verification.
 
 ## 1. Install once
 

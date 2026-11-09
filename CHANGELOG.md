@@ -1,5 +1,10 @@
 # Changes
 
+## Development presentation page
+- Added linked development.html with six chapters: original scope, commit-backed milestones, TDD/composition workflow, architecture tradeoffs, manual-QA lessons and evidence/limitations.
+- Reused the existing presenter/clipboard code and added responsive timeline/table styling. Kept the eight-step usage walkthrough separate.
+- Verified HTTP 200 and local links/IDs/copy targets on both pages, every linked milestone commit as an ancestor of main, and presenter/keyboard/clipboard behavior in isolated JavaScript checks. Browser visual acceptance remains unverified; no GitHub deployment or runtime changes.
+
 ## Sequence diagram repair
 - Reproduced parse failures in all four diagrams using the pinned Mermaid 11.4.1 parser. Literal semicolons in message/note labels were treated as statement separators.
 - Replaced those separators with commas; all four diagrams now pass that parser. QA-only parser/before-source files are under outputs/sequence-qa. No runtime behavior changed.
