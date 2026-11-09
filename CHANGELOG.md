@@ -1,5 +1,9 @@
 # Changes
 
+## Sequence diagram repair
+- Reproduced parse failures in all four diagrams using the pinned Mermaid 11.4.1 parser. Literal semicolons in message/note labels were treated as statement separators.
+- Replaced those separators with commas; all four diagrams now pass that parser. QA-only parser/before-source files are under outputs/sequence-qa. No runtime behavior changed.
+
 ## GitHub Pages presentation
 - Added a self-contained eight-chapter static walkthrough: introduction, install, CLI/chat, CS-student/BJJ/AI profiles, Telegram, guided cron, UFC fixtures skill and Obsidian.
 - Added presentation mode, chapter/keyboard controls, command copy buttons, responsive/print CSS and a downloadable human-authored UFC skill. Fixture data is fetched only when the user runs it; no fabricated upcoming schedule.
