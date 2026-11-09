@@ -1,5 +1,10 @@
 # Changes
 
+## All-feature manual QA
+- Added complete onboarding/coding/native session/memory/Telegram/voice/photo/cron/skills/architecture demonstrations and a 134-case fillable checklist.
+- Replaced the outdated core-only manual entry point with links to the comprehensive plan; marked live opt-in and offline failure-injection evidence separately.
+- Documentation checks only: CSV shape/IDs, shell syntax, embedded Python and local links. No live tasks, bot restarts, schedules or regression rerun.
+
 ## Skills manual demonstration guide
 - Added a step-by-step viewer guide and 48-case fillable CSV covering selection, outcomes, checked learning, revisions, rollback and Obsidian.
 - Marked synthetic, network, live Codex and UI checks separately; manual cases were not executed while writing this documentation.

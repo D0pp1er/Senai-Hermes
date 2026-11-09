@@ -10,6 +10,8 @@ not supported directly on Windows; use WSL. Other platforms remain unverified.
 Latest combined offline suite: **622 passing tests**. Skills merge 0667ad5; shared wiring 57d6c2e.
 Provider access and live behavior must be verified with your account.
 
+For manual acceptance or a project presentation, use the [all-feature demonstration guide](docs/all-features-demonstration.md) and [134-case fillable checklist](docs/all-features-checklist.csv). They cover onboarding, coding, sessions, profiles, Telegram, media/voice, scheduling, skills and recovery, with offline/live checks marked separately.
+
 ## 1. Install once
 
 Prerequisites: Git, Python with venv support, and installed/authenticated Codex CLI.

@@ -1,5 +1,7 @@
 # Skills manual QA and project-viewer demonstration
 
+For the whole harness, use the [all-feature guide](all-features-demonstration.md) and [combined checklist](all-features-checklist.csv).
+
 Use this guide with [the fillable CSV](skills-demo-checklist.csv). It covers the skills
 workstream and its shared CLI/session integration, not just one successful model reply.
 For coding/memory/Telegram/cron outside skills, also use [core manual QA](manual-testing.md).
