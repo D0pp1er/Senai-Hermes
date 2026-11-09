@@ -19,3 +19,13 @@
 - [x] Dry-run CLI and integrated success-only callback behavior tests.
 - [x] Exact-commit regression and readiness evidence.
 - Coordinator-owned: evidence collection, confirmation UI and callback activation.
+
+## Profile UX objectives
+
+- [x] Injectable profile_main for memory/user/soul add/show/path/setup.
+- [x] TTY examples and prompt; actionable non-TTY errors without hanging.
+- [x] Explicit setup, precise paths, validation/capacity/conflicts and preservation.
+- [x] Human-only SOUL shortcut and unchanged automatic learning rules.
+- [x] Module README and standalone CLI demo; advanced API compatibility.
+- [ ] Full current-revision regression/evidence and --ready.
+- Coordinator-owned: root shortcuts, onboarding/defaults and integrations /new.

@@ -100,3 +100,13 @@ and content validation. No history or new storage. USER categories require expli
 retention confirmation even after repeated observations; verified significant milestones
 may qualify without user confirmation. Existing InstallationRuntime learning callback
 can adapt proposals to LearningDecision; this feature does not wire evidence collection.
+
+## Human profile UX
+
+profile_commands.py exposes profile_main and setup_profiles, without defaults inference
+or SQLite initialization. All parser help/errors use injected streams. TTY missing-text
+prompts are bounded; non-TTY input is never read implicitly. Explicit human appends use
+existing proposals, revision checks, profile lock and atomic writes. Read-only show/path
+can inspect missing profiles without creating state. setup_profiles is the explicit
+idempotent creation path. profile_cli.py supplies an independent demo wrapper. Root
+routing and /new remain coordinator-owned; see latest integration-notes.md.
