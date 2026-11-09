@@ -7,10 +7,10 @@ tasks with authorized delivery.
 **Verified baseline:** WSL2 Ubuntu 22.04, Python 3.10, Codex CLI 0.167.0.
 Python >=3.10 is required. The full harness uses POSIX locks/process groups and is
 not supported directly on Windows; use WSL. Other platforms remain unverified.
-Latest recorded combined offline suite: **622 passing tests** (historical run; see CHANGELOG).
+Latest recorded combined offline suite: **635 passing tests** (historical run; see CHANGELOG).
 Provider access and live behavior must be verified with your account.
 
-For manual acceptance or a project presentation, use the [all-feature demonstration guide](docs/all-features-demonstration.md) and [134-case fillable checklist](docs/all-features-checklist.csv). They cover onboarding, coding, sessions, profiles, Telegram, media/voice, scheduling, skills and recovery, with offline/live checks marked separately.
+For manual acceptance or a project presentation, use the [all-feature demonstration guide](docs/all-features-demonstration.md) and [142-case fillable checklist](docs/all-features-checklist.csv). They cover onboarding, coding, sessions, profiles, Telegram, media/voice, scheduling, skills and recovery, with offline/live checks marked separately.
 
 ## 1. Install once
 
@@ -418,21 +418,57 @@ snapshot cleanup, textual redaction rather than general secret detection, no liv
 Obsidian watcher, no Telegram management UI, no guarantee of broad behavioral improvement.
 
 
-## 6. Native interactive modes
+## 6. Persistent Senai chat and native modes
 
 ~~~bash
 senai chat
+senai chat --history
+senai chat --sessions
+senai chat --new
+~~~
+
+Chat now uses the same Senai request pipeline as quoted coding requests: output scope,
+selected skill context, installation memory, native execution, response capture and
+confirmed/trusted outcome learning. Reopening senai chat resumes its saved native UUID.
+Within chat, use /help, /history, /history all, /sessions, /resume LOCAL_SESSION_ID,
+/new or /exit. You can also use senai chat --session LOCAL_SESSION_ID. Local session
+IDs are shown by /sessions; ordinary CLI --resume still takes a native UUID.
+
+History is retained at PROJECT/outputs/.senai-chat/history.sqlite3 (directory 0700,
+database 0600). Each user turn is persisted before execution; the final answer is saved
+before display. The transcript spans local sessions; /new starts fresh model context
+with current profiles while keeping older transcripts visible through /history all.
+Archived transcripts are not silently reinserted into a fresh model prompt. Resuming
+an old session preserves its frozen memory snapshot. One CLI chat runs per project.
+
+Chat history is partitioned by the pinned installation root. It is separate from
+Telegram's existing shared UUID/history; this change does not adopt or reset that bot.
+Only turns sent through Senai chat enter this transcript; old native UI/one-off transcripts
+are not imported automatically. Profiles still share approved facts installation-wide.
+If memory is not configured, chat warns; run senai setup to enable it.
+
+Failed/interrupted turns are retained as unknown; reopening never replays them. Inspect
+/history and effects before explicitly using /new. An unfinished turn found after a crash
+also becomes unknown under the chat lock. Chat rejects --json, --ephemeral, --last and
+arbitrary native --resume; use its managed local sessions instead. The transcript contains
+your conversation in local plaintext: do not enter credentials or commit its database.
+
+Native tools remain explicit:
+
+~~~bash
 senai review --uncommitted
 senai review --base main
 senai codex -- --version
 senai codex -- exec --help
+senai codex -- --no-alt-screen
 ~~~
 
-These delegate to installed Codex. Native interactive/review/passthrough does not
-inject Senai semantic memory. Review is Git-repository scoped and may include a
-parent repository. Workspace expansion/relocation flags are rejected.
-Memory-enabled ordinary requests require exact --resume UUID; --last/--ephemeral
-are not supported in that mode. outputs/ is a policy, not a separate filesystem jail.
+Native interactive/review/passthrough delegate to installed Codex without Senai memory
+injection or local chat transcript recording. Review is Git scoped and may include a
+parent repository; workspace expansion/relocation flags are rejected. outputs/ is a
+policy, not a separate filesystem jail.
+
+Execution details: [four sequence diagrams](docs/sequence-diagrams.md).
 
 ## 7. CLI/API smoke-test guide
 
@@ -534,11 +570,12 @@ Module guides:
 - [Cron usage and architecture](senai/cron/README.md)
 - [Skills usage and architecture](senai/skills/README.md)
 - [Detailed architecture and storage](docs/architecture.md)
+- [Four module sequence diagrams](docs/sequence-diagrams.md)
 - [Cron operation and recovery](docs/cron-recovery.md)
 
 ## 9. Delivery status and limitations
 
-The last recorded combined suite passed 622 offline tests using disposable state and
+The last recorded combined suite passed 635 offline tests using disposable state and
 provider fixtures. That evidence does not prove live provider access; record your own
 results in the [all-feature checklist](docs/all-features-checklist.csv). Merge and
 per-feature verification history is retained in [CHANGELOG](CHANGELOG.md).

@@ -1,5 +1,11 @@
 # Changes
 
+## Persistent Senai chat
+- Replaced direct native interactive chat with a Senai loop using shared execute_request: workspace/options, selected skills, frozen installation memory, native execution and outcome learning.
+- Added private project-local SQLite transcripts, installation-partitioned local sessions, exact native UUID resume, /history all, /sessions, /resume, /new and explicit uncertain-turn fencing. Telegram state/session unchanged.
+- TDD: 11 behavior tests failed against old native routing; 16 chat tests now pass, including a real offline Codex child, reopen/frozen snapshots, learning, selected skill outcomes, crash recovery, locks and mapping/symlink integrity. Full isolated regression: 635 passed. Logs: outputs/chat-red.log, chat-green.log, chat-combined-regression.log.
+- Added four module sequence diagrams and expanded manual acceptance to 142 cases. Live Codex/Telegram checks were not run; no production state, restart, push or deployment.
+
 ## Documentation cleanup
 - Removed 12 duplicate/stale navigation, setup, scorecard and aggregate-progress files; replaced historical cron/learning guides with current operational docs. Git retains prior versions.
 - Kept one 134-case scorecard, comprehensive feature and skills walkthroughs, detailed module architecture and recovery contracts. Refreshed integrated module guidance and requirement statuses.

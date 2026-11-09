@@ -14,9 +14,11 @@ CLI / Telegram message
   -> confirmed/trusted learning + authorized delivery
 ~~~
 
-The CLI accepts quoted requests or stdin. codex.py runs native execution and captures
+The CLI accepts quoted requests or stdin. senai chat calls the same execute_request
+function with persisted local turns/native IDs, including skill/memory context and
+outcome learning. It no longer launches native interactive Codex directly. codex.py runs native execution and captures
 the final answer separately from diagnostics; failures propagate. JSON/native options
-are preserved within workspace constraints. Native chat/review/passthrough delegate
+are preserved within workspace constraints. Native interactive passthrough/review delegate
 to Codex separately and do not inject Senai semantic memory. outputs/ is a scope policy,
 not a separate filesystem jail; review is Git scoped.
 
@@ -24,7 +26,7 @@ not a separate filesystem jail; review is Git scoped.
 
 | Module | Responsibility |
 | --- | --- |
-| cli.py, defaults.py, onboarding.py | Routing, saved configuration, setup and short commands |
+| cli.py, defaults.py, onboarding.py, chat.py, chat_store.py | Routing, saved configuration, setup and short commands |
 | workspace.py, prompts.py, codex.py, native.py | Workspace validation, instructions, native process/option handling |
 | memory/, memory_runtime.py, outcome_learning.py | Human profiles, detailed facts, frozen sessions, confirmed/trusted learning |
 | skill_ui.py, skill_context.py, skills/ | Explicit package selection, immutable context, digest outcomes, checked proposals/history |
@@ -92,6 +94,14 @@ exactly once. See [cron module](../senai/cron/README.md) and [recovery](cron-rec
 | INSTALLATION/outputs/.senai-memory/ | Human profiles, detailed facts and frozen native snapshots |
 | PROJECT/outputs/ | Generated artifacts, jobs/conversations/media, cron state, skill registry/settings/context |
 | Separate module SQLite stores | Additive module-local migrations; no shared global migration counter |
+
+CLI chat transcripts live in PROJECT/outputs/.senai-chat/history.sqlite3, partitioned
+by installation root and protected by a project-local chat lock. Pending turns persist
+before execution; final replies persist before display. Crash-interrupted turns become
+unknown, never automatic retries. /new archives the prior conversation by retaining it
+and selecting a fresh one. Telegram state/session mappings stay separate.
+
+See [four module sequence diagrams](sequence-diagrams.md).
 
 No import/install starts a poller, schedule, daemon or API connection. Ctrl+C/SIGTERM
 stops new claims and waits for bounded active work. Saved pending results survive restart.

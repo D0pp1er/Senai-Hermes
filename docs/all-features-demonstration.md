@@ -98,24 +98,44 @@ senai --skill YOUR_INSTALLED_NATIVE_SKILL "Use this workflow"
 Use actually supported configuration/files and verify behavior. Native --skill is
 separate from imported registry skills. Option acceptance alone is not feature success.
 
-## 3. Sessions and native modes (N01–N06)
+## 3. Persistent Senai chat, sessions and native modes (N01–N06, P01–P08)
 
-Find thread.started in events.jsonl and copy its native UUID:
+The ordinary request's events.jsonl still exposes a native thread.started UUID:
 
 ~~~text
-senai --resume ACTUAL_UUID "What did hello.py print after the edit?"
-senai chat
-senai codex -- --version
-senai codex -- exec --help
+senai --resume ACTUAL_NATIVE_UUID "What did hello.py print after the edit?"
 ~~~
 
-Expected: exact resumed UUID/prior context; native UI exits normally; installed help.
-Native chat/review/passthrough do not inject Senai semantic memory. Memory-enabled
-ordinary requests require explicit --resume UUID; --last/--ephemeral are unsupported.
-
-For native review create a disposable Git fixture:
+For conversational use, start the Senai-owned chat loop:
 
 ~~~bash
+senai chat
+~~~
+
+Send a benign code request and a follow-up. Use /history and /sessions, then /exit.
+Reopen senai chat: follow-up context and the exact saved native UUID must persist.
+Run senai chat --history after exit: earlier user/assistant turns are still stored.
+It reads the transcript without a model call.
+
+Inside chat, /new starts fresh model context while /history all retains the old turns.
+Edit a profile before /new, ask about the new note without including its value, and
+verify fresh loading. Copy an old LOCAL chat ID from /sessions and use /resume LOCAL_ID,
+or senai chat --session LOCAL_ID: the original frozen snapshot/native UUID is reused.
+Local chat IDs and native UUIDs are distinct; --resume is for ordinary CLI requests,
+not the managed chat loop. Archived transcripts are readable, not silently reinserted
+into a new model session. Only turns made through Senai chat enter its transcript.
+
+Inspect PROJECT/outputs/.senai-chat/history.sqlite3 and its directory permissions
+(0600/0700). Memory, selected skills and successful-outcome learning must pass through
+the shared pipeline. An unknown turn blocks further automatic execution in that local
+session; inspect effects and explicitly /new. Use offline fixtures for crash, lock,
+installation isolation and native-ID mismatch checks. Telegram state remains separate.
+
+Native review/passthrough are still explicit, without Senai memory/transcript injection:
+
+~~~bash
+senai codex -- --version
+senai codex -- exec --help
 mkdir -p "$QA/review-project"
 git -C "$QA/review-project" init
 printf 'print("review fixture")\n' > "$QA/review-project/example.py"
@@ -123,8 +143,11 @@ git -C "$QA/review-project" add example.py
 senai review --project "$QA/review-project" --uncommitted
 ~~~
 
-Assess actual review relevance. Review is Git scoped and may include parent repositories.
-Workspace expansion/relocation flags are rejected; exercise combinations offline.
+Assess review relevance. Review is Git scoped and may include parent repositories.
+Workspace-expansion flags are rejected. For the old native interactive UI, explicitly
+use senai codex -- --no-alt-screen; it does not enter the Senai chat pipeline.
+Memory-enabled ordinary CLI resume requires an exact native UUID. Chat instead manages
+its IDs and rejects --last, --ephemeral, --json and arbitrary native --resume.
 
 ## 4. Memory, user and soul profiles (M01–M12)
 
@@ -388,8 +411,8 @@ cron wizard -> confirmation -> durable schedule/claim
 
 Profiles/snapshots are installation-wide. Registry/jobs/media/cron are project scoped;
 credentials stay outside Git. /new shares an execution gate with cron. Startup context
-is pinned: changing defaults cannot silently retarget running executors. Native modes
-are separate from ordinary memory/skill-context injection. Senai offers CLI/Python APIs,
+is pinned: changing defaults cannot silently retarget running executors. Native review/passthrough modes are separate from ordinary memory/skill-context
+injection; Senai chat now shares the ordinary pipeline. Senai offers CLI/Python APIs,
 not HTTP endpoints. See [README architecture/API](../README.md).
 
 Run isolated regression and retain real status:
@@ -399,7 +422,7 @@ set -o pipefail
 python scripts/test.py 2>&1 | tee "$QA/offline-tests.log"
 ~~~
 
-Record count/commit; historical 622 is not a claim about an unrun checkout. Fixtures
+Record count/commit; historical counts are not a claim about an unrun checkout. Fixtures
 exercise transport ambiguity, gate races, migrations, snapshots and safe learning.
 They do not establish live provider permissions or universal model reliability.
 

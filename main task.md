@@ -40,7 +40,7 @@ No credentials are copied into this repository.
 | ID | Task | Status | Verifiable approach / TDD |
 | --- | --- | --- | --- |
 | S1 | Source code plus setup/execution instructions | Done, maintain | Fresh editable install, senai --help, tests, and disposable live demo. |
-| S2 | Architecture, features, decisions, and limitations | Documented; research/deck acceptance remains separate | README, docs/architecture.md and the 134-case manual checklist describe integrated behavior and limits. Verify live claims using actual evidence. |
+| S2 | Architecture, features, decisions, and limitations | Documented; research/deck acceptance remains separate | README, docs/architecture.md and the 142-case manual checklist describe integrated behavior and limits. Verify live claims using actual evidence. |
 | S3 | Complete development chat history | Pending export | Same acceptance check as D5; export and review for completeness before submission. |
 | S4 | Google Slides demonstration and design discussion | Pending | Create deck covering demonstration, decisions, successes, and failures; verify each claim with demo evidence. Check rendering/readability and user account access for upload. No unit tests for slide prose. |
 
@@ -63,7 +63,7 @@ No credentials are copied into this repository.
 - [x] Web search (tests/test_search.py).
 - [x] Explicit installed-skill selection (tests/test_skills.py).
 - [x] Session resumption (tests/test_resume.py).
-- [x] Interactive Codex workflow (tests/test_chat.py; terminal handoff, native slash commands/tools).
+- [x] Persistent Senai chat (tests/test_chat.py; shared memory/skill pipeline, exact resume and durable local transcripts).
 - [x] Dedicated read-only code review (tests/test_review.py).
 - [x] Native command forwarding (tests/test_native.py); delegated behavior still depends on installed Codex.
 
