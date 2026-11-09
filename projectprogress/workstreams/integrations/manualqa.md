@@ -166,3 +166,5 @@ activating real schedules in this workstream. Natural date/DST ambiguity is the 
 owner's acceptance check; no competing date parser has been claimed here.
 
 Final candidate UX evidence: 42 focused / 418 combined tests PASS. Additional crash recovery verifies /cancel clears only stale confirmation state, warns to review /cron list or /session, preserves committed history, and does not auto-expire uncertainty into another action.
+
+Final exact-commit UX rerun: 4bb15ca2a32c42d22a30d98bd48859f218ef1c2f, 418 full tests PASS; focused log 42 tests PASS. Evidence: outputs/qa-integrations/ux-regression.log and ux-focused.log. Dependency/scope/whitespace checks PASS. Final readiness command included in delivery.json. Records-only commit follows.

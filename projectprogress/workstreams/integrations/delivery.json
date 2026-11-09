@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "feature": "integrations",
-  "status": "draft",
+  "status": "ready",
   "modules": [
     "senai.integrations.contract",
     "senai.integrations.telegram",
@@ -131,27 +131,35 @@
     "development": []
   },
   "storage": {
-    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git",
+    "namespace": "Bot/project outputs Telegram state; media.sqlite3 and media/<job>/ snapshots separate from jobs DB; optional credentials at XDG_CONFIG_HOME/senai/voice/<project-hash>.json outside project/Git; conversations.sqlite3 beside bot/project state with namespace/draft records and reserved sessions history rows",
     "schema_version": 1,
     "migration_notes": "Additive independent uploads and voice_requests tables in media.sqlite3; existing Telegram jobs/users/sessions/cursors and text delivery_snapshots retained. No legacy data deletion. Optional version-1 protected voice JSON lives outside the project/Git, separate from Telegram credentials; no database migration. Additive voice_delivery(job_id,outcome) table in media.sqlite3 records audio/fallback decisions; existing jobs/media/text cursors and protected voice JSON untouched. Separate mode-600 conversations.sqlite3 namespace/drafts tables; existing sessions table reused for explicit telegram-history:<UUID> archived pointers. No new Telegram columns/deletion; old jobs/pairing/media/profile snapshots preserved."
   },
   "verification": {
     "offline_commands": [
       ".venv/bin/python -m unittest discover -s tests -v",
-      ".venv/bin/python -m unittest tests.integrations.test_telegram_voice -v",
+      ".venv/bin/python -m unittest tests.integrations.test_conversations tests.integrations.test_new_session tests.integrations.test_telegram_ux_memory -v",
       ".venv/bin/python scripts/check_workstream_scope.py --feature integrations --ready",
+      ".venv/bin/python -m pip check",
       "git diff --check"
     ],
     "offline_result": "passed",
     "offline_test_count": 418,
-    "tested_commit": "session UX candidate before commit",
+    "tested_commit": "4bb15ca2a32c42d22a30d98bd48859f218ef1c2f",
     "live_result": "not-run",
     "evidence_logs": [
-      "outputs/qa-integrations/voice-only-red.log",
-      "outputs/qa-integrations/voice-no-key-red.log",
-      "outputs/qa-integrations/voice-only-green.log",
-      "outputs/qa-integrations/voice-only-regression.log"
-    ]
+      "outputs/qa-integrations/ux-baseline.log",
+      "outputs/qa-integrations/conversation-red.log",
+      "outputs/qa-integrations/conversation-calendar-red.log",
+      "outputs/qa-integrations/new-session-red.log",
+      "outputs/qa-integrations/ux-memory-red.log",
+      "outputs/qa-integrations/ux-scope-red.log",
+      "outputs/qa-integrations/ux-field-red.log",
+      "outputs/qa-integrations/ux-cancel-red.log",
+      "outputs/qa-integrations/ux-focused.log",
+      "outputs/qa-integrations/ux-regression.log"
+    ],
+    "focused_test_count": 42
   },
   "integration": {
     "shared_file_changes": [

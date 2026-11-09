@@ -108,3 +108,12 @@ Fast-forwarded clean feature worktree to e4791e8 as authorized. Baseline 376 tes
 Cron conversation commit: 8d59901. Added explicit local /new permission and execution gate, atomic all-user pending/running checks, auth/expected-UUID confirmation and archived prior pointers. Preserved jobs/pairing/media and refused archived UUID rebinding. Added startup installation pin hook without changing legacy child-default behavior. Added combined source README, field-level JSON corrections and scope guards. RED: session_policy missing, pinned installation kwarg missing, fresh project-scope mismatch and invalid JSON/length UX. GREEN focused/full evidence follows.
 
 Final session UX increment: 42 focused UX tests and 418 combined tests PASS. Added interrupted-creation/reset cancellation recovery: clear only the draft, retain prior outcomes/history, require review and never auto-expire an uncertain receipt into a second action. Source README and coordinator hooks completed.
+
+## Final UX delivery evidence
+
+- 8d59901: guided cron conversation.
+- 4bb15ca: protected session transitions, context hook and module README.
+- Exact tested source: 4bb15ca2a32c42d22a30d98bd48859f218ef1c2f.
+- 418 combined tests / 42 focused UX tests PASS; scope, pip check, diff check PASS.
+- Ready for coordinator module review; parser/runtime wiring and live acceptance remain
+  explicit limitations. No shared source, production operation, merge or push.

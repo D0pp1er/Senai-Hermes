@@ -215,3 +215,5 @@ parser. Advanced ISO/calendar creation remains usable through the injected creat
 also requires explicit preview/Confirm. No live bot, real schedule or production state QA.
 
 Recovery detail: creating/uncertain receipts do not auto-expire. Explicit /cancel can clear only that receipt, warning that the earlier action may have completed and directing /cron list or /session review. Existing schedules/history are never deleted by cancellation. One router instance under the bot singleton serializes live callbacks.
+
+Final tested source: 4bb15ca (full hash in delivery.json), 418 combined and 42 focused tests pass. Source and worktree remain unmerged; coordinator hooks/parser/guard/context composition above are unapplied. Readiness means the owned module is reviewable, not that the live bot has the UX yet.
