@@ -8,7 +8,7 @@ from pathlib import Path
 from .codex import run_codex
 from .exec_flags import add_exec_flags, collect_exec_args
 from .options import CodexOptions
-from .native import chat_main, native_main, review_main, run_native
+from .native import native_main, review_main, run_native
 from .prompts import build_prompt
 from .workspace import prepare_workspace, resolve_output_path
 
@@ -16,7 +16,7 @@ from .workspace import prepare_workspace, resolve_output_path
 def build_parser():
     parser = argparse.ArgumentParser(
         description=__doc__, allow_abbrev=False,
-        epilog='Use senai chat for interactive Codex, senai review for code review, senai telegram for bot control, senai memory for profiles, senai cron for schedules, or senai codex -- <args> for native commands.',
+        epilog='Use senai chat for persistent Senai conversation, senai review for code review, senai telegram for bot control, senai memory for profiles, senai cron for schedules, or senai codex -- <args> for native commands.',
     )
     parser.add_argument('request', nargs='?', help='Quoted request, or - to read stdin.')
     parser.add_argument('--project', '-C', '--cd', default='.', help='Parent project directory; code goes in its outputs/ folder.')
@@ -34,6 +34,66 @@ def build_parser():
     parser.add_argument('--skip-git-repo-check', action='store_true', help='Allow execution outside a Git repository, as in Codex exec.')
     add_exec_flags(parser)
     return parser
+
+
+
+def execute_request(args, request, *, stdout, stderr, stdin, session_callback=None):
+    """Shared Senai scope -> skill/memory -> native execution -> learning pipeline."""
+    if args.worktree or args.add_dir:
+        raise ValueError('--worktree/--add-dir conflict with the outputs/ workspace policy.')
+    if args.approve_for_me and args.ask_for_approval:
+        raise ValueError('--approve-for-me cannot be combined with --ask-for-approval.')
+    prompt = build_prompt(request, skills=tuple(args.skill))
+    images = tuple(str(Path(image).expanduser().resolve()) for image in args.image)
+    for image in images:
+        if not Path(image).is_file():
+            raise ValueError(f'Image must be an existing file: {image}')
+    if args.output_schema:
+        schema = Path(args.output_schema).expanduser().resolve()
+        if not schema.is_file():
+            raise ValueError(f'Output schema must be an existing file: {schema}')
+        args.output_schema = str(schema)
+    workspace = prepare_workspace(args.project)
+    destination = str(resolve_output_path(workspace, args.output_last_message)) if args.output_last_message else None
+    sandbox = None if args.approve_for_me or args.dangerously_bypass_approvals_and_sandbox else (args.sandbox or 'workspace-write')
+    options = CodexOptions(
+        model=args.model, profile=args.profile, config=tuple(args.config), images=images,
+        search=args.search, resume=args.resume, last=args.last,
+        skip_git_repo_check=args.skip_git_repo_check, extra_args=collect_exec_args(args),
+        sandbox=sandbox, color=args.color, approval=args.ask_for_approval,
+        output_last_message=destination, json=args.json,
+    )
+    streams = {'stdout': stdout, 'stderr': stderr} if options.json else {}
+    from .skill_ui import selected_names
+    names=tuple(args.registry_skill) or selected_names(args.project)
+    executor=run_codex
+    if names:
+        from .skill_context import SkillContext
+        executor=SkillContext(args.project,names,request).wrap(run_codex)
+    if session_callback is not None:
+        downstream = executor
+        def observed(prompt, workspace, **kwargs):
+            prior = kwargs.pop('session_callback', None)
+            def bind(session):
+                if prior is not None:
+                    prior(session)
+                session_callback(session)
+            return downstream(prompt, workspace, session_callback=bind, **kwargs)
+        executor = observed
+    if args.installation:
+        from .memory_runtime import InstallationRuntime
+        confirmation = None
+        if stdin.isatty() and not options.json:
+            def confirmation(event):
+                print("Save this " + event.kind + " in USER.md? " + event.text +
+                      " [y/N]: ", file=stderr, end="", flush=True)
+                return stdin.readline().strip().lower() in ("y", "yes")
+        response = InstallationRuntime(args.installation).execute(
+            request, workspace, executor=executor, options=options,
+            skills=tuple(args.skill), confirmation=confirmation, **streams)
+    else:
+        response = executor(prompt, workspace, options=options, **streams)
+    return response
 
 
 def main(argv=None, stdout=None, stderr=None, stdin=None):
@@ -91,7 +151,10 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     if argv and argv[0] == 'telegram':
         from .telegram.cli import telegram_main
         return telegram_main(argv[1:], stdout, stderr)
-    routes = {'review': review_main, 'codex': native_main, 'chat': chat_main}
+    if argv and argv[0] == 'chat':
+        from .chat import chat_main
+        return chat_main(argv[1:], stdout, stderr, stdin)
+    routes = {'review': review_main, 'codex': native_main}
     if argv and argv[0] in routes:
         return routes[argv[0]](argv[1:], stdout, stderr)
     parser = build_parser()
@@ -106,47 +169,8 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
         if args.request is None and stdin.isatty():
             parser.error('a request is required; quote it or pipe it through stdin')
         request = stdin.read() if args.request in (None, '-') else args.request
-        prompt = build_prompt(request, skills=tuple(args.skill))
-        images = tuple(str(Path(image).expanduser().resolve()) for image in args.image)
-        for image in images:
-            if not Path(image).is_file():
-                raise ValueError(f'Image must be an existing file: {image}')
-        if args.output_schema:
-            schema = Path(args.output_schema).expanduser().resolve()
-            if not schema.is_file():
-                raise ValueError(f'Output schema must be an existing file: {schema}')
-            args.output_schema = str(schema)
-        workspace = prepare_workspace(args.project)
-        destination = str(resolve_output_path(workspace, args.output_last_message)) if args.output_last_message else None
-        sandbox = None if args.approve_for_me or args.dangerously_bypass_approvals_and_sandbox else (args.sandbox or 'workspace-write')
-        options = CodexOptions(
-            model=args.model, profile=args.profile, config=tuple(args.config), images=images,
-            search=args.search, resume=args.resume, last=args.last,
-            skip_git_repo_check=args.skip_git_repo_check, extra_args=collect_exec_args(args),
-            sandbox=sandbox, color=args.color, approval=args.ask_for_approval,
-            output_last_message=destination, json=args.json,
-        )
-        streams = {'stdout': stdout, 'stderr': stderr} if options.json else {}
-        from .skill_ui import selected_names
-        names=tuple(args.registry_skill) or selected_names(args.project)
-        executor=run_codex
-        if names:
-            from .skill_context import SkillContext
-            executor=SkillContext(args.project,names,request).wrap(run_codex)
-        if args.installation:
-            from .memory_runtime import InstallationRuntime
-            confirmation = None
-            if stdin.isatty() and not options.json:
-                def confirmation(event):
-                    print("Save this " + event.kind + " in USER.md? " + event.text +
-                          " [y/N]: ", file=stderr, end="", flush=True)
-                    return stdin.readline().strip().lower() in ("y", "yes")
-            response = InstallationRuntime(args.installation).execute(
-                request, workspace, executor=executor, options=options,
-                skills=tuple(args.skill), confirmation=confirmation, **streams)
-        else:
-            response = executor(prompt, workspace, options=options, **streams)
-        if not options.json:
+        response = execute_request(args, request, stdout=stdout, stderr=stderr, stdin=stdin)
+        if not args.json:
             print(response, file=stdout)
         return 0
     except (ValueError, RuntimeError, OSError) as exc:

@@ -62,8 +62,8 @@ def apply_defaults(argv,value):
  if first in ("memory","user","soul","setup"):return args
  extra=[]
  if value.get("project") and not has_project:extra+=["--project",value["project"]]
- if not special and value.get("installation") and not os.environ.get("SENAI_INSTALLATION_ROOT") and not any(v=="--installation" or v.startswith("--installation=") for v in options):
+ if (not special or first == "chat") and value.get("installation") and not os.environ.get("SENAI_INSTALLATION_ROOT") and not any(v=="--installation" or v.startswith("--installation=") for v in options):
   extra+=["--installation",value["installation"]]
- if (first == "telegram" or not special) and value.get("skip_git_repo_check") and not has_project and "--skip-git-repo-check" not in options:
+ if (first in ("telegram", "chat") or not special) and value.get("skip_git_repo_check") and not has_project and "--skip-git-repo-check" not in options:
   extra+=["--skip-git-repo-check"]
  return prefix+extra+tail

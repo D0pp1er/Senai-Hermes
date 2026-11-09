@@ -17,20 +17,6 @@ def run_native(arguments, workspace, *, stdout=None, stderr=None, sandbox='works
     return result.returncode
 
 
-def chat_main(argv, stdout, stderr):
-    parser = argparse.ArgumentParser(prog='senai chat', description='Start interactive Codex inside outputs/. Use /skills in the terminal.')
-    parser.add_argument('--project', default='.', help='Parent project directory.')
-    args = parser.parse_args(argv)
-    try:
-        workspace = prepare_workspace(args.project)
-        return run_native(['--no-alt-screen'], workspace, stdout=stdout, stderr=stderr)
-    except (ValueError, RuntimeError, OSError) as exc:
-        print(f'senai: {exc}', file=stderr)
-        return 2
-    except KeyboardInterrupt:
-        return 130
-
-
 def validate_native_args(arguments, workspace):
     """Keep explicit workspace/output flags consistent with the outputs policy.
 
