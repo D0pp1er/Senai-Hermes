@@ -21,7 +21,7 @@ photo/voice observations are historical, not guarantees for new users. Live
 supervised scheduled delivery still needs separately authorized acceptance.
 
 No automatic old-session memory adoption, snapshot refresh, autonomous milestone
-classifier, skill import/relearning, Discord or OS-installed service is shipped.
+classifier, automatic skill activation, Discord or OS-installed service is shipped.
 See [manual acceptance](manual-testing.md).
 
 ## Fresh-checkout audit
@@ -36,3 +36,7 @@ or a clean OS with every prerequisite installed.
 Evidence: outputs/fresh-clone-qa/report.json, install.log and regression.log.
 No live bot, native account state, speech call or scheduler was used.
 The GitHub clone route can include these changes only after main is pushed.
+
+## Explicit skills integration
+
+Project-scoped skill import, exact context/outcome hooks, checked acceptance, revision/rollback and explicit Obsidian export are now integrated. Native --skill stays independent. PyYAML==6.0.3 is required. Live evidence from the feature handoff is historical; the coordinator rerun uses offline fixtures and isolated configuration. Use python scripts/test.py to avoid loading your own defaults into unit tests.

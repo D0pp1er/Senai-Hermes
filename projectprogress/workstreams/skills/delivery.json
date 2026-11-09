@@ -328,5 +328,23 @@
     "Public GitHub full SHA-1 commits only; no private/arbitrary URL/archive imports, automatic updates or security scanner. Per-request timeout/rate limits apply; whole-repo tree size can limit acquisition.",
     "Ordinary runs standalone, not shared execution/session pipeline. File checks prove existence only; generated artifacts require explicit staged behavioral checks and acceptance to register as learned.",
     "Learning cases establish only declared expected results; source-run reports/check adapters are trusted local state, not cryptographically authenticated proof or weight training."
-  ]
+  ],
+  "coordinator_integration": {
+    "merge_commit": "0667ad5",
+    "wiring_commit": "57d6c2e",
+    "feature_test_count": 272,
+    "combined_test_count": 622,
+    "composition_test_count": 9,
+    "result": "passed",
+    "dependency_check": "passed",
+    "configuration_isolation": "scripts/test.py",
+    "live_checks_rerun": false,
+    "production_state_used": false,
+    "pushed": false,
+    "evidence": [
+      "outputs/skills-combined-regression.log",
+      "outputs/skills-composition-green.log",
+      "outputs/skills-install.log"
+    ]
+  }
 }
