@@ -67,7 +67,8 @@ class RuntimeTests(unittest.TestCase):
         prompts = []
         runtime.execute("hello", self.a, executor=self.executor(SID, prompts),
                         learning=lambda *args: [LearningDecision("MEMORY.md", "Release passed checks",
-                                                               noteworthy=True, verified=True)])
+                                                               noteworthy=True, verified=True, kind="milestone",
+                                                               source="validator", significant=True)])
         self.assertIn("Release passed checks", runtime.memory.snapshot("release").context)
         with self.assertRaises(ValueError):
             runtime.execute("hello", self.a, executor=self.executor(SID2, prompts),

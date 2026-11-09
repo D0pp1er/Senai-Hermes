@@ -96,9 +96,15 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
         streams = {'stdout': stdout, 'stderr': stderr} if options.json else {}
         if args.installation:
             from .memory_runtime import InstallationRuntime
+            confirmation = None
+            if stdin.isatty() and not options.json:
+                def confirmation(event):
+                    print("Save this " + event.kind + " in USER.md? " + event.text +
+                          " [y/N]: ", file=stderr, end="", flush=True)
+                    return stdin.readline().strip().lower() in ("y", "yes")
             response = InstallationRuntime(args.installation).execute(
                 request, workspace, executor=run_codex, options=options,
-                skills=tuple(args.skill), **streams)
+                skills=tuple(args.skill), confirmation=confirmation, **streams)
         else:
             response = run_codex(prompt, workspace, options=options, **streams)
         if not options.json:

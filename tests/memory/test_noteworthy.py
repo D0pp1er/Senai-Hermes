@@ -142,7 +142,9 @@ class NoteworthyTests(unittest.TestCase):
             event = self.event(confirmed=True)
             def learning(request, response, workspace):
                 return [LearningDecision(p.name, p.text, noteworthy=p.noteworthy,
-                                         verified=p.verified)
+                                         verified=p.verified, confirmed=event.confirmed,
+                                         kind=event.kind, source=event.source,
+                                         significant=event.significant)
                         for p in evaluate_noteworthy([event])]
             def executor(prompt, workspace, session_callback, **kwargs):
                 session_callback("126f40f5-325d-440e-ab17-fd4689193aee")

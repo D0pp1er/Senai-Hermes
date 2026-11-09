@@ -20,6 +20,10 @@ class LearningDecision:
     user_requested: bool = False
     noteworthy: bool = False
     verified: bool = False
+    confirmed: bool = False
+    kind: str | None = None
+    source: str | None = None
+    significant: bool = False
 
 
 class InstallationRuntime:
@@ -59,6 +63,8 @@ class InstallationRuntime:
     def requested_learning(request):
         # Telegram's trusted presentation wrapper keeps the original user message here.
         request = request.rsplit("\n\nUser message:\n", 1)[-1].strip()
+        if re.match(r"remember my (preference|habit|like|dislike|choice):", request, re.IGNORECASE):
+            return None
         if re.match(r"remember in SOUL\.md:", request, re.IGNORECASE):
             raise ValueError("SOUL.md is human-controlled; automatic learning cannot update it.")
         match = re.fullmatch(r"remember in (USER\.md|MEMORY\.md):\s*(.+)", request,
@@ -73,7 +79,7 @@ class InstallationRuntime:
         return None
 
     def execute(self, request, workspace, *, executor, options=None, skills=(),
-                learning=None, **streams):
+                learning=None, confirmation=None, **streams):
         requested = self.requested_learning(request)
         if requested is not None:
             validate_text(requested.text, "remembered fact", 4000)
@@ -102,8 +108,28 @@ class InstallationRuntime:
         decisions = []
         if requested is not None:
             decisions.append(requested)
-        if learning is not None:
-            decisions.extend(learning(request, response, Path(workspace)))
+        if learning is None:
+            from .outcome_learning import OutcomeLearning
+            learning = OutcomeLearning(self.memory, confirm=confirmation)
+        decisions.extend(learning(request, response, Path(workspace)))
+        # Validate the whole batch before applying any personal fact.
+        for decision in decisions:
+            if not isinstance(decision, LearningDecision):
+                raise ValueError("Learning requires a trusted app decision.")
+            if decision.name not in ("USER.md", "MEMORY.md"):
+                raise ValueError("SOUL.md remains human-controlled.")
+            if any(type(flag) is not bool for flag in (decision.user_requested, decision.noteworthy,
+                    decision.verified, decision.confirmed, decision.significant)):
+                raise ValueError("Learning decisions must be boolean.")
+            if not decision.user_requested:
+                if decision.name == "USER.md":
+                    if not (decision.confirmed and decision.source == "user"
+                            and decision.kind in ("preference","habit","like","dislike","choice")
+                            and (decision.kind != "choice" or decision.significant)):
+                        raise ValueError("Personal facts require explicit user confirmation.")
+                elif not (decision.kind == "milestone" and decision.source == "validator"
+                          and decision.significant and decision.verified):
+                    raise ValueError("Automatic memory requires a verified significant milestone.")
         for decision in decisions:
             if not isinstance(decision, LearningDecision):
                 raise ValueError("Learning requires a trusted app decision.")
