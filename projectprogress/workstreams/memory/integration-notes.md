@@ -178,3 +178,7 @@ Evidence:
 - outputs/qa-memory-installation/first-session.jsonl
 - outputs/qa-memory-installation/final-fresh-session.jsonl
 - outputs/qa-memory-installation/final-resume.jsonl
+
+## Confirmed memory learning (2026-11-09)
+
+Integrated 929a2ea in b6c56f7; successful-outcome evaluator wiring 4ffc1aa. Personal facts require explicit user retention confirmation; repetition never confirms. Only app-verified significant milestones qualify automatically. SOUL.md stays human-controlled. Installation-wide memory and frozen session snapshots preserved. Branch readiness/248 tests and combined 370 tests passed. See projectprogress/memory-learning.md. No push, deployment or production bot state used.

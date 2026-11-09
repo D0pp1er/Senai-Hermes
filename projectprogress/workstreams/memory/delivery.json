@@ -245,5 +245,21 @@
     "exact_native_resume": "passed",
     "production_bot_state_used": false,
     "evidence": "outputs/qa-memory-installation/acceptance.json"
+  },
+  "coordinator_noteworthy_integration": {
+    "merge_commit": "b6c56f7",
+    "wiring_commit": "4ffc1aa",
+    "feature_test_count": 248,
+    "evaluator_test_count": 13,
+    "coordinator_new_test_count": 12,
+    "combined_test_count": 370,
+    "combined_result": "passed",
+    "confirmation": "explicit save request or trusted interactive yes; no repetition inference",
+    "event_source": "authorized user input and app-configured bounded milestone checks; never model evidence flags",
+    "production_state_used": false,
+    "evidence": [
+      "outputs/outcome-learning-green.log",
+      "outputs/noteworthy-combined-regression.log"
+    ]
   }
 }

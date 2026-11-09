@@ -76,3 +76,7 @@ Reinstalling in this worktree's .venv includes the cron dependencies now present
 ## Git recovery completed (2026-11-09)
 
 Backed up and aborted an unnecessary interrupted main rebase; restored reviewed merge history at 80c9cb4. Set repository-local pull.rebase=false and pull.ff=only. Full regression: 345 tests passed (outputs/git-recovery-regression.log). Added projectprogress/parallel/GIT_WORKFLOW.md with normal push and recovery guidance. No application-code fix was needed. No push or production state changes performed.
+
+## Confirmed memory learning (2026-11-09)
+
+Integrated 929a2ea in b6c56f7; successful-outcome evaluator wiring 4ffc1aa. Personal facts require explicit user retention confirmation; repetition never confirms. Only app-verified significant milestones qualify automatically. SOUL.md stays human-controlled. Installation-wide memory and frozen session snapshots preserved. Branch readiness/248 tests and combined 370 tests passed. See projectprogress/memory-learning.md. No push, deployment or production bot state used.
