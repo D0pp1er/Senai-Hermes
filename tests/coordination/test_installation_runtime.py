@@ -176,6 +176,7 @@ Path(args[args.index("--output-last-message") + 1]).write_text("Memory: Unverifi
 
     def test_missing_configuration_retains_original_executor_contract(self):
         with patch.dict("os.environ", {}, clear=True), \
+             patch("senai.defaults.load_defaults", return_value={}), \
              patch("senai.cli.run_codex", return_value="unchanged") as run:
             code = main(["--project", str(self.a), "hello"], stdout=io.StringIO(),
                         stderr=io.StringIO())

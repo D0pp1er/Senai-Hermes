@@ -51,7 +51,7 @@ def apply_defaults(argv,value):
    action=args.pop(1)
    if aliases[action]:args.insert(1,aliases[action])
    if action=="start" and "--enable-cron" not in args:args.insert(1,"--enable-cron")
- groups={"cron","telegram","chat","review","codex"}
+ groups={"cron","telegram","chat","review","codex","skill","skills"}
  special=first in groups
  prefix=args[:1] if special else []
  tail=args[1:] if special else args
@@ -64,6 +64,6 @@ def apply_defaults(argv,value):
  if value.get("project") and not has_project:extra+=["--project",value["project"]]
  if not special and value.get("installation") and not os.environ.get("SENAI_INSTALLATION_ROOT") and not any(v=="--installation" or v.startswith("--installation=") for v in options):
   extra+=["--installation",value["installation"]]
- if first not in ("cron","chat","review","codex") and value.get("skip_git_repo_check") and not has_project and "--skip-git-repo-check" not in options:
+ if (first == "telegram" or not special) and value.get("skip_git_repo_check") and not has_project and "--skip-git-repo-check" not in options:
   extra+=["--skip-git-repo-check"]
  return prefix+extra+tail

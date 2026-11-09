@@ -26,6 +26,7 @@ def build_parser():
     parser.add_argument('-c', '--config', action='append', default=[], metavar='KEY=VALUE', help='Repeatable Codex configuration override.')
     parser.add_argument('-i', '--image', action='append', default=[], metavar='FILE', help='Attach an image (repeatable).')
     parser.add_argument('--search', action='store_true', help='Enable live Codex web search.')
+    parser.add_argument('--registry-skill',action='append',default=[],metavar='NAME',help='Select a saved project registry skill; independent of native --skill.')
     parser.add_argument('--skill', action='append', default=[], metavar='NAME', help='Mention an installed Codex skill (repeatable).')
     sessions = parser.add_mutually_exclusive_group()
     sessions.add_argument('--resume', metavar='SESSION', help='Continue a saved Codex session by id or name.')
@@ -52,6 +53,12 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
     except (ValueError, OSError) as error:
         print("senai: " + str(error), file=stderr)
         return 2
+    if argv and argv[0] == 'skill':
+        from .skill_ui import main as skill_main
+        return skill_main(argv[1:],defaults=defaults,stdin=stdin,stdout=stdout,stderr=stderr)
+    if argv and argv[0] == 'skills':
+        from .skills.cli import main as skills_main
+        return skills_main(argv[1:],stdout=stdout,stderr=stderr)
     if argv and argv[0] == 'cron':
         from contextlib import redirect_stdout, redirect_stderr
         from .cron_runtime import manage_cli as cron_main
@@ -120,6 +127,12 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
             output_last_message=destination, json=args.json,
         )
         streams = {'stdout': stdout, 'stderr': stderr} if options.json else {}
+        from .skill_ui import selected_names
+        names=tuple(args.registry_skill) or selected_names(args.project)
+        executor=run_codex
+        if names:
+            from .skill_context import SkillContext
+            executor=SkillContext(args.project,names,request).wrap(run_codex)
         if args.installation:
             from .memory_runtime import InstallationRuntime
             confirmation = None
@@ -129,10 +142,10 @@ def main(argv=None, stdout=None, stderr=None, stdin=None):
                           " [y/N]: ", file=stderr, end="", flush=True)
                     return stdin.readline().strip().lower() in ("y", "yes")
             response = InstallationRuntime(args.installation).execute(
-                request, workspace, executor=run_codex, options=options,
+                request, workspace, executor=executor, options=options,
                 skills=tuple(args.skill), confirmation=confirmation, **streams)
         else:
-            response = run_codex(prompt, workspace, options=options, **streams)
+            response = executor(prompt, workspace, options=options, **streams)
         if not options.json:
             print(response, file=stdout)
         return 0

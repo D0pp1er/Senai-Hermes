@@ -9,6 +9,7 @@ description = "A small Codex CLI wrapper for writing and editing code"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "PyYAML==6.0.3",
     "croniter==6.2.4",
     "python-dateutil==3.0.0",
     "six==1.17.0",
